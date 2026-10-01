@@ -1,0 +1,18 @@
+{
+  "camera_id": "CAM_001",
+  "zones": [
+    {
+      "name": "Restricted Zone",
+      "type": "restricted",
+      "polygon": [[0.1, 0.2], [0.6, 0.2], [0.6, 0.8], [0.1, 0.8]]
+    }
+  ],
+  "lines": [
+    {
+      "name": "Entry Line",
+      "p1": [0.0, 0.5],
+      "p2": [1.0, 0.5],
+      "positive_direction": "IN"
+    }
+  ]
+}
