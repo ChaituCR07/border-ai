@@ -1,0 +1,10 @@
+ultralytics
+opencv-python
+numpy
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+pyyaml
+shapely
+pytest

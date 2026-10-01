@@ -1,0 +1,17 @@
+model:
+  name: yolov8n.pt
+  device: auto            # auto | cpu | cuda:0
+  confidence: 0.4
+  iou: 0.5
+  image_size: 640
+  classes: [person, bicycle, car, motorcycle, bus, truck]
+
+tracker:
+  type: bytetrack
+  track_thresh: 0.5
+  match_thresh: 0.8
+  track_buffer: 30
+
+video:
+  target_fps: 15
+  resize_width: 1280

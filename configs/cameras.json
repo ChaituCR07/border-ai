@@ -1,0 +1,12 @@
+{
+  "cameras": [
+    {
+      "camera_id": "CAM_001",
+      "name": "North Gate",
+      "source_type": "file",
+      "source": "datasets/videos/sample_01.mp4",
+      "target_fps": 15,
+      "enabled": true
+    }
+  ]
+}
