@@ -1,0 +1,44 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+build/
+*.log
+
+# Environment
+.env
+.env.local
+
+# Models and data (never commit these)
+ai-engine/models/*
+!ai-engine/models/.gitkeep
+datasets/*
+!datasets/README.md
+!datasets/*/.gitkeep
+outputs/*
+!outputs/.gitkeep
+!outputs/*/.gitkeep
+*.mp4
+*.avi
+*.mkv
+*.pt
+*.onnx
+*.engine
+*.pth
+
+# Docker volumes / local data
+pgdata/
+redisdata/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
