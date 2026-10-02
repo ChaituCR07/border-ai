@@ -84,3 +84,6 @@ border-ai/
 
 ## 9. Privacy and Ethical Policy
 All video analytics testing must be conducted solely using authorized, synthetic, or publicly licensed surveillance datasets (COCO, MOT17, UFPR-ALPR). No unauthorized personal data is retained or processed.
+
+## 10. ONVIF Stream Discovery Note
+Automatic ONVIF camera discovery across the local subnet is currently modeled as an architectural interface stub (`ingestion/onvif/discovery.py`). Real-world IP-camera streams and credentials are configured explicitly via `configs/cameras.json` and `.env`.

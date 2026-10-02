@@ -4,8 +4,31 @@
       "camera_id": "CAM_001",
       "name": "North Gate",
       "source_type": "file",
-      "source": "datasets/videos/sample_01.mp4",
+      "source": "datasets/videos/person_walking.mp4",
       "target_fps": 15,
+      "resize_width": 1280,
+      "loop": true,
+      "realtime": true,
+      "enabled": true
+    },
+    {
+      "camera_id": "CAM_002",
+      "name": "East Road",
+      "source_type": "file",
+      "source": "datasets/videos/vehicles.mp4",
+      "target_fps": 15,
+      "resize_width": 1280,
+      "loop": true,
+      "realtime": true,
+      "enabled": true
+    },
+    {
+      "camera_id": "CAM_003",
+      "name": "South Perimeter (RTSP)",
+      "source_type": "rtsp",
+      "source": "rtsp://localhost:8554/cam3",
+      "target_fps": 15,
+      "resize_width": 1280,
       "enabled": true
     }
   ]
