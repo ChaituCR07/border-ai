@@ -4,7 +4,7 @@ The **AI Engine** is the core computer vision and intelligence processing subsys
 
 ---
 
-## 1. Directory Structure
+## 1. Directory Structure of AI Engine
 
 ```text
 ai-engine/
