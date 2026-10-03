@@ -38,3 +38,20 @@
 - **Sequential Compute Capacity:** Single-thread inference averages ~50 ms per frame = **20 inferences/second** maximum throughput.
 - **Consequence:** Under sequential host execution, `CameraManager` drops frames by design (~55% drop rate across 3 streams) to ensure zero buffer delay and real-time responsiveness.
 - **Optimization Roadmap (Day 4):** FP16 half-precision and batched multi-camera inference will be introduced to saturate the required 45 FPS budget.
+
+---
+
+## 5. Failure-Case Analysis & Edge Case Log
+
+| Clip / Context | Frame / Timestamp | Failure Mode | Class | Description | Evidence Image |
+|---|---|---|---|---|---|
+| `night.mp4` | Frame 45 | Missed Detection | `person` | Low-light contrast causes silhouette score to drop below 0.40 confidence | `docs/images/night_miss.jpg` |
+| `crowded.mp4` | Frame 60 | Overlap / Split Boxes | `person` | Partial occlusion of two adjacent pedestrians produces competing proposals | `docs/images/occlusion_split.jpg` |
+| Perimeter Fence | Frame 110 | False Positive | `truck` | Elongated fence shadow and guardrail cluster triggers spurious vehicle box | `docs/images/shadow_fp.jpg` |
+| Horizon Gate | Frame 15 | Missed Distant Object | `person` | Distant subject occupies fewer than 15x20 pixels; missed by 640px backbone | `docs/images/distant_person.jpg` |
+| Highway Lane | Frame 78 | Class Ambiguity | `car` / `truck` | High-profile SUV / pickup alternates classification labels across frames | `docs/images/class_confusion.jpg` |
+
+### Key Takeaways & Mitigation Strategy:
+1. **Temporal Smoothing (Day 5 Tracking):** Multi-object tracking (ByteTrack) resolves single-frame flicker and class label jumping via majority-vote historical track classification.
+2. **Spatial Anchoring (Day 6 Zones):** Static false positives (shadows, poles) are mitigated by verifying ground-contact trajectory motion vectors before triggering alert events.
+3. **High-Resolution Tiling:** Distant small-target detection will benefit from selective ROI cropping or higher inference resolution on designated perimeter zoom cameras.
