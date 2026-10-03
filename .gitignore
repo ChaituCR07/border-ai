@@ -43,3 +43,7 @@ redisdata/
 .DS_Store
 Thumbs.db
 *.egg-info/
+
+# Internal Project Plans & Design Notes
+project -plans/
+project-plans/
