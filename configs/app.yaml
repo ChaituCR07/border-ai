@@ -4,6 +4,7 @@ model:
   confidence: 0.4
   iou: 0.5
   image_size: 640
+  max_det: 300
   classes: [person, bicycle, car, motorcycle, bus, truck]
 
 tracker:
