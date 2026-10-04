@@ -86,7 +86,9 @@ class Detector:
             conf=self.conf if conf is None else conf,
             iou=self.iou if iou is None else iou,
             imgsz=self.imgsz, classes=self.class_ids, max_det=self.max_det,
-            device=self.device, half=self.half, verbose=False)
+            device=self.device, verbose=False)
+        if self.half:
+            kwargs['half'] = True
 
         with self._lock:
             t0 = time.perf_counter()
