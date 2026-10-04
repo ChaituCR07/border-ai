@@ -1,6 +1,7 @@
 model:
   name: yolov8n.pt
   device: auto            # auto | cpu | cuda:0
+  half: false             # FP16 (GPU only); decide after benchmarking
   confidence: 0.4
   iou: 0.5
   image_size: 640

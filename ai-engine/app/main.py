@@ -1,8 +1,24 @@
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app import config
 
-app = FastAPI(title="Border AI - AI Engine", version="0.1.0")
+from app import config
+from app.api import detect
+from app.detection.detector import Detector
+
+logging.basicConfig(level=logging.INFO)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.detector = Detector.from_config()     # load once, reuse for every request
+    yield
+    app.state.detector = None
+
+
+app = FastAPI(title="Border AI - AI Engine", version="0.2.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -11,6 +27,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(detect.router)
 
 
 @app.get("/health")
@@ -28,4 +46,5 @@ def health():
         "env": config.APP_ENV,
         "cuda": cuda,
         "device": device,
+        "model_loaded": getattr(app.state, "detector", None) is not None,
     }
