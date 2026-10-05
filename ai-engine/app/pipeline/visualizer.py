@@ -1,9 +1,11 @@
+import colorsys
 from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
 
 from app.schemas.detection import Detection
+from app.schemas.tracking import TrackedObject
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -61,3 +63,57 @@ def make_grid(tiles: List[Optional[np.ndarray]], cols: int = 2,
         tiles.append(np.zeros((h, w, 3), np.uint8))
     rows = [np.hstack(tiles[i:i + cols]) for i in range(0, len(tiles), cols)]
     return np.vstack(rows)
+
+
+def color_for_id(track_id: int) -> Tuple[int, int, int]:
+    """Stable, well-separated color per ID (golden-ratio hue stepping). Returns BGR."""
+    hue = (track_id * 0.61803398875) % 1.0
+    r, g, b = colorsys.hsv_to_rgb(hue, 0.85, 1.0)
+    return (int(b * 255), int(g * 255), int(r * 255))
+
+
+def _draw_trail(image: np.ndarray, trail, color, thickness: int) -> None:
+    pts = [(int(x), int(y)) for _, x, y in trail]
+    n = len(pts)
+    for i in range(1, n):
+        frac = i / n                                       # older segments are thinner
+        th = max(1, int(thickness * (0.5 + frac)))
+        cv2.line(image, pts[i - 1], pts[i], color, th, cv2.LINE_AA)
+
+
+def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
+                show_trails: bool = True, show_lost: bool = True) -> np.ndarray:
+    """Boxes + 'class #id' labels + trajectory trails. Draws in place."""
+    h, w = image.shape[:2]
+    thickness = max(1, round(min(h, w) / 400))
+    font_scale = max(0.4, min(h, w) / 1000)
+
+    # Ghost trails for lost tracks: handy when debugging ID switches
+    if store is not None and show_lost:
+        for t in store.lost_tracks():
+            if len(t.trail) > 1:
+                _draw_trail(image, t.trail, (150, 150, 150), thickness)
+                lx, ly = t.last_point
+                put_text(image, f"lost #{t.track_id}", (int(lx) + 4, int(ly)),
+                         scale=font_scale * 0.8, color=(180, 180, 180))
+
+    for o in tracks:
+        color = color_for_id(o.track_id)
+
+        if store is not None and show_trails:
+            t = store.get(o.track_id)
+            if t is not None:
+                _draw_trail(image, t.trail, color, thickness)
+
+        p1, p2 = (int(o.x1), int(o.y1)), (int(o.x2), int(o.y2))
+        cv2.rectangle(image, p1, p2, color, thickness)
+        fx, fy = o.bottom_center
+        cv2.circle(image, (int(fx), int(fy)), thickness + 2, color, -1)   # ground point
+
+        label = f"{o.label} #{o.track_id}"
+        (tw, th), base = cv2.getTextSize(label, FONT, font_scale, 1)
+        y_top = max(p1[1] - th - base, 0)
+        cv2.rectangle(image, (p1[0], y_top), (p1[0] + tw, y_top + th + base), color, -1)
+        cv2.putText(image, label, (p1[0], y_top + th), FONT, font_scale,
+                    (0, 0, 0), 1, cv2.LINE_AA)
+    return image
