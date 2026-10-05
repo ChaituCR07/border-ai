@@ -10,9 +10,14 @@ model:
 
 tracker:
   type: bytetrack
-  track_thresh: 0.5
-  match_thresh: 0.8
-  track_buffer: 30
+  detection_conf: 0.25      # detector confidence floor used for tracking (lower than display conf)
+  track_high_thresh: 0.5    # detections above this can start/continue tracks
+  track_low_thresh: 0.1     # detections between low and high can only continue tracks
+  new_track_thresh: 0.6     # minimum score to create a NEW track
+  track_buffer: 30          # lost-track memory, in frames at 30 FPS (scaled by real FPS)
+  match_thresh: 0.8         # association threshold (higher = more permissive matching)
+  fuse_score: true          # combine IoU with detection score when matching
+  trail_length: 40          # points kept per track for drawing and Day 6 logic
 
 video:
   target_fps: 15

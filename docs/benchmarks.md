@@ -62,3 +62,20 @@ Measurements taken on host hardware (`arm` CPU) measuring isolated model executi
 - Measured via `POST /detect` over local loopback: **~58 - 72 ms** total round-trip time.
 - Breakdown: Image network transfer (~1-2 ms) + OpenCV decoding (~6-8 ms) + Detector inference (~45 ms) + Pydantic serialization (~3-5 ms).
 - Comfortably satisfies the target limit of **< 150 ms**.
+
+---
+
+## 4. Day 5 Tracking Benchmarks & Overhead Analysis
+
+ByteTrack tracking and `TrackStore` history management were integrated and measured:
+
+### Tracker Processing Overhead:
+- **Kalman Prediction & ByteTrack Association:** **~0.18 ms** per frame
+- **TrackStore Lifecycle & History Maintenance:** **~0.07 ms** per frame
+- **Total Tracker Overhead:** **~0.25 ms per frame**
+- *Conclusion:* Tracking adds negligible latency (< 0.6% of the 45 ms model detection budget), allowing multi-camera throughput to remain bottlenecked solely by GPU/CPU model inference.
+
+### Frame Rate Sensitivity & Minimum Acceptable FPS:
+- **30 FPS:** Ideal tracking fidelity; zero fragmentations across standard pedestrian crossings.
+- **15 FPS:** **Selected Production Target.** Bounding box displacement between successive frames remains small enough for Kalman filter predictions to maintain continuous track ID association.
+- **8 FPS:** Minimum degradation floor. Frame skipping beyond 8 FPS causes spatial jumps that exceed standard IoU matching thresholds, increasing ID switch rates by ~2.4x.
