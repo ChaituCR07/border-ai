@@ -87,3 +87,13 @@ All video analytics testing must be conducted solely using authorized, synthetic
 
 ## 10. ONVIF Stream Discovery Note
 Automatic ONVIF camera discovery across the local subnet is currently modeled as an architectural interface stub (`ingestion/onvif/discovery.py`). Real-world IP-camera streams and credentials are configured explicitly via `configs/cameras.json` and `.env`.
+
+---
+
+## 11. Multi-Object Tracking Architecture (`ai-engine`)
+
+The tracking subsystem decouples model detection from temporal tracking:
+1. **`Detector` Output (`FrameDetections`):** Raw single-frame bounding boxes proposals.
+2. **`CameraTracker` (ByteTrack):** Per-camera tracker applying two-stage association (high-confidence detections first, low-confidence boxes second for occlusion rescue).
+3. **`TrackStore`:** Maintains stateful track lifecycle (`ACTIVE` → `LOST` → `REMOVED`), computes confidence-weighted majority vote for classification stability, records ground-contact point trajectories (`trail`), and produces lifecycle updates (`TrackUpdate`) consumed by downstream zone and alert engines.
+4. **`MultiCameraTracker`:** Aggregator managing concurrent, independent trackers keyed strictly by `(camera_id, track_id)`.
