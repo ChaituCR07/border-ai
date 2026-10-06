@@ -1,9 +1,11 @@
 import colorsys
+import math
 from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
 
+from app.analytics.rules_config import CameraRules
 from app.schemas.detection import Detection
 from app.schemas.tracking import TrackedObject
 
@@ -18,6 +20,9 @@ CLASS_COLORS = {
     "bus": (0, 165, 255),
     "truck": (0, 0, 255),
 }
+
+ZONE_COLORS = {"restricted": (0, 0, 255), "monitored": (0, 200, 255)}   # BGR
+FLASH_COLOR = (255, 0, 255)
 
 
 def color_for(class_name: str) -> Tuple[int, int, int]:
@@ -116,4 +121,80 @@ def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
         cv2.rectangle(image, (p1[0], y_top), (p1[0] + tw, y_top + th + base), color, -1)
         cv2.putText(image, label, (p1[0], y_top + th), FONT, font_scale,
                     (0, 0, 0), 1, cv2.LINE_AA)
+    return image
+
+
+class FlashState:
+    """Remembers when each rule last fired so overlays can flash for a moment."""
+
+    def __init__(self, duration_s: float = 1.5):
+        self.duration_s = duration_s
+        self._last = {}
+
+    def trigger(self, events, now: float) -> None:
+        for e in events:
+            self._last[e.rule_id] = now
+
+    def active(self, rule_id: str, now: float) -> bool:
+        t = self._last.get(rule_id)
+        return t is not None and 0 <= now - t <= self.duration_s
+
+
+def draw_zones(image: np.ndarray, rules: CameraRules, occupancy: dict,
+               flash: FlashState, now: float, alpha: float = 0.25) -> np.ndarray:
+    """Semi-transparent zone fills with outlines, names, and occupancy counts."""
+    if not rules.zones:
+        return image
+    h, w = image.shape[:2]
+    overlay = image.copy()
+    shapes = []
+    for z in rules.zones:
+        pts = np.array([[x * w, y * h] for x, y in z.polygon], np.int32).reshape(-1, 1, 2)
+        flashing = flash.active(z.id, now)
+        color = FLASH_COLOR if flashing else ZONE_COLORS.get(z.type, (255, 200, 0))
+        cv2.fillPoly(overlay, [pts], color)
+        shapes.append((z, pts, color, flashing))
+
+    cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, image)
+
+    for z, pts, color, flashing in shapes:
+        cv2.polylines(image, [pts], True, color, 4 if flashing else 2, cv2.LINE_AA)
+        x, y = pts[0][0]
+        put_text(image, f"{z.name} [{occupancy.get(z.id, 0)}]",
+                 (int(x) + 6, int(y) + 20), 0.55, color)
+    return image
+
+
+def draw_lines(image: np.ndarray, rules: CameraRules, counts: dict,
+               flash: FlashState, now: float) -> np.ndarray:
+    """Lines with a direction arrow (pointing toward the positive_direction side) and counters."""
+    h, w = image.shape[:2]
+    for ln in rules.lines:
+        p1 = (int(ln.p1[0] * w), int(ln.p1[1] * h))
+        p2 = (int(ln.p2[0] * w), int(ln.p2[1] * h))
+        flashing = flash.active(ln.id, now)
+        color = FLASH_COLOR if flashing else (0, 255, 255)
+        cv2.line(image, p1, p2, color, 4 if flashing else 2, cv2.LINE_AA)
+
+        dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+        length = math.hypot(dx, dy) or 1.0
+        nx, ny = -dy / length, dx / length              # normal toward the positive side
+        mid = ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
+        tip = (int(mid[0] + nx * 45), int(mid[1] + ny * 45))
+        cv2.arrowedLine(image, mid, tip, color, 2, tipLength=0.35)
+
+        c = counts.get(ln.id, {"IN": 0, "OUT": 0})
+        put_text(image, f"{ln.name}: arrow={ln.positive_direction}  "
+                        f"IN {c['IN']}  OUT {c['OUT']}",
+                 (p1[0] + 6, max(p1[1] - 8, 15)), 0.5, color)
+    return image
+
+
+def draw_event_feed(image: np.ndarray, lines, max_lines: int = 5) -> np.ndarray:
+    """Most recent event descriptions, bottom-left."""
+    recent = list(lines)[-max_lines:]
+    h = image.shape[0]
+    for i, text in enumerate(recent):
+        y = h - 12 - (len(recent) - 1 - i) * 22
+        put_text(image, text, (10, y), 0.55, (0, 215, 255))
     return image
