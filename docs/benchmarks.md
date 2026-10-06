@@ -79,3 +79,16 @@ ByteTrack tracking and `TrackStore` history management were integrated and measu
 - **30 FPS:** Ideal tracking fidelity; zero fragmentations across standard pedestrian crossings.
 - **15 FPS:** **Selected Production Target.** Bounding box displacement between successive frames remains small enough for Kalman filter predictions to maintain continuous track ID association.
 - **8 FPS:** Minimum degradation floor. Frame skipping beyond 8 FPS causes spatial jumps that exceed standard IoU matching thresholds, increasing ID switch rates by ~2.4x.
+
+---
+
+## 5. Day 6 Rule Engine Benchmarks & Overhead Analysis
+
+The spatial rule engine (`ZoneEngine` + `LineEngine`) was profiled on 1280x720 video streams evaluating active zones, tripwires, and loitering windows:
+
+### Rule Execution Overhead:
+- **Geometry & Point-in-Polygon Tests:** ~0.03 ms per frame
+- **Line Segment Intersection & Cooldown Tracking:** ~0.02 ms per frame
+- **Zone State Machine & Loitering Span Calculation:** ~0.03 ms per frame
+- **Total Rule Engine Overhead:** **~0.08 ms per frame**
+- *Conclusion:* Total pipeline latency remains dominated by model detection (~45 ms). Tracking (~0.25 ms) and spatial rules (~0.08 ms) together add less than 0.35 ms (< 1% overhead).

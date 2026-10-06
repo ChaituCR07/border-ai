@@ -1,0 +1,9 @@
+{
+  "clip": "crowded.mp4",
+  "camera_id": "CAM_001",
+  "notes": "Crowded pedestrian scene evaluating crossing occlusion tolerance and loitering persistence.",
+  "expected": {
+    "LINE_CROSSING:L1:IN": 2,
+    "ZONE_ENTER:Z1": 3
+  }
+}

@@ -97,3 +97,13 @@ The tracking subsystem decouples model detection from temporal tracking:
 2. **`CameraTracker` (ByteTrack):** Per-camera tracker applying two-stage association (high-confidence detections first, low-confidence boxes second for occlusion rescue).
 3. **`TrackStore`:** Maintains stateful track lifecycle (`ACTIVE` → `LOST` → `REMOVED`), computes confidence-weighted majority vote for classification stability, records ground-contact point trajectories (`trail`), and produces lifecycle updates (`TrackUpdate`) consumed by downstream zone and alert engines.
 4. **`MultiCameraTracker`:** Aggregator managing concurrent, independent trackers keyed strictly by `(camera_id, track_id)`.
+
+---
+
+## 12. Spatial Rules & Event Analytics Architecture (`ai-engine`)
+
+The analytics subsystem evaluates spatio-temporal trajectories against declarative policies:
+1. **`RuleEngine` Facade:** Loads and caches camera-specific configurations (`configs/zones/<camera_id>.json`).
+2. **`ZoneEngine`:** Applies point-in-polygon tests to bottom-center anchor points with hysteresis state machines, tracking occupancy, dwell duration, and localized loitering spans.
+3. **`LineEngine`:** Evaluates movement vectors across finite line segments with normal-oriented direction classification (`IN` / `OUT`), dead-band hovering suppression, and per-track cooldowns.
+4. **Event Generation:** Produces normalized `Event` records published to disk and Redis Streams without coupling to alert rendering.

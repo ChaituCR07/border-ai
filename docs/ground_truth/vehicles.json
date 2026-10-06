@@ -1,0 +1,9 @@
+{
+  "clip": "vehicles.mp4",
+  "camera_id": "CAM_002",
+  "notes": "Vehicle traverses across access barrier L1 into monitored perimeter zone Z1.",
+  "expected": {
+    "LINE_CROSSING:L1:IN": 1,
+    "ZONE_ENTER:Z1": 1
+  }
+}

@@ -100,3 +100,45 @@ The tracking pipeline (`ai-engine/scripts/track_cameras.py` and downstream strea
 - `age_s` (float): Track age in seconds since first activation.
 - `bbox` (array of 4 floats): `[x1, y1, x2, y2]` clamped pixel coordinates.
 - *Note:* `class_id` is intentionally omitted from the tracking contract because `class` reflects the confidence-weighted majority vote, which may supersede individual frame-level class indices.
+
+---
+
+## 5. Analytics Event Contract (`Event`)
+
+Spatial events dispatched by `RuleEngine` to event log streams (`outputs/events/events_*.jsonl`) and Redis Streams (Week 2):
+
+### JSON Schema Structure:
+```json
+{
+  "event_id": "9b1deb4d3b7d4bad9bdd2b0d7b3dcb6d",
+  "type": "ZONE_ENTER",
+  "camera_id": "CAM_001",
+  "timestamp": "2026-10-06T16:22:30.125Z",
+  "frame_id": 142,
+  "track_id": 14,
+  "object": {
+    "class": "person",
+    "confidence": 0.892,
+    "bbox": [412.3, 188.0, 497.9, 402.6]
+  },
+  "rule": {
+    "id": "Z1",
+    "name": "Restricted Zone",
+    "kind": "zone",
+    "type": "restricted"
+  },
+  "direction": null,
+  "dwell_s": null,
+  "details": {
+    "spawned_inside": false,
+    "anchor": [455.1, 402.6]
+  }
+}
+```
+
+### Event Fields:
+- `event_id`: Universally unique 32-character hexadecimal identifier.
+- `type`: One of `ZONE_ENTER`, `ZONE_EXIT`, `ZONE_DWELL`, `LOITERING`, `LINE_CROSSING`.
+- `direction`: `"IN"` or `"OUT"` for `LINE_CROSSING`; `null` for zone events.
+- `dwell_s`: Total duration spent inside the zone in seconds for `ZONE_DWELL`, `LOITERING`, and `ZONE_EXIT`.
+- `details.spawned_inside`: Indicates whether the track was already inside the zone upon initial confirmation.

@@ -1,0 +1,10 @@
+{
+  "clip": "person_walking.mp4",
+  "camera_id": "CAM_001",
+  "notes": "Single pedestrian traverses from top to bottom across Entry Line L1 and enters Restricted Zone Z1.",
+  "expected": {
+    "LINE_CROSSING:L1:IN": 1,
+    "ZONE_ENTER:Z1": 1,
+    "ZONE_EXIT:Z1": 1
+  }
+}
