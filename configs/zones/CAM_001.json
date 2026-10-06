@@ -1,18 +1,34 @@
 {
   "camera_id": "CAM_001",
+  "reference_size": {"width": 1280, "height": 720},
+  "min_track_hits": 3,
   "zones": [
     {
+      "id": "Z1",
       "name": "Restricted Zone",
       "type": "restricted",
-      "polygon": [[0.1, 0.2], [0.6, 0.2], [0.6, 0.8], [0.1, 0.8]]
+      "polygon": [[0.10, 0.20], [0.60, 0.20], [0.60, 0.80], [0.10, 0.80]],
+      "classes": ["person", "car", "truck", "bus", "motorcycle", "bicycle"],
+      "anchor": "bottom_center",
+      "min_frames_inside": 3,
+      "min_frames_outside": 5,
+      "dwell_alert_s": 5.0,
+      "loiter_s": 15.0,
+      "loiter_max_span": 0.08
     }
   ],
   "lines": [
     {
+      "id": "L1",
       "name": "Entry Line",
+      "type": "tripwire",
       "p1": [0.0, 0.5],
       "p2": [1.0, 0.5],
-      "positive_direction": "IN"
+      "positive_direction": "IN",
+      "classes": ["person"],
+      "anchor": "bottom_center",
+      "hysteresis": 0.01,
+      "cooldown_s": 2.0
     }
   ]
 }
