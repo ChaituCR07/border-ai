@@ -10,7 +10,7 @@ model:
 
 tracker:
   type: bytetrack
-  detection_conf: 0.25      # detector confidence floor used for tracking (lower than display conf)
+  detection_conf: 0.15      # was 0.25; lowered to 0.15 to activate ByteTrack low-confidence second pass
   track_high_thresh: 0.5    # detections above this can start/continue tracks
   track_low_thresh: 0.1     # detections between low and high can only continue tracks
   new_track_thresh: 0.6     # minimum score to create a NEW track
