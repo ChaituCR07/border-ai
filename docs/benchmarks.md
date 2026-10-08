@@ -92,3 +92,27 @@ The spatial rule engine (`ZoneEngine` + `LineEngine`) was profiled on 1280x720 v
 - **Zone State Machine & Loitering Span Calculation:** ~0.03 ms per frame
 - **Total Rule Engine Overhead:** **~0.08 ms per frame**
 - *Conclusion:* Total pipeline latency remains dominated by model detection (~45 ms). Tracking (~0.25 ms) and spatial rules (~0.08 ms) together add less than 0.35 ms (< 1% overhead).
+
+## 6. End-to-End Pipeline Benchmarks (Week 1 Integration)
+
+Measurements recorded using `Pipeline` and `scripts/run_pipeline.py` across offline and live multi-camera scenarios on host hardware (`Apple Silicon arm64 CPU`, YOLOv8n @ 640px, FP32, target FPS 15):
+
+| Scenario | Cameras | Mode | Proc FPS/cam | detect ms/frame | track ms | rules ms | render ms | write ms | latency ms | Drops in / out | CPU % | RSS MB | GPU mem MB |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A: one clip, video written | 1 | offline | 19.9 | 49.0 | 0.1 | 0.01 | 1.95 | 1.86 | n/a | 0 / 0 | 215.3 | 513.7 | n/a |
+| B: two clips, video written | 2 | offline | 10.4 | 49.9 | 0.1 | 0.01 | 2.50 | 1.90 | n/a | 0 / 0 | 218.8 | 608.6 | n/a |
+| C: 3 cameras incl. RTSP, no video | 3 | live | 9.5 | 48.9 | 0.1 | 0.01 | 1.40 | 0.00 | 203.7 | paced / 0 | 214.3 | 457.9 | n/a |
+| D: 3 cameras incl. RTSP, video written | 3 | live | 9.1 | 51.0 | 0.1 | 0.01 | 1.50 | 1.80 | 208.2 | paced / 0 | 218.8 | 476.9 | n/a |
+
+### Performance Analysis & Bottlenecks:
+1. **Model-only FPS vs End-to-end FPS:**
+   - Day 4 measured standalone model inference on CPU at **20.0 - 23.1 FPS** (~43-50 ms).
+   - End-to-end pipeline achieves **19.9 FPS** for single camera offline and aggregate **~20.8 FPS** across 2 batched cameras (avg batch 1.97).
+   - The minimal delta (< 1 FPS) proves that decoupling rendering (`render_ms` ~1.5 - 2.5 ms) and video encoding (`write_ms` ~1.8 ms) onto separate per-camera output threads prevented drawing from stalling the inference pipeline.
+2. **Primary Bottleneck:**
+   - The inference thread is purely bounded by CPU detection time (~49 ms per cycle). ByteTrack tracking (~0.1 ms) and spatial rules (~0.01 ms) contribute negligible latency.
+   - On CPU, 2-3 cameras dynamically multiplex the single model thread at ~9.5 - 10.4 FPS each.
+3. **Queue Policy & Stability:**
+   - In offline mode, backpressure blocks ingestion rather than dropping frames, guaranteeing 100% processed and rendered frames (`0 / 0 drops`).
+   - In live mode, drop-oldest queues maintain a stable 200 ms end-to-end latency without unbounded memory growth (RSS stays within 450 - 610 MB).
+
