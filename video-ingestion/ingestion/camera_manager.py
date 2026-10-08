@@ -85,6 +85,9 @@ class CameraWorker(threading.Thread):
         self.dropped = 0
         self.total = 0
         self._stop_evt = threading.Event()
+        # Offline file sources (realtime=False) must never lose frames: wait (backpressure)
+        # instead of dropping. Live and paced sources keep the drop-oldest policy.
+        self.block_when_full = isinstance(source, FileSource) and not source.realtime
 
     def run(self) -> None:
         if not self.source.open():
@@ -105,15 +108,23 @@ class CameraWorker(threading.Thread):
             self.status = "running"
             self.total += 1
             self.fps.tick()
-            try:
-                self.frames.put_nowait(frame)
-            except queue.Full:
+            if self.block_when_full:
+                while not self._stop_evt.is_set():
+                    try:
+                        self.frames.put(frame, timeout=0.1)
+                        break
+                    except queue.Full:
+                        continue
+            else:
                 try:
-                    self.frames.get_nowait()   # drop the oldest
-                except queue.Empty:
-                    pass
-                self.dropped += 1
-                self.frames.put_nowait(frame)
+                    self.frames.put_nowait(frame)
+                except queue.Full:
+                    try:
+                        self.frames.get_nowait()          # drop the oldest
+                    except queue.Empty:
+                        pass
+                    self.dropped += 1
+                    self.frames.put_nowait(frame)
 
         self.source.release()
 
