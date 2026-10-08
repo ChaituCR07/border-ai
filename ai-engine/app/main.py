@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config
-from app.api import detect
+from app.api import detect, stream
 from app.detection.detector import Detector
 
 logging.basicConfig(level=logging.INFO)
@@ -13,12 +13,14 @@ logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.detector = Detector.from_config()     # load once, reuse for every request
+    pipeline = getattr(app.state, "pipeline", None)
+    # Started by run_pipeline.py --serve: reuse its detector. Otherwise load one for /detect.
+    app.state.detector = pipeline.detector if pipeline else Detector.from_config()
     yield
     app.state.detector = None
 
 
-app = FastAPI(title="Border AI - AI Engine", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title="Border AI - AI Engine", version="0.3.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +31,7 @@ app.add_middleware(
 )
 
 app.include_router(detect.router)
+app.include_router(stream.router)
 
 
 @app.get("/health")
