@@ -29,6 +29,7 @@ class _ZoneTrackState:
 class ZoneEngine:
     def __init__(self, zones: List[ZoneRule], min_track_hits: int = 3):
         self.zones = zones
+        self._zones_by_id = {z.id: z for z in zones}
         self.min_hits = min_track_hits
         self.occupancy: Dict[str, int] = {z.id: 0 for z in zones}
         self._state: Dict[Tuple[str, int], _ZoneTrackState] = {}   # (zone_id, track_id)
@@ -155,3 +156,22 @@ class ZoneEngine:
     def _refresh_occupancy(self) -> None:
         counts = Counter(zid for (zid, _), st in self._state.items() if st.inside)
         self.occupancy = {z.id: counts.get(z.id, 0) for z in self.zones}
+    def flush(self, ft: FrameTracks, store: TrackStore) -> List[Event]:
+        """Emit EXIT for every presence still open (call once, when the stream ends)."""
+        events: List[Event] = []
+        for (zone_id, track_id), st in list(self._state.items()):
+            if not st.inside:
+                continue
+            zone = self._zones_by_id[zone_id]
+            t = store.get(track_id)
+            events.append(event_for(
+                ZONE_EXIT, zone, "zone", ft, track_id,
+                t.dominant_class if t else "unknown",
+                t.last_confidence if t else 0.0,
+                t.last_bbox if t else (0.0, 0.0, 0.0, 0.0),
+                dwell_s=max(0.0, st.last_inside_ts - st.enter_ts),
+                details={"reason": "stream_ended"}))
+        self._state.clear()
+        self._refresh_occupancy()
+        return events
+

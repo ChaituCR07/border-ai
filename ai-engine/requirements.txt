@@ -10,3 +10,4 @@ shapely
 pytest
 python-multipart
 httpx
+psutil

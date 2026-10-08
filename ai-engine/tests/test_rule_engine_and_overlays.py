@@ -50,6 +50,7 @@ def test_event_to_dict_contract():
     e = Event("LINE_CROSSING", "C1", 1_700_000_000.0, 7, 3, "person", 0.9123,
               (1.04, 2.0, 3.0, 4.0), "L1", "Entry", "line", "tripwire", direction="IN")
     d = e.to_dict()
+    assert d["event"] == "LINE_CROSSING"
     assert d["type"] == "LINE_CROSSING" and d["direction"] == "IN"
     assert d["timestamp"].endswith("Z")
     assert d["object"] == {"class": "person", "confidence": 0.912, "bbox": [1.0, 2.0, 3.0, 4.0]}

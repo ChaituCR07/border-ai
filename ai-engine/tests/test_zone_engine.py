@@ -92,3 +92,17 @@ def test_occupancy_counts_confirmed_inside_tracks():
     for _ in range(6):
         h.step([obj(1, 300, 240), obj(2, 340, 240), obj(3, 50, 50)])
     assert eng.occupancy == {"Z1": 2}
+
+def test_flush_closes_open_presence():
+    from app.schemas.tracking import FrameTracks
+    from rules_helpers import H, W
+    eng = engine()
+    h = Harness(eng)
+    for _ in range(10):
+        h.step([obj(1, 320, 240)])
+    ft = FrameTracks("T", h.frame, h.t, W, H, [])
+    events = eng.flush(ft, h.store)
+    assert [e.type for e in events] == [ZONE_EXIT]
+    assert events[0].details["reason"] == "stream_ended"
+    assert eng.occupancy == {"Z1": 0}
+

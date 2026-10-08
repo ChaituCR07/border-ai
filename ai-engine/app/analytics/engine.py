@@ -48,6 +48,9 @@ class RuleEngine:
         events.extend(cam.lines.update(ft, store, upd))
         return events
 
+    def flush(self, camera_id: str, ft: FrameTracks, store: TrackStore) -> List[Event]:
+        return self._get(camera_id).zones.flush(ft, store)
+
     def stats(self, camera_id: str) -> dict:
         cam = self._get(camera_id)
         return {

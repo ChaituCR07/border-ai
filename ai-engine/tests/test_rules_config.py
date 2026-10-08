@@ -56,3 +56,16 @@ def test_rejects_bad_direction_and_identical_endpoints():
         parse_camera_rules(base(lines=[{"p1": [0, 0.5], "p2": [1, 0.5], "positive_direction": "UP"}]))
     with pytest.raises(ValueError):
         parse_camera_rules(base(lines=[{"p1": [0.5, 0.5], "p2": [0.5, 0.5]}]))
+
+def test_pixel_coordinates_are_normalized_with_reference_size():
+    data = {"camera_id": "C1", "reference_size": {"width": 1280, "height": 720},
+            "zones": [{"polygon": [[128, 72], [640, 72], [640, 360], [128, 360]]}]}
+    r = parse_camera_rules(data)
+    assert r.zones[0].polygon[0] == (0.1, 0.1) and r.zones[0].polygon[2] == (0.5, 0.5)
+
+
+def test_pixel_coordinates_without_reference_size_are_rejected():
+    import pytest
+    with pytest.raises(ValueError):
+        parse_camera_rules({"camera_id": "C1", "zones": [{"polygon": [[100, 100], [600, 100], [600, 400]]}]})
+
