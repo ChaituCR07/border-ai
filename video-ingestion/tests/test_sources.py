@@ -89,3 +89,19 @@ def test_rtsp_unreachable_does_not_crash():
     assert src.read() is None
     assert src.connected is False
     src.release()
+
+def test_offline_file_worker_blocks_instead_of_dropping(sample_video):
+    mgr = CameraManager([FileSource("C0", sample_video, realtime=False)], queue_size=2)
+    mgr.start_all()
+    worker = mgr.workers["C0"]
+    got, deadline = 0, time.time() + 20
+    while time.time() < deadline:
+        f = mgr.get_frame("C0", timeout=0.05)
+        if f is not None:
+            got += 1
+            time.sleep(0.005)                       # slow consumer
+        elif worker.status == "ended" and worker.frames.empty():
+            break
+    mgr.stop_all()
+    assert got >= 89 and worker.dropped == 0
+

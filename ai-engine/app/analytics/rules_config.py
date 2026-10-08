@@ -53,14 +53,16 @@ class CameraRules:
     min_track_hits: int = 3
 
 
-def _point(value, where: str) -> Tuple[float, float]:
+def _point(value, where: str, ref=None) -> Tuple[float, float]:
     try:
         x, y = float(value[0]), float(value[1])
     except (TypeError, ValueError, IndexError):
         raise ValueError(f"{where}: a point must be [x, y], got {value!r}")
+    if (x > 1.0 or y > 1.0) and ref:                     # pixel coordinates -> normalize
+        x, y = x / ref["width"], y / ref["height"]
     if not (0.0 <= x <= 1.0 and 0.0 <= y <= 1.0):
-        raise ValueError(f"{where}: point {value!r} is outside 0-1 "
-                         f"(coordinates must be normalized)")
+        raise ValueError(f"{where}: point {value!r} is outside the frame "
+                         f"(use 0-1 values, or pixels together with reference_size)")
     return (x, y)
 
 
@@ -75,6 +77,10 @@ def parse_camera_rules(data: dict, source: str = "<dict>") -> CameraRules:
     if not camera_id:
         raise ValueError(f"{source}: missing camera_id")
 
+    ref = data.get("reference_size")
+    if ref is not None and not (ref.get("width", 0) > 0 and ref.get("height", 0) > 0):
+        raise ValueError(f"{source}: reference_size needs positive width and height")
+
     rules = CameraRules(camera_id=camera_id,
                         min_track_hits=int(data.get("min_track_hits", 3)))
     seen_ids = set()
@@ -86,7 +92,7 @@ def parse_camera_rules(data: dict, source: str = "<dict>") -> CameraRules:
             raise ValueError(f"{where}: duplicate id")
         seen_ids.add(zid)
 
-        polygon = [_point(p, where) for p in z.get("polygon", [])]
+        polygon = [_point(p, where, ref) for p in z.get("polygon", [])]
         if len(polygon) < 3:
             raise ValueError(f"{where}: a zone needs at least 3 points")
         shape = Polygon(polygon)
@@ -114,7 +120,7 @@ def parse_camera_rules(data: dict, source: str = "<dict>") -> CameraRules:
             raise ValueError(f"{where}: duplicate id")
         seen_ids.add(lid)
 
-        p1, p2 = _point(ln.get("p1"), where), _point(ln.get("p2"), where)
+        p1, p2 = _point(ln.get("p1"), where, ref), _point(ln.get("p2"), where, ref)
         if p1 == p2:
             raise ValueError(f"{where}: p1 and p2 are identical")
         direction = str(ln.get("positive_direction", "IN")).upper()

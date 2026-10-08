@@ -44,6 +44,31 @@ class Track:
 
 
 @dataclass
+class TrackView:
+    track_id: int
+    trail: List[Tuple[float, float, float]]
+    last_point: Tuple[float, float]
+    state: str
+
+
+class StoreSnapshot:
+    """Immutable copy of what the renderer needs; safe to use from another thread.
+    Offers the same get() / lost_tracks() / active_tracks() the drawing code uses."""
+
+    def __init__(self, views: Dict[int, TrackView]):
+        self._views = views
+
+    def get(self, track_id: int) -> Optional[TrackView]:
+        return self._views.get(track_id)
+
+    def lost_tracks(self) -> List[TrackView]:
+        return [v for v in self._views.values() if v.state == LOST]
+
+    def active_tracks(self) -> List[TrackView]:
+        return [v for v in self._views.values() if v.state == ACTIVE]
+
+
+@dataclass
 class TrackUpdate:
     """What changed during one update. Week 2 uses these to finalize ANPR reads."""
     new: List[Track] = field(default_factory=list)
@@ -124,3 +149,7 @@ class TrackStore:
     def all_tracks(self) -> List[Track]:
         """Finished + live tracks (use at the end of a clip for statistics)."""
         return list(self.finished) + list(self.tracks.values())
+
+    def snapshot(self) -> StoreSnapshot:
+        return StoreSnapshot({tid: TrackView(tid, list(t.trail), t.last_point, t.state)
+                              for tid, t in self.tracks.items()})

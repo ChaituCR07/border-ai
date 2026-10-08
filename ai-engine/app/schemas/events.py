@@ -33,7 +33,8 @@ class Event:
     def to_dict(self) -> dict:
         return {
             "event_id": self.event_id,
-            "type": self.type,
+            "event": self.type,          # matches the plan's LINE_CROSSING example
+            "type": self.type,           # matches the plan's WATCHLIST_MATCH example
             "camera_id": self.camera_id,
             "timestamp": to_iso_utc(self.timestamp),
             "frame_id": self.frame_id,
