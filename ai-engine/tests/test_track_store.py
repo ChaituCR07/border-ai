@@ -61,3 +61,12 @@ def test_age_and_duration():
     o = obj(1)
     s.update([o], 12.5)
     assert abs(o.age_s - 2.5) < 1e-6
+
+def test_snapshot_is_independent_of_later_updates():
+    s = TrackStore("A", max_lost_frames=5)
+    s.update([obj(1)], 0.0)
+    snap = s.snapshot()
+    for i in range(1, 6):
+        s.update([obj(1, x=100 + i * 10)], i * 0.1)
+    assert len(snap.get(1).trail) == 1 and len(s.get(1).trail) == 6
+
