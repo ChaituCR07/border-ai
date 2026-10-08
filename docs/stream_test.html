@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>border-ai | Live Streams</title>
+  <style>
+    body { background: #111; color: #eee; font-family: sans-serif; text-align: center; }
+    .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 20px; }
+    .tile { background: #222; border-radius: 8px; padding: 10px; }
+    img { border-radius: 4px; display: block; }
+  </style>
+</head>
+<body>
+  <h1>Border AI - Live Camera Feeds</h1>
+  <div class="grid">
+    <div class="tile">
+      <h3>CAM_001 (North Gate)</h3>
+      <img src="http://127.0.0.1:8000/stream/CAM_001" width="640">
+    </div>
+    <div class="tile">
+      <h3>CAM_002 (East Road)</h3>
+      <img src="http://127.0.0.1:8000/stream/CAM_002" width="640">
+    </div>
+  </div>
+</body>
+</html>
