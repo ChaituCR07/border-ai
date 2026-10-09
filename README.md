@@ -88,7 +88,7 @@ Model: YOLOv8n @ 640px, FP32 on Apple Silicon / CPU. Detailed benchmarks and met
 See [docs/known_issues.md](docs/known_issues.md).
 
 ## Responsible use
-Use only footage you are authorized to process. Retention, access control, and legal compliance are the responsibility of the deploying organization.
+Use only footage you are authorized to process. Retention, access control, and legal compliance are the responsibility of the deploying organization. Make sure the privacy of people is not violated.
 
 ## Roadmap
 - **Week 2:** ANPR (vehicle → plate detection → PaddleOCR → consensus), watchlists, face/Re-ID prototype, behaviour rules, threat scoring, Redis event streaming, PostgreSQL schema.
