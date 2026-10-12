@@ -38,6 +38,9 @@ def _fit(window: str, d: int, s: int) -> Optional[IndianCandidate]:
     kinds = "L" * 2 + "D" * d + "L" * s + "D" * 4
     if len(window) != len(kinds):
         return None
+    # District 0 is invalid for single digit district
+    if d == 1 and window[2] == "0":
+        return None
     out, subs = [], 0
     for ch, kind in zip(window, kinds):
         if kind == "L":
@@ -69,8 +72,10 @@ def correct_indian(t: str) -> Optional[IndianCandidate]:
                 cand = _fit(t[start:end], d, s)
                 if cand is None:
                     continue
-                discarded = start + (len(t) - end)
-                key = (0 if cand.state_ok else 1, cand.subs, discarded, pref)
+                end_discarded = len(t) - end
+                # Discarding trailing digits is penalized more heavily than prefix (e.g. IND)
+                cost = cand.subs + end_discarded * 2 + start
+                key = (0 if cand.state_ok else 1, cost, cand.subs, pref)
                 if best_key is None or key < best_key:
                     best, best_key = cand, key
     return best

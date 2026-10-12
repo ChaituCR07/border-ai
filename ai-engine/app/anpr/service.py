@@ -149,16 +149,16 @@ class AnprService:
 
                 if st.stable or st.reads_scheduled >= sched.max_reads_per_track:
                     continue
-                if st.frames_seen < sched.min_track_hits:
-                    continue
-                if st.frames_seen - st.last_sched_frame < sched.ocr_every_n_frames:
-                    continue
                 if (o.x2 - o.x1) < sched.min_vehicle_width_px:
                     self.stats["skipped_small"] += 1
                     continue
                 m = sched.border_margin_px
                 if m and (o.x1 < m or o.y1 < m or o.x2 > W - m or o.y2 > H - m):
                     self.stats["skipped_border"] += 1
+                    continue
+                if st.frames_seen < sched.min_track_hits:
+                    continue
+                if st.frames_seen - st.last_sched_frame < sched.ocr_every_n_frames:
                     continue
                 crop = _crop(image, o.bbox, sched.crop_margin)
                 if crop.size == 0:
@@ -199,6 +199,8 @@ class AnprService:
         with self._lock:
             active, finished = len(self._states), len(self.finished)
             stats = dict(self.stats)
+        stats.setdefault("dropped", 0)
+        stats.setdefault("reads", 0)
         return {"queue": self._q.qsize() if self._q is not None else 0,
                 "active_vehicles": active, "finished": finished, **stats}
 
@@ -375,7 +377,7 @@ class AnprService:
         rec = self._make_record(st, best, final=True)
         events: List[Event] = []
         worth = (best.level in ("strict", "loose")
-                 or best.confidence >= self.cfg.consensus.final_min_confidence)
+                 and best.confidence >= self.cfg.consensus.final_min_confidence)
         if best.text != st.emitted_text and worth:
             events.append(self._event(st, rec))
             st.emitted_text = best.text
