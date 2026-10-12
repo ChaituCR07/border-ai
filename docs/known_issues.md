@@ -10,6 +10,9 @@
 | K6 | Ingestion | RTSP validated against MediaMTX / RTSP simulator | Medium | Known | Field validation on physical IP camera prior to hardware pilot |
 | K7 | API | MJPEG and status API endpoints do not enforce authentication | Medium | Known | Bound strictly to `127.0.0.1`; JWT/RBAC planned for Week 3-4 |
 | K8 | Ingestion | Disparate camera resolutions resized at edge rather than source capture | Low | Known | Standardize `resize_width=1280` in `cameras.json` |
+| K9 | ANPR | Distant or low-resolution vehicle plates (< 50px width) unreadable | Medium | Known | Skip small vehicles with `min_vehicle_width_px: 90`; quality gate rejects blurry frames |
+| K10 | ANPR | Tracker ID switch splits one vehicle's OCR consensus into two records | Low | Known | Merged via Watchlist and multi-camera plate deduplication in Day 9 |
+| K11 | ANPR | Severe camera angles (> 35 degrees) and headlight glare degrade character segmentation | Medium | Known | Camera placement guidelines, CLAHE preprocessing, and consensus voting across frames |
 
 ## Severity Classification
 - **High:** Incorrect/lost security events, service crashes, data corruption.

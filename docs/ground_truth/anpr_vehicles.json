@@ -1,0 +1,6 @@
+{
+  "clip": "vehicles.mp4",
+  "plates": [
+    {"plate": "KA01AB1234", "first_s": 0.5, "last_s": 4.5}
+  ]
+}
