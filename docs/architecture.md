@@ -107,3 +107,59 @@ The analytics subsystem evaluates spatio-temporal trajectories against declarati
 2. **`ZoneEngine`:** Applies point-in-polygon tests to bottom-center anchor points with hysteresis state machines, tracking occupancy, dwell duration, and localized loitering spans.
 3. **`LineEngine`:** Evaluates movement vectors across finite line segments with normal-oriented direction classification (`IN` / `OUT`), dead-band hovering suppression, and per-track cooldowns.
 4. **Event Generation:** Produces normalized `Event` records published to disk and Redis Streams without coupling to alert rendering.
+
+---
+
+## 13. Automatic Number Plate Recognition (ANPR) Architecture (`ai-engine`)
+
+Day 8 integrates automatic license plate recognition into the analytics pipeline using an asynchronous worker pattern:
+
+```text
+Inference Thread                                   ANPR Background Worker Thread
+────────────────                                   ─────────────────────────────
+Frame Tracks (ByteTrack)
+      │
+      ├─ Filter: Class in [car, truck, bus, ...]
+      ├─ Filter: Bounding box >= 90px width
+      ├─ Filter: Not touching frame boundary
+      ├─ Schedule: Every 5 frames until stable
+      │
+      ▼
+Submit Job (Deep-copy vehicle crop)
+      │
+      ▼ [Bounded Queue (Size 32)]
+      │ (Offline: block / Live: drop-oldest) ────► Pull Job
+                                                    │
+                                                    ▼
+                                            Plate Locator
+                                            (YOLO or Lower-Region Fallback)
+                                                    │
+                                                    ▼
+                                            Quality Gate
+                                            (Sharpness >= 40, Width >= 50px)
+                                                    │
+                                                    ▼
+                                            Image Preprocessing
+                                            (CLAHE + Resizing + Replicate Border)
+                                                    │
+                                                    ▼
+                                            PaddleOCR Engine (PP-OCRv6)
+                                                    │
+                                                    ▼
+                                            Plate Format & Positional Rules
+                                            (Indian Layouts / Generic Fallback)
+                                                    │
+                                                    ▼
+                                            Consensus Engine
+                                            (Exact-string & Character-level voting)
+                                                    │
+                                                    ├─ First Stable? ──► Emit PLATE_RECOGNIZED (final: false)
+                                                    │
+                                                    └─ Vehicle Ended? ─► Emit Final Event & Write plates.jsonl
+```
+
+### Key Architectural Traits:
+1. **Decoupled Worker:** Heavy text detection and character recognition (~270-320 ms) run entirely on a separate thread (`anpr-worker`). The inference thread never waits on OCR.
+2. **Dynamic Early Stopping:** Once a plate achieves stability via multi-frame consensus (`min_reads: 3`, `stable_share: 0.6`), OCR scheduling stops immediately for that vehicle track.
+3. **Dual Voting:** Combines weighted string-level voting with positional character-level voting across the dominant length to repair intermittent misreads.
+4. **Data Privacy Isolation:** License plate crops are stored locally in `outputs/runs/<id>/anpr/plates/` and strictly gitignored.

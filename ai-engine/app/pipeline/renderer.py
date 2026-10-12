@@ -36,7 +36,7 @@ class FrameRenderer:
 
         draw_zones(image, self.rules, res.rule_stats["zone_occupancy"], self.flash, ts)
         draw_lines(image, self.rules, res.rule_stats["line_counts"], self.flash, ts)
-        draw_tracks(image, res.ft.tracks, res.store)
+        draw_tracks(image, res.ft.tracks, res.store, extra_labels=res.plates)
         put_text(image, f"{self.camera_id}  {clock}{'' if offline else ' UTC'}  "
                         f"{out_fps:.1f} FPS  tracks {res.n_active}", (10, 25))
         draw_event_feed(image, self.feed)

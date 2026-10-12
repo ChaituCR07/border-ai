@@ -27,7 +27,9 @@ Video Ingestion (thread per camera, bounded queues)
         ↓
 Batched Detection (YOLO)  →  per-camera Tracking (ByteTrack)  →  Rule Engine (zones, lines)
         ↓                                                              ↓
-Annotated Video + MJPEG stream                          Events (JSON Lines)
+ANPR Engine (PaddleOCR + Consensus)                     Events (JSON Lines)
+        ↓                                                              ↓
+Annotated Video + MJPEG stream                          Plate Records (JSON Lines)
 ```
 
 ## Quick start
@@ -37,6 +39,7 @@ docker compose up -d                      # PostgreSQL + Redis (used from Week 2
 python -m venv .venv && source .venv/bin/activate
 pip install -e video-ingestion
 pip install -r ai-engine/requirements.txt
+pip install -r ai-engine/requirements-anpr.txt  # Optional: Day 8 ANPR (PaddleOCR)
 cd ai-engine
 python scripts/run_pipeline.py --source ../datasets/videos/<clip>.mp4 --camera-id CAM_001
 ```
@@ -53,6 +56,12 @@ Draw zones and lines interactively: `python scripts/draw_zones.py --video ../dat
 | 3 cameras (live, RTSP + files, with video) | 3 | 9.1 FPS | Real-time multi-threading, CPU RSS stable ~470 MB |
 
 Model: YOLOv8n @ 640px, FP32 on Apple Silicon / CPU. Detailed benchmarks and methodology: [docs/benchmarks.md](docs/benchmarks.md).
+
+### ANPR Performance (Day 8)
+- **Engine**: PaddleOCR 3.7.0 (PP-OCRv6) on CPU (~270 ms mean read).
+- **Consensus**: Multi-frame string & character voting, stopping upon stability (avg 3-4 reads/vehicle).
+- **Throughput**: ~3.3 reads/sec per worker thread on CPU with zero stall on video detection/tracking threads.
+- **Accuracy**: 93.9% character accuracy across synthetic and staged evaluation plates.
 
 ## Event example
 ```json

@@ -116,3 +116,34 @@ Measurements recorded using `Pipeline` and `scripts/run_pipeline.py` across offl
    - In offline mode, backpressure blocks ingestion rather than dropping frames, guaranteeing 100% processed and rendered frames (`0 / 0 drops`).
    - In live mode, drop-oldest queues maintain a stable 200 ms end-to-end latency without unbounded memory growth (RSS stays within 450 - 610 MB).
 
+
+## 7. ANPR (Automatic Number Plate Recognition) Benchmarks (Day 8)
+
+Measurements recorded using `PaddleOCR 3.7.0` and `PaddlePaddle 3.3.1` (CPU execution, Apple Silicon arm64):
+
+### 7.1 OCR Engine Latency
+Measured across repeated warm inferences on synthetic and staged plate crops:
+- **Engine Load & Warmup:** ~5.7 s (model weights and PP-OCRv6 recognition/detection engines loaded into memory).
+- **Inference Read Time (Synthetic Plate):**
+  - Mean: **271.6 ms**
+  - p95: **286.2 ms**
+  - Character Confidence: **0.990**
+
+### 7.2 Preprocessing & Height Scaling Benchmarks
+Measured via `anpr_eval_crops.py`:
+
+| Mode | Target Height | Latency (ms/read) | Raw Exact (%) | Corrected Exact (%) | Character Accuracy (%) |
+|---|---|---|---|---|---|
+| `none` | 64 px | 309.8 ms | 53.3% | 53.3% | 93.9% |
+| `none` | 96 px | 535.0 ms | 46.7% | 46.7% | 92.6% |
+| `none` | 128 px | 1145.0 ms | 53.3% | 53.3% | 93.9% |
+| `gray` | 64 px | 508.4 ms | 53.3% | 53.3% | 93.9% |
+| **`clahe` (Optimal)** | **64-96 px** | **323.0 ms** | **53.3%** | **53.3%** | **93.9%** |
+| `clahe` | 128 px | 1820.7 ms | 53.3% | 53.3% | 93.9% |
+| `sharpen` | 64 px | 1672.7 ms | 46.7% | 46.7% | 92.6% |
+| `sharpen` | 128 px | 2407.5 ms | 53.3% | 53.3% | 93.9% |
+
+### 7.3 ANPR Pipeline Integration & Capacity
+- **Background Worker Overhead:** ANPR operations run on a dedicated worker thread via bounded queues, adding **0.0 ms** to core detection and tracking loops.
+- **Worker Throughput:** ~3.3 reads/sec per worker thread on CPU.
+- **Consensus Efficiency:** Stopping reads immediately upon consensus stability reduces OCR calls from 20+ to 3-4 reads per vehicle, allowing 1 worker to service 1-2 moving vehicles concurrently in real-time.

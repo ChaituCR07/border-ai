@@ -142,3 +142,68 @@ Spatial events dispatched by `RuleEngine` to event log streams (`outputs/events/
 - `direction`: `"IN"` or `"OUT"` for `LINE_CROSSING`; `null` for zone events.
 - `dwell_s`: Total duration spent inside the zone in seconds for `ZONE_DWELL`, `LOITERING`, and `ZONE_EXIT`.
 - `details.spawned_inside`: Indicates whether the track was already inside the zone upon initial confirmation.
+
+## 3. ANPR Events & Plate Records (Day 8)
+
+### Event Type: `PLATE_RECOGNIZED`
+Emitted by the ANPR service when a tracked vehicle's license plate reaches consensus stability (`final: false`), and finalized upon tracker removal if updated or previously un-emitted (`final: true`).
+
+```json
+{
+  "event_id": "7a35e4d812344efaa111b222c333d444",
+  "type": "PLATE_RECOGNIZED",
+  "camera_id": "CAM_002",
+  "timestamp": "2026-10-12T14:30:15.250Z",
+  "frame_id": 142,
+  "object": {
+    "track_id": 42,
+    "class": "car",
+    "confidence": 0.884,
+    "bbox": [520.0, 310.0, 780.0, 520.0]
+  },
+  "rule": {
+    "id": "ANPR",
+    "name": "Plate recognition",
+    "kind": "anpr",
+    "type": "plate"
+  },
+  "details": {
+    "plate": "KA01AB1234",
+    "reads": 5,
+    "votes": 4,
+    "agreement": 0.800,
+    "format": "strict",
+    "method": "exact",
+    "final": false,
+    "video_time_s": 9.47
+  }
+}
+```
+
+### Plate Record Schema (`anpr/plates.jsonl`)
+Stored once a vehicle plate achieves stability and upon vehicle departure:
+
+```json
+{
+  "vehicle_id": 42,
+  "plate": "KA01AB1234",
+  "confidence": 0.884,
+  "camera_id": "CAM_002",
+  "vehicle_class": "car",
+  "reads": 5,
+  "votes": 4,
+  "agreement": 0.800,
+  "format": "strict",
+  "final": true,
+  "method": "exact",
+  "first_seen": "2026-10-12T14:30:05.120Z",
+  "last_seen": "2026-10-12T14:30:18.540Z",
+  "read_log": [
+    ["KA01AB1234", 0.94],
+    ["KA01AB1234", 0.92],
+    ["KA01AB1284", 0.81],
+    ["KA01AB1234", 0.95],
+    ["KA01AB1234", 0.93]
+  ]
+}
+```

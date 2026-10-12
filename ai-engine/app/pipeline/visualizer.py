@@ -87,7 +87,8 @@ def _draw_trail(image: np.ndarray, trail, color, thickness: int) -> None:
 
 
 def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
-                show_trails: bool = True, show_lost: bool = True) -> np.ndarray:
+                show_trails: bool = True, show_lost: bool = True,
+                extra_labels=None) -> np.ndarray:
     """Boxes + 'class #id' labels + trajectory trails. Draws in place."""
     h, w = image.shape[:2]
     thickness = max(1, round(min(h, w) / 400))
@@ -116,6 +117,8 @@ def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
         cv2.circle(image, (int(fx), int(fy)), thickness + 2, color, -1)   # ground point
 
         label = f"{o.label} #{o.track_id}"
+        if extra_labels and o.track_id in extra_labels:
+            label += f" {extra_labels[o.track_id]}"
         (tw, th), base = cv2.getTextSize(label, FONT, font_scale, 1)
         y_top = max(p1[1] - th - base, 0)
         cv2.rectangle(image, (p1[0], y_top), (p1[0] + tw, y_top + th + base), color, -1)
