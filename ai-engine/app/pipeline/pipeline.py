@@ -83,6 +83,7 @@ class Pipeline:
         self.tracks_log = JsonlSink(self.run_dir / "tracks.jsonl") if log_tracks else None
         self.hub = FrameHub(jpeg_quality)
         self.timers = StageTimer()
+        self._emit_lock = threading.Lock()
 
         # Load and validate every camera's rules NOW, so bad config fails at startup
         self._rules_cfg = {cid: rules.rules_for(cid) for cid in self.camera_ids}
@@ -235,12 +236,13 @@ class Pipeline:
             self._last_video_s[cid] = video_s
 
     def _emit_events(self, cid: str, events: List[Event], video_s: Optional[float]) -> None:
-        for e in events:
-            if video_s is not None:
-                e.details["video_time_s"] = round(video_s, 2)
-            self.events.write(e.to_dict())
-            self._event_counts[event_key(e)] += 1
-        self.counters[cid]["events"] += len(events)
+        with self._emit_lock:
+            for e in events:
+                if video_s is not None:
+                    e.details["video_time_s"] = round(video_s, 2)
+                self.events.write(e.to_dict())
+                self._event_counts[event_key(e)] += 1
+            self.counters[cid]["events"] += len(events)
 
     def _enqueue(self, cid: str, res: FrameResult) -> None:
         q = self._out_queues[cid]

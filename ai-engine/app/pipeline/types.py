@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from dataclasses import field
+from typing import Dict, List, Optional
 
 from app.schemas.events import Event
 from app.schemas.tracking import FrameTracks
@@ -19,3 +20,4 @@ class FrameResult:
     video_s: Optional[float]        # clip time for offline file sources, else None
     n_active: int
     n_lost: int
+    plates: Dict[int, str] = field(default_factory=dict)
