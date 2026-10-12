@@ -22,3 +22,46 @@ tracker:
 video:
   target_fps: 15
   resize_width: 1280
+
+anpr:
+  enabled: true
+  vehicle_classes: [car, truck, bus, motorcycle]
+  formats: [indian, generic]        # indian = KA01AB1234 style; generic = any 5-10 letters/digits
+  preprocess: clahe                 # none | gray | clahe | sharpen
+  preprocess_height: 96             # plate crop is resized to this height before OCR
+  crop_pad: 0.10                    # padding around the detected plate box
+  save_crops: true                  # save the best plate crop per vehicle (evidence); contains personal data
+  keep_read_log: true               # keep every individual OCR read in the record (for evaluation)
+  queue_size: 32
+  locator:
+    type: yolo                      # yolo | lower_region (fallback: no plate detector needed)
+    weights: plate_detector.pt      # file in ai-engine/models/
+    conf: 0.4
+    imgsz: 640
+    min_aspect: 1.0                 # plate box width/height range
+    max_aspect: 7.0
+    min_area_frac: 0.002            # plate box area as a fraction of the vehicle crop
+    max_area_frac: 0.30
+  ocr:
+    engine: paddle                  # paddle | http | fake
+    lang: en
+    device: cpu                     # cpu | gpu:0
+    url: http://127.0.0.1:8100/ocr  # only for engine: http
+    min_confidence: 0.30
+  schedule:
+    min_track_hits: 5               # a vehicle must be tracked this many frames before OCR starts
+    ocr_every_n_frames: 5           # OCR cadence per vehicle
+    max_reads_per_track: 20         # stop OCR for a vehicle after this many reads
+    min_vehicle_width_px: 90        # vehicles smaller than this are too far for readable plates
+    border_margin_px: 8             # skip vehicles cut off by the frame edge (0 disables)
+    crop_margin: 0.05
+  quality:
+    min_plate_width_px: 50
+    min_plate_height_px: 15
+    min_sharpness: 40.0
+  consensus:
+    min_reads: 3                    # reads needed before a plate can be called stable
+    stable_share: 0.6               # agreement needed for stable
+    loose_weight: 0.6               # weight of reads that fit only the generic format
+    invalid_weight: 0.3             # weight of reads that fit no format (0 excludes them)
+    final_min_confidence: 0.5       # minimum confidence to emit an event for a never-stable vehicle
