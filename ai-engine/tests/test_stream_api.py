@@ -63,3 +63,11 @@ def test_mjpeg_chunk_format(fake):
     assert b"\xff\xd8" in chunk
     fake.stopped = True
     gen.close()
+
+
+def test_root_dashboard_html(fake):
+    client = TestClient(app)
+    r = client.get("/")
+    assert r.status_code == 200
+    assert "Border-AI" in r.text
+    assert "stream-viewport" in r.text

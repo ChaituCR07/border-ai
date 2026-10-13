@@ -40,7 +40,7 @@ def build_configs(args):
         cfgs = [replace(c, target_fps=args.fps) for c in cfgs]
 
     all_files = all(c.source_type == "file" for c in cfgs)
-    mode = args.mode or ("offline" if all_files else "live")
+    mode = args.mode or ("live" if args.loop else ("offline" if all_files else "live"))
     if mode == "offline" and not all_files:
         sys.exit("Offline mode needs video files. Use --mode live for RTSP sources.")
 
