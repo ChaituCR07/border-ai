@@ -201,6 +201,7 @@ class AnprService:
             stats = dict(self.stats)
         stats.setdefault("dropped", 0)
         stats.setdefault("reads", 0)
+        stats.setdefault("errors", 0)
         return {"queue": self._q.qsize() if self._q is not None else 0,
                 "active_vehicles": active, "finished": finished, **stats}
 
