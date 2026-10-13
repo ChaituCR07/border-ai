@@ -42,12 +42,20 @@ def _fit(window: str, d: int, s: int) -> Optional[IndianCandidate]:
     if d == 1 and window[2] == "0":
         return None
     out, subs = [], 0
-    for ch, kind in zip(window, kinds):
+    series_start = 2 + d
+    series_end = series_start + s
+    for i, (ch, kind) in enumerate(zip(window, kinds)):
         if kind == "L":
             if ch.isalpha():
+                # In Indian vehicle series, I, O, Q are disallowed by RTO rules
+                if series_start <= i < series_end and ch in ("I", "O", "Q"):
+                    return None
                 out.append(ch)
             elif ch in DIGIT_TO_LETTER:
-                out.append(DIGIT_TO_LETTER[ch])
+                sub_ch = DIGIT_TO_LETTER[ch]
+                if series_start <= i < series_end and sub_ch in ("I", "O", "Q"):
+                    return None
+                out.append(sub_ch)
                 subs += 1
             else:
                 return None
@@ -65,6 +73,8 @@ def _fit(window: str, d: int, s: int) -> Optional[IndianCandidate]:
 
 def correct_indian(t: str) -> Optional[IndianCandidate]:
     """Best Indian-format reading inside the cleaned text t, or None."""
+    if len(t) > 16:
+        return None
     best, best_key = None, None
     for start in range(len(t)):
         for end in range(start + 8, min(len(t), start + 11) + 1):
@@ -73,6 +83,10 @@ def correct_indian(t: str) -> Optional[IndianCandidate]:
                 if cand is None:
                     continue
                 end_discarded = len(t) - end
+                discarded = start + end_discarded
+                # Unknown state code is only allowed if it matches the text without discarded noise
+                if not cand.state_ok and discarded > 1:
+                    continue
                 # Discarding trailing digits is penalized more heavily than prefix (e.g. IND)
                 cost = cand.subs + end_discarded * 2 + start
                 key = (0 if cand.state_ok else 1, cost, cand.subs, pref)

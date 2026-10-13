@@ -1,0 +1,6 @@
+{
+  "clip": "anpr_vehicle_track.mp4",
+  "plates": [
+    {"plate": "KA01AB1234", "first_s": 0.0, "last_s": 4.0}
+  ]
+}
