@@ -19,7 +19,7 @@ from app.pipeline.queues import put_blocking, put_drop_oldest
 from app.pipeline.renderer import FrameRenderer
 from app.pipeline.sinks import FrameHub, JsonlSink, VideoSink
 from app.pipeline.types import FrameResult
-from app.schemas.events import Event
+from app.schemas.events import Event, PLATE_RECOGNIZED
 from app.tracking.manager import MultiCameraTracker
 from app.tracking.tracker import TrackerParams
 from ingestion.camera_manager import CameraManager, FpsCounter
@@ -59,7 +59,7 @@ class Pipeline:
                  write_video: bool = True, log_tracks: bool = False,
                  offline: Optional[bool] = None, jpeg_quality: int = 80,
                  out_queue_size: int = 8, max_seconds: float = 0, max_frames: int = 0,
-                 anpr=None):
+                 anpr=None, watchlist=None):
         self.detector = detector
         self.mgr = manager
         self.params = tracker_params
@@ -90,6 +90,13 @@ class Pipeline:
         if self.anpr is not None:
             self.anpr.attach(self.run_dir / "anpr", emit=self._emit_from_anpr,
                              timers=self.timers, block_when_full=self.offline)
+
+        self.watchlist = watchlist
+        self._feed_lock = threading.Lock()
+        self._async_feed = {cid: [] for cid in self.camera_ids}
+        if self.watchlist is not None:
+            self.watchlist.attach(emit=self._emit_async, timers=self.timers,
+                                  block_when_full=self.offline)
 
         # Load and validate every camera's rules NOW, so bad config fails at startup
         self._rules_cfg = {cid: rules.rules_for(cid) for cid in self.camera_ids}
@@ -136,6 +143,8 @@ class Pipeline:
                                  name=f"out-{cid}", daemon=True)
             self._out_threads[cid] = t
             t.start()
+        if self.watchlist is not None:
+            self.watchlist.start()
         if self.anpr is not None:
             self.anpr.start()
         self.mgr.start_all()
@@ -185,6 +194,11 @@ class Pipeline:
                     self.anpr.stop(drain=True, timeout=120)    # finish queued reads, finalize vehicles
                 except Exception:
                     log.exception("ANPR shutdown failed")
+            if self.watchlist is not None:
+                try:
+                    self.watchlist.stop(drain=True, timeout=60)
+                except Exception:
+                    log.exception("Watchlist shutdown failed")
             self._flush_rules()
             self._close_outputs()
             self.mgr.stop_all()
@@ -236,17 +250,21 @@ class Pipeline:
             if self.tracks_log:
                 self.tracks_log.write(ft.to_dict())
 
-            plates = {}
+            plates, flags = {}, {}
             if self.anpr is not None:
                 self.anpr.submit(cid, ft, f.image)
                 self.anpr.on_tracks_removed(cid, upd.removed)
                 plates = self.anpr.plates_snapshot(cid)
+            if self.watchlist is not None:
+                self.watchlist.on_tracks_removed(cid, upd.removed)
+                flags = self.watchlist.flags_snapshot(cid)
+            display_events = events + self._take_async(cid)
 
             n_active = len(store.active_tracks())
-            res = FrameResult(frame=f, ft=ft, events=events, store=store.snapshot(),
+            res = FrameResult(frame=f, ft=ft, events=display_events, store=store.snapshot(),
                               rule_stats=self.rules.stats(cid), video_s=video_s,
                               n_active=n_active, n_lost=len(store.lost_tracks()),
-                              plates=plates)
+                              plates=plates, flags=flags)
             self._enqueue(cid, res)
 
             self.counters[cid]["processed"] += 1
@@ -256,7 +274,22 @@ class Pipeline:
             self._last_video_s[cid] = video_s
 
     def _emit_from_anpr(self, cid: str, events: List[Event]) -> None:
+        self._emit_async(cid, events)
+        if self.watchlist is not None:
+            for e in events:
+                if e.type == PLATE_RECOGNIZED:
+                    self.watchlist.submit(e)
+
+    def _emit_async(self, cid: str, events: List[Event]) -> None:
+        """Events produced by background threads: write them, and queue them for the overlay feed."""
         self._emit_events(cid, events, None)
+        with self._feed_lock:
+            self._async_feed[cid].extend(events)
+
+    def _take_async(self, cid: str) -> List[Event]:
+        with self._feed_lock:
+            items, self._async_feed[cid] = self._async_feed[cid], []
+        return items
 
     def _emit_events(self, cid: str, events: List[Event], video_s: Optional[float]) -> None:
         with self._emit_lock:
@@ -384,6 +417,7 @@ class Pipeline:
             "avg_batch_size": round(sum(batches) / len(batches), 2) if batches else 0.0,
             "events_total": self.events.count,
             "anpr": self.anpr.status() if self.anpr is not None else None,
+            "watchlist": self.watchlist.status() if self.watchlist is not None else None,
             "detector": self.detector.info(),
             "process": process,
         }
@@ -418,5 +452,6 @@ class Pipeline:
             "cameras": cameras,
             "rules": {cid: asdict(r) for cid, r in self._rules_cfg.items()},
             "anpr": asdict(self.anpr.cfg) if self.anpr is not None else None,
+            "watchlist": asdict(self.watchlist.cfg) if self.watchlist is not None else None,
         }
         (self.run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, default=str))

@@ -15,6 +15,7 @@ from app.pipeline.pipeline import Pipeline  # noqa: E402
 from app.pipeline.visualizer import make_grid  # noqa: E402
 from app.tracking.tracker import TrackerParams  # noqa: E402
 from app.anpr.factory import build_anpr  # noqa: E402
+from app.watchlist.factory import build_watchlist  # noqa: E402
 from ingestion.camera_manager import (CameraConfig, CameraManager, build_source,  # noqa: E402
                                       load_camera_configs)
 
@@ -74,6 +75,9 @@ def format_status(st: dict) -> str:
     a = st.get("anpr")
     if a:
         lines.append("  anpr: " + " | ".join(f"{k} {v}" for k, v in a.items()))
+    w = st.get("watchlist")
+    if w:
+        lines.append("  watchlist: " + " | ".join(f"{k} {v}" for k, v in w.items()))
     p = st.get("process") or {}
     if p:
         lines.append("  process: " + " | ".join(f"{k} {v}" for k, v in p.items()))
@@ -129,6 +133,7 @@ def main():
     ap.add_argument("--seconds", type=float, default=0, help="stop after N seconds")
     ap.add_argument("--max-frames", type=int, default=0, help="stop each camera after N frames")
     ap.add_argument("--no-anpr", action="store_true", help="disable plate recognition")
+    ap.add_argument("--no-watchlist", action="store_true", help="disable watchlist matching")
     ap.add_argument("--no-video", action="store_true", help="do not write annotated MP4s")
     ap.add_argument("--log-tracks", action="store_true", help="also write per-frame tracks.jsonl")
     ap.add_argument("--half", action="store_true", help="FP16 (GPU only)")
@@ -144,6 +149,7 @@ def main():
     app_cfg = config.load_app_config()
     params = TrackerParams.from_config(app_cfg["tracker"])
     anpr = None if args.no_anpr else build_anpr(app_cfg)
+    watchlist = None if args.no_watchlist else build_watchlist(app_cfg)
     detector = Detector.from_config(**({"half": True} if args.half else {}))
     rules = RuleEngine(config.CONFIG_DIR / "zones")
 
@@ -152,7 +158,7 @@ def main():
         camera_fps={c.camera_id: c.target_fps for c in cfgs if c.target_fps},
         write_video=not args.no_video, log_tracks=args.log_tracks,
         offline=(mode == "offline"), max_seconds=args.seconds, max_frames=args.max_frames,
-        anpr=anpr)
+        anpr=anpr, watchlist=watchlist)
 
     print(f"Run {pipeline.run_id} | mode {mode} | cameras {pipeline.camera_ids}\n"
           f"Output: {pipeline.run_dir}\n")
