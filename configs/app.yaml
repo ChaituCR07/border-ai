@@ -65,3 +65,20 @@ anpr:
     loose_weight: 0.6               # weight of reads that fit only the generic format
     invalid_weight: 0.3             # weight of reads that fit no format (0 excludes them)
     final_min_confidence: 0.5       # minimum confidence to emit an event for a never-stable vehicle
+
+watchlist:
+  enabled: true
+  backend: postgres               # postgres | memory
+  require_db: false               # true = refuse to start when PostgreSQL is unreachable (production)
+  seed_csv: ""                    # memory backend only: load entries from this CSV (relative to the repo root)
+  entity_types: [VEHICLE, PLATE]  # types matched against recognized plates
+  alert_min_confidence: 0.70      # plate confidence needed for an ALERT; below it a match is REVIEW (set from your Day 8 E7)
+  min_score: 40                   # below this score no hit is recorded
+  near_max_distance: 1.0          # OCR-aware distance allowed for a near match (0 disables near matching)
+  near_penalty: 0.2               # score quality lost per unit of distance
+  near_can_alert: false           # near matches are always REVIEW unless true
+  cooldown_s: 60                  # per camera + entry: suppress repeat alerts
+  snapshot_refresh_s: 60          # refresh of the in-memory fallback copy
+  queue_size: 100
+  submit_timeout_s: 2.0           # live mode: how long submit() may wait for queue space
+  max_candidates: 5000            # near-match candidates fetched per lookup
