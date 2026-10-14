@@ -209,3 +209,176 @@ class InMemoryWatchlistRepo(WatchlistRepo):
 
     def ping(self):
         self._check()
+
+
+# ----------------------------------------------------------------------------- PostgreSQL
+
+import psycopg  # noqa: E402
+from psycopg.errors import ForeignKeyViolation, UniqueViolation  # noqa: E402
+from psycopg.rows import dict_row  # noqa: E402
+from psycopg.types.json import Jsonb  # noqa: E402
+from psycopg_pool import ConnectionPool, PoolTimeout  # noqa: E402
+
+COLS = ("watchlist_id, entity_type, identifier, normalized_identifier, name, description, "
+        "risk_level, active, created_by, created_at, updated_at")
+HIT_COLS = ("hit_id, watchlist_id, camera_id, track_id, plate, match_type, distance, "
+            "plate_confidence, score, status, event_id, seen_at")
+
+
+class PostgresWatchlistRepo(WatchlistRepo):
+    """PostgreSQL-backed repository. Every query is parameterized."""
+
+    def __init__(self, dsn: str, max_size: int = 4, timeout: float = 3.0):
+        self.timeout = timeout
+        self.pool = ConnectionPool(dsn, min_size=1, max_size=max_size,
+                                   kwargs={"row_factory": dict_row}, open=False)
+        self.pool.open(wait=False)             # never blocks startup; unreachable -> RepoUnavailable later
+
+    @contextmanager
+    def _conn(self):
+        try:
+            with self.pool.connection(timeout=self.timeout) as conn:
+                yield conn
+        except (psycopg.OperationalError, PoolTimeout) as e:
+            raise RepoUnavailable(str(e)) from e
+
+    @staticmethod
+    def _audit(conn, watchlist_id, action, actor, details=None) -> None:
+        conn.execute("INSERT INTO watchlist_audit (watchlist_id, action, actor, details) "
+                     "VALUES (%s, %s, %s, %s)", (watchlist_id, action, actor, Jsonb(details or {})))
+
+    def add(self, entity_type, identifier, name, risk_level, description="", actor="system"):
+        p = prepare_entry(entity_type, identifier, name, risk_level, description)
+        with self._conn() as conn:
+            try:
+                row = conn.execute(
+                    "INSERT INTO watchlist (entity_type, identifier, normalized_identifier, name, "
+                    "description, risk_level, created_by) VALUES (%s, %s, %s, %s, %s, %s, %s) "
+                    f"RETURNING {COLS}",
+                    (p.entity_type, p.identifier, p.normalized, p.name, p.description,
+                     p.risk_level, actor)).fetchone()
+            except UniqueViolation:
+                raise DuplicateEntry(f"{p.entity_type} {p.normalized} is already on the watchlist") from None
+            self._audit(conn, row["watchlist_id"], "ADD", actor,
+                        {"entity_type": p.entity_type, "risk_level": p.risk_level})
+        return WatchlistEntry(**row)
+
+    def get(self, watchlist_id):
+        with self._conn() as conn:
+            row = conn.execute(f"SELECT {COLS} FROM watchlist WHERE watchlist_id = %s",
+                               (watchlist_id,)).fetchone()
+        if row is None:
+            raise EntryNotFound(f"no watchlist entry {watchlist_id}")
+        return WatchlistEntry(**row)
+
+    def list_entries(self, entity_types=None, active_only=True, limit=1000):
+        clauses, params = [], []
+        if active_only:
+            clauses.append("active")
+        if entity_types:
+            clauses.append("entity_type = ANY(%s)")
+            params.append(list(entity_types))
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        with self._conn() as conn:
+            rows = conn.execute(f"SELECT {COLS} FROM watchlist {where} ORDER BY watchlist_id LIMIT %s",
+                                (*params, limit)).fetchall()
+        return [WatchlistEntry(**r) for r in rows]
+
+    def update(self, watchlist_id, actor="system", **fields):
+        changes = validate_update_fields(fields)
+        if not changes:
+            return self.get(watchlist_id)
+        sets = ", ".join(f"{col} = %s" for col in changes)        # column names come from the whitelist
+        with self._conn() as conn:
+            row = conn.execute(f"UPDATE watchlist SET {sets}, updated_at = now() "
+                               f"WHERE watchlist_id = %s RETURNING {COLS}",
+                               (*changes.values(), watchlist_id)).fetchone()
+            if row is None:
+                raise EntryNotFound(f"no watchlist entry {watchlist_id}")
+            self._audit(conn, watchlist_id, "UPDATE", actor, {"changed": sorted(changes)})
+        return WatchlistEntry(**row)
+
+    def deactivate(self, watchlist_id, actor="system", reason=""):
+        with self._conn() as conn:
+            row = conn.execute("UPDATE watchlist SET active = FALSE, updated_at = now() "
+                               f"WHERE watchlist_id = %s AND active RETURNING {COLS}",
+                               (watchlist_id,)).fetchone()
+            if row is None:
+                existing = conn.execute(f"SELECT {COLS} FROM watchlist WHERE watchlist_id = %s",
+                                        (watchlist_id,)).fetchone()
+                if existing is None:
+                    raise EntryNotFound(f"no watchlist entry {watchlist_id}")
+                return WatchlistEntry(**existing)                  # already inactive: idempotent
+            self._audit(conn, watchlist_id, "DEACTIVATE", actor, {"reason": reason})
+        return WatchlistEntry(**row)
+
+    def restore(self, watchlist_id, actor="system"):
+        with self._conn() as conn:
+            try:
+                row = conn.execute("UPDATE watchlist SET active = TRUE, updated_at = now() "
+                                   f"WHERE watchlist_id = %s AND NOT active RETURNING {COLS}",
+                                   (watchlist_id,)).fetchone()
+            except UniqueViolation:
+                raise DuplicateEntry("another active entry already uses this identifier") from None
+            if row is None:
+                existing = conn.execute(f"SELECT {COLS} FROM watchlist WHERE watchlist_id = %s",
+                                        (watchlist_id,)).fetchone()
+                if existing is None:
+                    raise EntryNotFound(f"no watchlist entry {watchlist_id}")
+                return WatchlistEntry(**existing)                  # already active
+            self._audit(conn, watchlist_id, "RESTORE", actor)
+        return WatchlistEntry(**row)
+
+    def find_exact(self, normalized, entity_types):
+        with self._conn() as conn:
+            rows = conn.execute(f"SELECT {COLS} FROM watchlist WHERE active AND normalized_identifier = %s "
+                                "AND entity_type = ANY(%s) ORDER BY watchlist_id",
+                                (normalized, list(entity_types))).fetchall()
+        return [WatchlistEntry(**r) for r in rows]
+
+    def find_same_length(self, normalized, entity_types, limit=5000):
+        with self._conn() as conn:
+            rows = conn.execute(f"SELECT {COLS} FROM watchlist WHERE active AND entity_type = ANY(%s) "
+                                "AND char_length(normalized_identifier) = %s ORDER BY watchlist_id LIMIT %s",
+                                (list(entity_types), len(normalized), limit)).fetchall()
+        return [WatchlistEntry(**r) for r in rows]
+
+    def load_active(self, entity_types):
+        with self._conn() as conn:
+            rows = conn.execute(f"SELECT {COLS} FROM watchlist WHERE active AND entity_type = ANY(%s) "
+                                "ORDER BY watchlist_id", (list(entity_types),)).fetchall()
+        return [WatchlistEntry(**r) for r in rows]
+
+    def record_hit(self, hit):
+        with self._conn() as conn:
+            try:
+                row = conn.execute(
+                    "INSERT INTO watchlist_hits (watchlist_id, camera_id, track_id, plate, match_type, "
+                    "distance, plate_confidence, score, status, event_id, seen_at) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING hit_id",
+                    (hit.watchlist_id, hit.camera_id, hit.track_id, hit.plate, hit.match_type,
+                     hit.distance, hit.plate_confidence, hit.score, hit.status, hit.event_id,
+                     hit.seen_at)).fetchone()
+            except ForeignKeyViolation:
+                raise EntryNotFound(f"no watchlist entry {hit.watchlist_id}") from None
+        return row["hit_id"]
+
+    def recent_hits(self, limit=50, watchlist_id=None):
+        where, params = "", []
+        if watchlist_id is not None:
+            where, params = "WHERE watchlist_id = %s", [watchlist_id]
+        with self._conn() as conn:
+            return conn.execute(f"SELECT {HIT_COLS} FROM watchlist_hits {where} "
+                                "ORDER BY hit_id DESC LIMIT %s", (*params, limit)).fetchall()
+
+    def audit_log(self, limit=100):
+        with self._conn() as conn:
+            return conn.execute("SELECT audit_id, watchlist_id, action, actor, details, created_at "
+                                "FROM watchlist_audit ORDER BY audit_id DESC LIMIT %s", (limit,)).fetchall()
+
+    def ping(self):
+        with self._conn() as conn:
+            conn.execute("SELECT 1")
+
+    def close(self):
+        self.pool.close()
