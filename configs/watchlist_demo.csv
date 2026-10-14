@@ -1,0 +1,4 @@
+entity_type,identifier,name,risk_level,description
+VEHICLE,KA01AB1234,Watchlist Vehicle 01,HIGH,Synthetic demo entry
+PLATE,MH12XY4321,Watchlist Plate 02,MEDIUM,Synthetic demo entry
+VEHICLE,DL08CZ9999,Watchlist Vehicle 03,CRITICAL,Synthetic demo entry
