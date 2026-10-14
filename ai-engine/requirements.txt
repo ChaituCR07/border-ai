@@ -11,3 +11,6 @@ pytest
 python-multipart
 httpx
 psutil
+psycopg[binary]
+psycopg-pool
+pytest-cov

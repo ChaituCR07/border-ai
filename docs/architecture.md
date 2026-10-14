@@ -163,3 +163,41 @@ Submit Job (Deep-copy vehicle crop)
 2. **Dynamic Early Stopping:** Once a plate achieves stability via multi-frame consensus (`min_reads: 3`, `stable_share: 0.6`), OCR scheduling stops immediately for that vehicle track.
 3. **Dual Voting:** Combines weighted string-level voting with positional character-level voting across the dominant length to repair intermittent misreads.
 4. **Data Privacy Isolation:** License plate crops are stored locally in `outputs/runs/<id>/anpr/plates/` and strictly gitignored.
+
+---
+
+## 8. Watchlist Processing Stage
+
+```
+   ANPR Worker Thread                   Watchlist Background Worker
+  ──────────────────────               ──────────────────────────────
+   PLATE_RECOGNIZED Event ─────────────► Bounded Lookup Queue (size 100)
+                                                    │
+                                                    ▼
+                                            De-duplicate Track
+                                            (1 lookup per distinct plate)
+                                                    │
+                                                    ▼
+                                            PostgreSQL Lookup
+                                            (Exact match via partial index)
+                                            (Same-length candidates for near)
+                                                    │
+                                          [Fail? In-memory Snapshot]
+                                                    │
+                                                    ▼
+                                            Score & Status Decision
+                                            (Alert >= 0.70 conf; Near = Review)
+                                                    │
+                                                    ▼
+                                            Camera Cooldown Gate
+                                            (Suppress repeat alerts within 60s)
+                                                    │
+                                                    ├─ Emits WATCHLIST_MATCH Event
+                                                    ├─ Records Hit in watchlist_hits
+                                                    └─ Updates Active Track Flags (Red Box overlay)
+```
+
+### Architectural Guarantees:
+1. **Zero Vision Pipeline Blocking:** Background worker isolation guarantees that database timeouts or network stalls never affect camera ingestion, tracking, or rule evaluation.
+2. **Deterministic Offline Execution:** Cooldown calculations rely strictly on stream frame timestamps rather than system wall clock.
+3. **Transparent Outage Survivability:** Lookups continue uninterrupted via memory snapshot when the database is temporarily offline, buffering hits until reconnection.
