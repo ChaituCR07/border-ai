@@ -10,6 +10,7 @@ ZONE_DWELL = "ZONE_DWELL"
 LOITERING = "LOITERING"
 LINE_CROSSING = "LINE_CROSSING"
 PLATE_RECOGNIZED = "PLATE_RECOGNIZED"
+WATCHLIST_MATCH = "WATCHLIST_MATCH"
 
 
 @dataclass
@@ -32,7 +33,7 @@ class Event:
     event_id: str = field(default_factory=lambda: uuid.uuid4().hex)
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "event_id": self.event_id,
             "event": self.type,          # matches the plan's LINE_CROSSING example
             "type": self.type,           # matches the plan's WATCHLIST_MATCH example
@@ -51,6 +52,10 @@ class Event:
             "dwell_s": None if self.dwell_s is None else round(self.dwell_s, 1),
             "details": self.details,
         }
+        for key in ("plate", "score"):
+            if key in self.details:
+                d[key] = self.details[key]
+        return d
 
 
 def event_for(type, rule, rule_kind, ft, track_id, object_class, confidence, bbox, **kw) -> Event:
