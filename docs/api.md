@@ -207,3 +207,48 @@ Stored once a vehicle plate achieves stability and upon vehicle departure:
   ]
 }
 ```
+
+---
+
+## Watchlist Match Event (`WATCHLIST_MATCH`)
+
+Emitted when a recognized vehicle license plate matches an active entity on the watchlist.
+
+### Event Format (`events.jsonl`)
+```json
+{
+  "event_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "camera_id": "CAM_002",
+  "timestamp": "2026-10-14T15:30:10.500Z",
+  "frame_id": 450,
+  "type": "WATCHLIST_MATCH",
+  "track_id": 42,
+  "plate": "KA01AB1234",
+  "score": 91,
+  "object_class": "car",
+  "confidence": 0.91,
+  "bbox": [120.0, 340.0, 480.0, 610.0],
+  "rule_id": "WATCHLIST",
+  "rule_name": "Watchlist match",
+  "rule_kind": "watchlist",
+  "rule_type": "vehicle",
+  "details": {
+    "plate": "KA01AB1234",
+    "score": 91,
+    "status": "alert",
+    "review_required": false,
+    "entry_id": 1,
+    "entity_type": "VEHICLE",
+    "risk_level": "HIGH",
+    "match_type": "exact",
+    "distance": 0.0,
+    "matched_identifier": "KA01AB1234",
+    "plate_confidence": 0.912,
+    "also_matched": [],
+    "plate_event_id": "3d5f..."
+  }
+}
+```
+
+### Privacy & RBAC Protection
+To prevent information leakage across public logs and message queues, the entry's `name` and `description` are **deliberately excluded** from the event payload. The web dashboard resolves human metadata by querying `entry_id` against the PostgreSQL database under authenticated Investigator and Admin roles.

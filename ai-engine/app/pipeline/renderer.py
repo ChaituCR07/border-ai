@@ -32,11 +32,15 @@ class FrameRenderer:
         self.flash.trigger(res.events, ts)
         for e in res.events:
             parts = [clock, e.type, e.rule_name, e.direction or "", f"{e.object_class} #{e.track_id}"]
+            if "plate" in e.details:
+                parts.append(str(e.details["plate"]))
             self.feed.append(" ".join(p for p in parts if p))
 
         draw_zones(image, self.rules, res.rule_stats["zone_occupancy"], self.flash, ts)
         draw_lines(image, self.rules, res.rule_stats["line_counts"], self.flash, ts)
-        draw_tracks(image, res.ft.tracks, res.store, extra_labels=res.plates)
+        draw_tracks(image, res.ft.tracks, res.store, extra_labels=res.plates, flags=res.flags)
+        if res.flags:
+            put_text(image, "WATCHLIST ALERT", (image.shape[1] - 260, 25), 0.8, (0, 0, 255))
         put_text(image, f"{self.camera_id}  {clock}{'' if offline else ' UTC'}  "
                         f"{out_fps:.1f} FPS  tracks {res.n_active}", (10, 25))
         draw_event_feed(image, self.feed)

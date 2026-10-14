@@ -21,3 +21,4 @@ class FrameResult:
     n_active: int
     n_lost: int
     plates: Dict[int, str] = field(default_factory=dict)
+    flags: Dict[int, str] = field(default_factory=dict)       # track_id -> watchlist flag text

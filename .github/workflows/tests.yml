@@ -1,0 +1,40 @@
+name: tests
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: borderai
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: borderai
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U borderai" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: borderai
+      POSTGRES_PASSWORD: ci_password
+      POSTGRES_DB: borderai
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install CPU PyTorch first, then the project
+        run: |
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install -e video-ingestion
+          pip install -r ai-engine/requirements.txt
+          pip install opencv-python-headless
+      - name: Tests
+        working-directory: ai-engine
+        run: pytest -m "not slow" -v
+      - name: Ingestion tests
+        run: pytest video-ingestion/tests -v

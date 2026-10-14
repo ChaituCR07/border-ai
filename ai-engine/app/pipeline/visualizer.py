@@ -88,7 +88,7 @@ def _draw_trail(image: np.ndarray, trail, color, thickness: int) -> None:
 
 def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
                 show_trails: bool = True, show_lost: bool = True,
-                extra_labels=None) -> np.ndarray:
+                extra_labels=None, flags=None) -> np.ndarray:
     """Boxes + 'class #id' labels + trajectory trails. Draws in place."""
     h, w = image.shape[:2]
     thickness = max(1, round(min(h, w) / 400))
@@ -105,6 +105,8 @@ def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
 
     for o in tracks:
         color = color_for_id(o.track_id)
+        flag = flags.get(o.track_id) if flags else None
+        box_color = (0, 0, 255) if flag else color                 # red for watchlisted vehicles
 
         if store is not None and show_trails:
             t = store.get(o.track_id)
@@ -112,16 +114,18 @@ def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
                 _draw_trail(image, t.trail, color, thickness)
 
         p1, p2 = (int(o.x1), int(o.y1)), (int(o.x2), int(o.y2))
-        cv2.rectangle(image, p1, p2, color, thickness)
+        cv2.rectangle(image, p1, p2, box_color, thickness * 2 if flag else thickness)
         fx, fy = o.bottom_center
         cv2.circle(image, (int(fx), int(fy)), thickness + 2, color, -1)   # ground point
 
         label = f"{o.label} #{o.track_id}"
         if extra_labels and o.track_id in extra_labels:
             label += f" {extra_labels[o.track_id]}"
+        if flag:
+            label += f"  WATCHLIST {flag}"
         (tw, th), base = cv2.getTextSize(label, FONT, font_scale, 1)
         y_top = max(p1[1] - th - base, 0)
-        cv2.rectangle(image, (p1[0], y_top), (p1[0] + tw, y_top + th + base), color, -1)
+        cv2.rectangle(image, (p1[0], y_top), (p1[0] + tw, y_top + th + base), box_color, -1)
         cv2.putText(image, label, (p1[0], y_top + th), FONT, font_scale,
                     (0, 0, 0), 1, cv2.LINE_AA)
     return image
