@@ -13,6 +13,9 @@
 | K9 | ANPR | Distant or low-resolution vehicle plates (< 50px width) unreadable | Medium | Known | Skip small vehicles with `min_vehicle_width_px: 90`; quality gate rejects blurry frames |
 | K10 | ANPR | Tracker ID switch splits one vehicle's OCR consensus into two records | Low | Known | Merged via Watchlist and multi-camera plate deduplication in Day 9 |
 | K11 | ANPR | Severe camera angles (> 35 degrees) and headlight glare degrade character segmentation | Medium | Known | Camera placement guidelines, CLAHE preprocessing, and consensus voting across frames |
+| K12 | Watchlist | Tracker ID switch splits one vehicle into two tracks (two lookups) | Low | Mitigated | Cooldown suppresses duplicate alert within 60s; hits are stored |
+| K13 | Watchlist | OCR-tolerant near matches risk false matches on visually similar plates | Medium | Mitigated | Near matches default to review status requiring human confirmation |
+| K14 | Watchlist | Face and Person entity embeddings are stored but matching is not executed | Low | Planned | Person & Face embedding similarity search planned for Day 10 |
 
 ## Severity Classification
 - **High:** Incorrect/lost security events, service crashes, data corruption.

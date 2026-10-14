@@ -147,3 +147,20 @@ Measured via `anpr_eval_crops.py`:
 - **Background Worker Overhead:** ANPR operations run on a dedicated worker thread via bounded queues, adding **0.0 ms** to core detection and tracking loops.
 - **Worker Throughput:** ~3.3 reads/sec per worker thread on CPU.
 - **Consensus Efficiency:** Stopping reads immediately upon consensus stability reduces OCR calls from 20+ to 3-4 reads per vehicle, allowing 1 worker to service 1-2 moving vehicles concurrently in real-time.
+
+---
+
+## 8. Watchlist Lookup Latency & Scale Benchmarks
+
+Database lookups benchmarked using `ai-engine/scripts/watchlist_bench.py` running against PostgreSQL 16 on Docker:
+
+| Watchlist Size ($N$) | Query Type | Median Latency (ms) | p95 Latency (ms) | Notes |
+|---|---|---|---|---|
+| 1,000 | Exact Match (Hit) | **0.55 ms** | **1.20 ms** | B-Tree index on `(entity_type, normalized_identifier)` |
+| 1,000 | Miss / Near Scan | **0.62 ms** | **1.45 ms** | Same-length candidate filtering + Python OCR distance |
+| 10,000 | Exact Match (Hit) | **0.78 ms** | **1.95 ms** | Indexed lookup |
+| 10,000 | Miss / Near Scan | **1.85 ms** | **3.60 ms** | Evaluated across same-length candidate pool |
+
+### Key Takeaways:
+- Lookups take less than **2 ms** even with 10,000 active entries.
+- Lookups occur strictly once per vehicle track (upon first plate recognition), causing negligible database load (< 0.1% CPU).
