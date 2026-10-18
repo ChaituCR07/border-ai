@@ -5,9 +5,12 @@ from dataclasses import replace
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Sequence
 
+import numpy as np
+from app.identity.embeddings import from_bytes, to_bytes, validate_embedding
 from app.watchlist.models import (
     DuplicateEntry,
     EntryNotFound,
+    InvalidEntry,
     RepoUnavailable,
     WatchlistEntry,
     WatchlistHit,
@@ -19,6 +22,14 @@ class WatchlistRepo(ABC):
     # ---- management
     @abstractmethod
     def add(self, entity_type, identifier, name, risk_level, description="", actor="system") -> WatchlistEntry: ...
+
+    @abstractmethod
+    def add_face(self, entity_type: str, identifier: str, name: str, risk_level: str, embedding,
+                 model: str, count: int = 1, description: str = "", actor: str = "system") -> WatchlistEntry: ...
+
+    @abstractmethod
+    def load_face_embeddings(self, model: str) -> list:
+        """[(WatchlistEntry, np.ndarray)] for active FACE/PERSON entries enrolled with `model`."""
 
     @abstractmethod
     def get(self, watchlist_id: int) -> WatchlistEntry: ...
@@ -77,6 +88,7 @@ class InMemoryWatchlistRepo(WatchlistRepo):
         self._entries: Dict[int, WatchlistEntry] = {}
         self._hits: List[dict] = []
         self._audit: List[dict] = []
+        self._faces: Dict[int, tuple] = {}
         self._next_id, self._next_hit, self._next_audit = 1, 1, 1
         self.fail = False
 
@@ -109,6 +121,28 @@ class InMemoryWatchlistRepo(WatchlistRepo):
             self._log(entry.watchlist_id, "ADD", actor,
                       {"entity_type": p.entity_type, "risk_level": p.risk_level})
             return replace(entry)
+
+    def add_face(self, entity_type, identifier, name, risk_level, embedding, model, count=1,
+                 description="", actor="system"):
+        self._check()
+        et = (entity_type or "").upper()
+        if et not in ("FACE", "PERSON"):
+            raise InvalidEntry("add_face is for FACE or PERSON entries")
+        try:
+            vec = validate_embedding(embedding)
+        except ValueError as e:
+            raise InvalidEntry(str(e)) from None
+        entry = self.add(et, identifier, name, risk_level, description, actor)
+        with self._lock:
+            self._faces[entry.watchlist_id] = (vec, model, int(count))
+        return entry
+
+    def load_face_embeddings(self, model):
+        self._check()
+        with self._lock:
+            return [(replace(self._entries[i]), vec.copy())
+                    for i, (vec, m, _) in sorted(self._faces.items())
+                    if m == model and self._entries[i].active]
 
     def get(self, watchlist_id):
         self._check()
@@ -191,7 +225,7 @@ class InMemoryWatchlistRepo(WatchlistRepo):
                    "track_id": hit.track_id, "plate": hit.plate, "match_type": hit.match_type,
                    "distance": hit.distance, "plate_confidence": hit.plate_confidence,
                    "score": hit.score, "status": hit.status, "event_id": hit.event_id,
-                   "seen_at": hit.seen_at}
+                   "seen_at": hit.seen_at, "match_basis": hit.match_basis, "similarity": hit.similarity}
             self._hits.append(row)
             self._next_hit += 1
             return row["hit_id"]
@@ -222,7 +256,7 @@ from psycopg_pool import ConnectionPool, PoolTimeout  # noqa: E402
 COLS = ("watchlist_id, entity_type, identifier, normalized_identifier, name, description, "
         "risk_level, active, created_by, created_at, updated_at")
 HIT_COLS = ("hit_id, watchlist_id, camera_id, track_id, plate, match_type, distance, "
-            "plate_confidence, score, status, event_id, seen_at")
+            "plate_confidence, score, status, event_id, seen_at, match_basis, similarity")
 
 
 class PostgresWatchlistRepo(WatchlistRepo):
@@ -262,6 +296,43 @@ class PostgresWatchlistRepo(WatchlistRepo):
             self._audit(conn, row["watchlist_id"], "ADD", actor,
                         {"entity_type": p.entity_type, "risk_level": p.risk_level})
         return WatchlistEntry(**row)
+
+    def add_face(self, entity_type, identifier, name, risk_level, embedding, model, count=1,
+                 description="", actor="system"):
+        et = (entity_type or "").upper()
+        if et not in ("FACE", "PERSON"):
+            raise InvalidEntry("add_face is for FACE or PERSON entries")
+        try:
+            vec = validate_embedding(embedding)
+        except ValueError as e:
+            raise InvalidEntry(str(e)) from None
+        p = prepare_entry(et, identifier, name, risk_level, description)
+        with self._conn() as conn:
+            try:
+                row = conn.execute(
+                    "INSERT INTO watchlist (entity_type, identifier, normalized_identifier, name, description, "
+                    "risk_level, created_by, embedding, embedding_model, embedding_dim, embedding_count) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+                    f"RETURNING {COLS}",
+                    (p.entity_type, p.identifier, p.normalized, p.name, p.description, p.risk_level, actor,
+                     to_bytes(vec), model, int(vec.size), int(count))).fetchone()
+            except UniqueViolation:
+                raise DuplicateEntry(f"{p.entity_type} {p.normalized} is already on the watchlist") from None
+            self._audit(conn, row["watchlist_id"], "ADD", actor,
+                        {"entity_type": p.entity_type, "risk_level": p.risk_level,
+                         "embedding_model": model, "embedding_dim": int(vec.size)})
+        return WatchlistEntry(**row)
+
+    def load_face_embeddings(self, model):
+        with self._conn() as conn:
+            rows = conn.execute(f"SELECT {COLS}, embedding, embedding_dim FROM watchlist "
+                                "WHERE active AND embedding IS NOT NULL AND embedding_model = %s "
+                                "ORDER BY watchlist_id", (model,)).fetchall()
+        out = []
+        for r in rows:
+            vec = from_bytes(r.pop("embedding"), r.pop("embedding_dim"))
+            out.append((WatchlistEntry(**r), vec))
+        return out
 
     def get(self, watchlist_id):
         with self._conn() as conn:
@@ -354,11 +425,11 @@ class PostgresWatchlistRepo(WatchlistRepo):
             try:
                 row = conn.execute(
                     "INSERT INTO watchlist_hits (watchlist_id, camera_id, track_id, plate, match_type, "
-                    "distance, plate_confidence, score, status, event_id, seen_at) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING hit_id",
+                    "distance, plate_confidence, score, status, event_id, seen_at, match_basis, similarity) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING hit_id",
                     (hit.watchlist_id, hit.camera_id, hit.track_id, hit.plate, hit.match_type,
                      hit.distance, hit.plate_confidence, hit.score, hit.status, hit.event_id,
-                     hit.seen_at)).fetchone()
+                     hit.seen_at, hit.match_basis, hit.similarity)).fetchone()
             except ForeignKeyViolation:
                 raise EntryNotFound(f"no watchlist entry {hit.watchlist_id}") from None
         return row["hit_id"]

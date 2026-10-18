@@ -201,3 +201,35 @@ Submit Job (Deep-copy vehicle crop)
 1. **Zero Vision Pipeline Blocking:** Background worker isolation guarantees that database timeouts or network stalls never affect camera ingestion, tracking, or rule evaluation.
 2. **Deterministic Offline Execution:** Cooldown calculations rely strictly on stream frame timestamps rather than system wall clock.
 3. **Transparent Outage Survivability:** Lookups continue uninterrupted via memory snapshot when the database is temporarily offline, buffering hits until reconnection.
+
+---
+
+## 9. Identity & Person Re-ID Processing Stage
+
+```
+   Inference Thread                        Identity Worker Thread
+  ──────────────────                      ────────────────────────
+   Person Tracks (BBoxes) ───────────────► Bounded Queue (size 64)
+   (Crops copied before rendering)                   │
+                                                     ▼
+                                        Face Detection (Upper crop)
+                                        Quality Gate (Score, Size, Yaw, Blur)
+                                        Face Embedding (SFace / ArcFace)
+                                        Track Aggregator (Weighted Mean)
+                                        Consistency Check (>= 0.75)
+                                                     │
+                                                     ├─ Face Match? ──► WATCHLIST_MATCH (review)
+                                                     │                  Hit Stored (match_basis: face)
+                                                     │                  Flag: "HIGH REVIEW FACE"
+                                                     │
+                                        Appearance Embedding (ColorLayout / ONNX)
+                                        ReidGallery Search (Recent tracks across cameras)
+                                                     │
+                                                     └─ Re-ID Match? ─► REID_MATCH (candidate)
+                                                                        Label: "= CAM_001 #12?"
+```
+
+### Architectural Traits:
+1. **Zero-Latency Impact on Ingestion:** Face detection and appearance feature extraction run asynchronously. In live mode, oldest jobs are dropped when the queue fills.
+2. **Crop Isolation:** Person crops are copied immediately upon submission, preventing frame visualizer race conditions.
+3. **No Biometric Persistence:** Re-ID gallery entries expire automatically in memory after 900 seconds. No face or person images are ever stored on disk.

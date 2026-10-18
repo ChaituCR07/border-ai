@@ -82,3 +82,53 @@ watchlist:
   queue_size: 100
   submit_timeout_s: 2.0           # live mode: how long submit() may wait for queue space
   max_candidates: 5000            # near-match candidates fetched per lookup
+
+identity:
+  enabled: false                   # master switch. Face and Re-ID processing are OFF unless you turn them on
+  person_classes: [person]
+  max_jobs_per_frame: 4            # at most this many person crops per frame (largest first)
+  queue_size: 64
+  save_crops: false                # never save face or person images unless you really need to
+  crop_margin: 0.05
+  face:
+    enabled: true
+    engine: opencv                 # opencv | insightface
+    detector_model: face/face_detection_yunet_2023mar.onnx      # under ai-engine/models/
+    recognizer_model: face/face_recognition_sface_2021dec.onnx
+    insightface_pack: buffalo_l    # only for engine: insightface (check the license)
+    upper_fraction: 0.6            # search for the face in the top 60% of the person crop
+    detector_score: 0.8
+    min_face_px: 40
+    max_yaw_ratio: 0.5             # larger = more turned away; profile faces are skipped
+    min_sharpness: 30.0
+    every_n_frames: 5
+    min_track_hits: 5
+    max_reads_per_track: 15
+    min_person_height_px: 120
+    border_margin_px: 8
+    min_embeddings: 3              # good faces needed before a search
+    min_consistency: 0.75          # embeddings of one track must agree (catches mixed identities)
+    review_threshold: 0.45         # cosine similarity. MODEL-SPECIFIC: set from face_eval.py
+    alert_threshold: 0.60
+    allow_alert: false             # false = face matches are always 'review'
+    min_margin: 0.05               # best match must beat the second best by this much
+    cooldown_s: 60
+    gallery_refresh_s: 60
+  reid:
+    enabled: true
+    embedder: color_layout         # color_layout (baseline) | onnx
+    onnx_model: reid/reid_model.onnx
+    onnx_input: [128, 256]         # width, height
+    every_n_frames: 15
+    min_track_hits: 10
+    max_samples_per_track: 8
+    min_person_height_px: 96
+    border_margin_px: 8
+    min_samples: 3
+    similarity_threshold: 0.90     # MODEL-SPECIFIC: set from reid_eval.py
+    max_gap_s: 600
+    allow_overlap: true            # candidates seen at the same time on another camera are allowed
+    camera_pairs: []               # [] = any pair; otherwise [[CAM_001, CAM_002]]
+    gallery_ttl_s: 900
+    gallery_max_items: 2000
+    max_queries: 2

@@ -252,3 +252,80 @@ Emitted when a recognized vehicle license plate matches an active entity on the 
 
 ### Privacy & RBAC Protection
 To prevent information leakage across public logs and message queues, the entry's `name` and `description` are **deliberately excluded** from the event payload. The web dashboard resolves human metadata by querying `entry_id` against the PostgreSQL database under authenticated Investigator and Admin roles.
+
+---
+
+## Face Watchlist Match Event (`WATCHLIST_MATCH`)
+
+Emitted when an enrolled face embedding matches a tracked person.
+
+```json
+{
+  "event_id": "8c3b7a1d-2e4f-4a9b-bc11-9a8f2e3d4c5b",
+  "camera_id": "CAM_001",
+  "timestamp": "2026-10-18T16:20:05.100Z",
+  "frame_id": 412,
+  "type": "WATCHLIST_MATCH",
+  "track_id": 14,
+  "confidence": 0.85,
+  "object_class": "person",
+  "bbox": [100.0, 20.0, 200.0, 200.0],
+  "rule_id": "FACE_WATCHLIST",
+  "rule_name": "Face watchlist match",
+  "rule_kind": "watchlist",
+  "rule_type": "face",
+  "details": {
+    "match_basis": "face",
+    "score": 85,
+    "status": "review",
+    "review_required": true,
+    "similarity": 0.725,
+    "margin": 0.182,
+    "embeddings": 4,
+    "consistency": 0.892,
+    "entry_id": 1,
+    "entity_type": "FACE",
+    "risk_level": "HIGH",
+    "embedding_model": "sface-opencv"
+  }
+}
+```
+
+---
+
+## Cross-Camera Re-ID Candidate Event (`REID_MATCH`)
+
+Emitted when a person track exhibits high visual appearance similarity to a recently seen track on another camera.
+
+```json
+{
+  "event_id": "5f1a2b3c-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
+  "camera_id": "CAM_002",
+  "timestamp": "2026-10-18T16:25:30.400Z",
+  "frame_id": 780,
+  "type": "REID_MATCH",
+  "track_id": 28,
+  "confidence": 0.941,
+  "object_class": "person",
+  "bbox": [140.0, 50.0, 260.0, 290.0],
+  "rule_id": "REID",
+  "rule_name": "Cross-camera appearance match",
+  "rule_kind": "identity",
+  "rule_type": "reid",
+  "details": {
+    "status": "candidate",
+    "review_required": true,
+    "similarity": 0.941,
+    "samples": 5,
+    "embedder": "color-layout",
+    "candidates": [
+      {
+        "camera_id": "CAM_001",
+        "track_id": 14,
+        "similarity": 0.941,
+        "gap_s": 42.5
+      }
+    ]
+  }
+}
+```

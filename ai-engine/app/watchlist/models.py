@@ -49,11 +49,13 @@ class WatchlistHit:
     watchlist_id: int
     camera_id: str
     track_id: int
-    plate: str
-    match_type: str                 # exact | near
+    plate: Optional[str]                  # None for face hits
+    match_type: str                       # exact | near | face
     distance: float
-    plate_confidence: float
+    plate_confidence: Optional[float]     # None for face hits
     score: int
-    status: str                     # alert | review | suppressed
+    status: str                           # alert | review | suppressed
     seen_at: datetime
     event_id: Optional[str] = None
+    match_basis: str = "plate"            # plate | face
+    similarity: Optional[float] = None    # face hits: cosine similarity

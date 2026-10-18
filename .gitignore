@@ -49,3 +49,10 @@ project -plans/
 project-plans/
 runs/
 datasets/plates/
+
+# Biometric and identity data (Day 10)
+datasets/faces/
+datasets/reid/
+exports/
+*.npy
+*.npz

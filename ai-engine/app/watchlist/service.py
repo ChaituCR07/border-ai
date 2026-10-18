@@ -254,6 +254,10 @@ class WatchlistService:
         # Deliberately NOT included: the entry's name and description (see decision 10).
 
     # ------------------------------------------------------------------ persistence and housekeeping
+    def persist_hit(self, hit: WatchlistHit) -> None:
+        """Save a hit; if the database is down, queue it for retry (shared by the identity service)."""
+        self._persist(hit)
+
     def _persist(self, hit: WatchlistHit) -> None:
         try:
             self.repo.record_hit(hit)
