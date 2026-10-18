@@ -2,20 +2,25 @@
 
 Real-time video analytics for existing CCTV/IP-camera infrastructure: detection,
 tracking, restricted-zone and line-crossing events, Automated Number Plate Recognition (ANPR),
-PostgreSQL-backed operational watchlists, and (in progress) face/appearance Re-ID,
-behaviour rules, threat scoring, and an investigation dashboard.
+PostgreSQL-backed operational watchlists, facial biometric recognition, cross-camera person appearance Re-ID,
+and (in progress) behaviour rules, threat scoring, and an investigation dashboard.
 
 ![demo](docs/images/week1_demo.gif)
 
 ---
 
-## Current Status (Day 9 Complete)
+## Current Status (Day 10 Complete)
 
 - **Week 1 (v0.1-week1) Complete:** Video/RTSP ingestion, YOLOv8 object detection, ByteTrack tracking, multi-zone and virtual line spatial engine, live MJPEG streaming, and structured JSONL event logging.
 - **Week 2 (Intelligence Layer) In Progress:**
   - **Day 8 Complete (ANPR):** Plate localization, PaddleOCR (PP-OCRv6), positional syntax checking (Indian RTO & generic format validation), and multi-frame character/string consensus voting.
-  - **Day 9 Complete (Watchlist & Testing Suite):** PostgreSQL 16 watchlist system with dual-backend repositories (PostgreSQL & in-memory), OCR-tolerant near matching, track overlay visual alerting (red box & banner), in-memory snapshot outage resilience, and a comprehensive 284-test verification suite.
-  - **Upcoming (Days 10–14):** Face detection & cross-camera Re-ID, behavioral analytics, multi-factor threat scoring, Redis Streams integration, and unified schema persistence.
+  - **Day 9 Complete (Watchlist & Resilience):** PostgreSQL 16 watchlist system with dual-backend repositories (PostgreSQL & in-memory), OCR-tolerant near matching, track overlay visual alerting (red box & banner), in-memory snapshot outage resilience, and a 284-test verification suite.
+  - **Day 10 Complete (Face & Person Re-ID Prototype):**
+    - **Face Watchlist:** Quality gate (resolution $\ge 40\text{ px}$, score $\ge 0.8$, pose yaw $\le 0.5$, sharpness $\ge 30$), multi-frame track feature aggregation with consistency checking ($\ge 0.75$), vector search over enrolled faces, ambiguity rejection (margin $\ge 0.05$), and review-grade `WATCHLIST_MATCH` events.
+    - **Cross-Camera Person Re-ID:** Appearance embedding using normalized torso/leg color layouts with gray-world correction, bounded in-memory `ReidGallery` (900s TTL), time-gap and camera-pair constraints, and `REID_MATCH` candidate generation.
+    - **Responsible-Use Safeguards:** Off by default (`identity.enabled: false`), strictly consent-gated enrollment (`--consent-confirmed`), embeddings only (zero biometric images persisted), identity masking in event streams, and review-only classifications.
+    - **Comprehensive Test Suite:** Expanded to **359 passing tests** (100% green) across `ai-engine` (351 tests) and `video-ingestion` (8 tests).
+  - **Upcoming (Days 11–14):** Multi-camera behavioral correlation, multi-factor composite threat scoring, Redis Streams publishing, and consolidated schema persistence.
 
 ---
 
@@ -29,9 +34,13 @@ behaviour rules, threat scoring, and an investigation dashboard.
   - Scored matches ($0\text{--}100$) based on OCR read confidence and substitution quality.
   - OCR-aware near matching: look-alike substitutions (`B/8`, `O/0`, `1/I`, `S/5`, `Z/2`) cost 0.5; standard substitutions cost 1.0.
   - Dynamic visual flagging: watchlisted targets render with **red bounding boxes**, risk tags (`WATCHLIST HIGH`), and screen alert banners.
-  - Privacy-first design: human identities are omitted from public event streams and resolved only by authorized roles.
   - Outage resilience: seamless fallback to an in-memory snapshot during database drops, with automatic queued hit flushing upon reconnection.
-- **Administrative CLI:** Comprehensive CLI tool for schema migration, synthetic demo seeding, entity curation, CSV import/export, and dry-run plate checks.
+- **Biometric Face Watchlist & Cross-Camera Re-ID (Day 10):**
+  - Face crop extraction, alignment, and 128-d / 512-d L2-normalized embedding (OpenCV YuNet + SFace or InsightFace ArcFace).
+  - Multi-frame track aggregation with consistency validation to prevent tracker ID swap errors.
+  - Cross-camera person appearance correlation emitting `REID_MATCH` candidates (`= CAM_001 #12?`).
+  - Privacy safeguards: numeric embeddings only, strictly consent-gated enrollment, and human review defaults.
+- **Administrative CLI:** Comprehensive CLI tool for schema migration, synthetic demo seeding, entity curation, CSV import/export, dry-run plate checks, and consent-gated face enrollment.
 
 ---
 
@@ -47,9 +56,12 @@ Batched Detection (YOLOv8) ──► Multi-Camera Tracker (ByteTrack) ──► 
 ANPR Engine (PaddleOCR + Consensus)                           Events: ENTER / EXIT / LOITERING /
         ↓                                                             LINE_CROSSING (JSONL)
 Watchlist Engine (PostgreSQL / In-Memory Snapshot Fallback)                  ↓
-        ↓                                                     Events: WATCHLIST_MATCH (JSONL)
-Annotated Video (Red Boxes / Banners) + Live MJPEG Streams                   ↓
-                                                              Plate Records: plates.jsonl (JSONL)
+        ↓                                                     Events: WATCHLIST_MATCH (Plate)
+Identity Engine (Async Face & Appearance Re-ID Worker)                       ↓
+        ↓                                                     Events: WATCHLIST_MATCH (Face)
+        ↓                                                     Events: REID_MATCH (Candidate)
+        ↓                                                                    ↓
+Annotated Video (Red Boxes / Track Labels / Banners)          Plate Records: plates.jsonl (JSONL)
 ```
 
 ---
@@ -68,11 +80,11 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -e video-ingestion
 pip install -r ai-engine/requirements.txt
-pip install -r ai-engine/requirements-anpr.txt  # Installs PaddleOCR & dependencies
+pip install -r ai-engine/requirements-anpr.txt  # Optional: Installs PaddleOCR & dependencies
 ```
 
 ### 2. Initialize Watchlist Database
-Run the idempotent migration and seed synthetic demo data:
+Run the idempotent migrations (001 and 002) and seed synthetic demo data:
 ```bash
 python ai-engine/scripts/db_migrate.py
 python ai-engine/scripts/watchlist_cli.py seed-demo
@@ -85,34 +97,43 @@ Run an offline video clip or live RTSP camera stream:
 cd ai-engine
 python scripts/run_pipeline.py --source ../datasets/videos/vehicles.mp4 --camera-id CAM_002
 ```
-Outputs appear in `outputs/runs/<run_id>/`:
-- Annotated MP4 video (`CAM_002.mp4`) with bounding boxes, trajectory trails, and watchlist alerts.
-- Structured event stream (`events.jsonl`).
-- ANPR plate consensus log (`anpr/plates.jsonl`).
-- Run metrics and configuration manifest (`summary.json`, `manifest.json`).
+To enable identity and Re-ID capabilities (requires consenting test subjects):
+```bash
+python scripts/run_pipeline.py --source ../datasets/videos/people.mp4 --camera-id CAM_001 --identity
+```
 
 ---
 
-## Watchlist Management CLI
+## Management & Evaluation CLI Tools
 
-The watchlist can be managed directly via `ai-engine/scripts/watchlist_cli.py`:
-
+### Plate Watchlist
 ```bash
 # Check what would happen if a plate is recognized
 python ai-engine/scripts/watchlist_cli.py check KA01AB1234 --confidence 0.91
-# Output: KA01AB1234: exact match with #1 (HIGH), distance 0.0, score 91, status alert
-
-# Check near match (one digit off - triggers human review)
-python ai-engine/scripts/watchlist_cli.py check KA01AB1284 --confidence 0.91
-# Output: KA01AB1284: near match with #1 (HIGH), distance 1.0, score 73, status review
-
-# Add, update, or remove entries
-python ai-engine/scripts/watchlist_cli.py add --type VEHICLE --identifier DL01AB9999 --name "Suspect Vehicle" --risk HIGH
-python ai-engine/scripts/watchlist_cli.py remove 1 --reason "Investigation closed"
 
 # Inspect hit history and audit trails
 python ai-engine/scripts/watchlist_cli.py hits --limit 10
 python ai-engine/scripts/watchlist_cli.py audit --limit 10
+```
+
+### Face Enrollment & Smoke Test
+```bash
+# Test face detection and embedding on image pairs
+python ai-engine/scripts/face_smoke_test.py --image photo1.jpg --image2 photo2.jpg
+
+# Enrol a consenting individual (consent confirmation mandatory)
+python ai-engine/scripts/face_enroll.py \
+    --folder path/to/subject_photos/ \
+    --identifier subject-001 \
+    --name "Volunteer A" \
+    --risk LOW \
+    --consent-confirmed
+
+# Run genuine vs. impostor evaluation
+python ai-engine/scripts/face_eval.py --folder datasets/faces/
+
+# Evaluate cross-camera Re-ID rank-k retrieval
+python ai-engine/scripts/reid_eval.py --folder datasets/reid/ --embedder color_layout
 ```
 
 ---
@@ -136,18 +157,19 @@ cd ai-engine && pytest -m db -v
 cd ai-engine && pytest -m "not slow" --cov=app --cov-report=term-missing
 ```
 
-### Test Coverage Summary: 284 Passed (100% Green)
-- **`ai-engine` (276 tests):**
-  - **Unit Tests:** Plate normalization, OCR distances, confusable look-alike matrices, scoring thresholds, and config validation.
-  - **Dual-Backend Contract Tests:** Identical behavioral verification run against both `InMemoryWatchlistRepo` and `PostgresWatchlistRepo`.
-  - **Database & Schema Tests:** Migration idempotency, check constraints, partial unique active indexes, and connection failure handling.
-  - **Service & Worker Tests:** Asynchronous queue processing, per-camera cooldown suppression, status upgrades, and hit persistence.
+### Test Coverage Summary: 359 Passed (100% Green)
+- **`ai-engine` (351 tests):**
+  - **Unit Tests:** Plate normalization, OCR distances, face quality gate, yaw angle ratios, L2 normalization, embedding cosine similarities, and configuration validation.
+  - **Dual-Backend Contract Tests:** Identical behavioral verification run against both `InMemoryWatchlistRepo` and `PostgresWatchlistRepo` for plates, face embeddings, and hit history.
+  - **Database & Schema Tests:** Migration idempotency (001 and 002), check constraints, partial unique active indexes, and connection failure handling.
+  - **Service & Worker Tests:** Asynchronous queue processing, per-camera cooldown suppression, status upgrades, hit persistence, multi-frame consistency fusion, and Re-ID gallery candidate matching.
+  - **Consent & Privacy Tests:** Mandatory consent verification on enrollment, absence of PII in event payloads, and default-off security guarantees.
   - **Plan Acceptance Tests:**
     - *Test 3:* Unlisted vehicle produces zero watchlist alerts.
     - *Test 4:* Watchlisted plate `KA01AB1234` immediately raises an alert event and flags the video.
     - *Scenario 2:* Watchlisted vehicle tracking and risk level correlation.
   - **Outage Resilience Tests:** Verified uninterrupted alert processing during database failure using snapshot fallbacks, with automated hit queuing and flushing.
-  - **Pipeline Integration Tests:** End-to-end multi-threaded pipeline runs combining tracker, ANPR, rule engine, and watchlist.
+  - **Pipeline Integration Tests:** End-to-end multi-threaded pipeline runs combining tracker, ANPR, rule engine, watchlist, and identity service.
   - **Scale Tests:** Verified lookup correctness with **10,000 active entries**.
 - **`video-ingestion` (8 tests):** Frame reading, timestamp synchronization, frame skipping, aspect-ratio resizing, source looping, and offline backpressure queue management.
 - **CI/CD:** Automated via GitHub Actions ([`.github/workflows/tests.yml`](.github/workflows/tests.yml)) with an automated PostgreSQL 16 container service.
@@ -158,98 +180,26 @@ cd ai-engine && pytest -m "not slow" --cov=app --cov-report=term-missing
 
 Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/benchmarks.md):
 
-| Component | Metric | Result | Notes |
+| Component | Operation | Result | Notes |
 |---|---|---|---|
 | **YOLOv8n Inference** | Single Camera FPS | **19.9 FPS** | CPU FP32 (`640px`), zero dropped frames |
 | **Multi-Camera Batch** | Dual Camera FPS | **10.4 FPS / cam** | Dynamic batching (avg batch 1.97) |
 | **ANPR Inference** | Recognition Latency | **~271.6 ms** | PP-OCRv6 on CPU, run asynchronously |
 | **ANPR Throughput** | Worker Capacity | **~3.3 reads/s** | Early consensus stopping limits reads to 3-4/car |
-| **ANPR Accuracy** | Character Accuracy | **93.9%** | Evaluated on synthetic & staged crops |
-| **Watchlist Lookup** | Exact Hit (1k entries) | **0.55 ms** | Indexed PostgreSQL lookup |
-| **Watchlist Lookup** | Exact Hit (10k entries)| **0.78 ms** | Sub-millisecond latency |
-| **Watchlist Lookup** | Near Miss (10k entries)| **1.85 ms** | Filtered candidate pool + Python distance |
-
----
-
-## Event Schema Examples
-
-### 1. Spatial Rule Event (`LINE_CROSSING`)
-```json
-{
-  "event_id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
-  "camera_id": "CAM_001",
-  "timestamp": "2026-10-08T05:23:41.120Z",
-  "frame_id": 340,
-  "type": "LINE_CROSSING",
-  "track_id": 17,
-  "direction": "IN",
-  "confidence": 0.912,
-  "object_class": "person",
-  "bbox": [140.0, 110.0, 180.0, 170.0],
-  "rule_id": "L1",
-  "rule_name": "Entry Line",
-  "rule_kind": "line",
-  "rule_type": "tripwire"
-}
-```
-
-### 2. Watchlist Match Event (`WATCHLIST_MATCH`)
-```json
-{
-  "event_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-  "camera_id": "CAM_002",
-  "timestamp": "2026-10-14T15:30:10.500Z",
-  "frame_id": 450,
-  "type": "WATCHLIST_MATCH",
-  "track_id": 42,
-  "plate": "KA01AB1234",
-  "score": 91,
-  "confidence": 0.91,
-  "object_class": "car",
-  "bbox": [120.0, 340.0, 480.0, 610.0],
-  "rule_id": "WATCHLIST",
-  "rule_name": "Watchlist match",
-  "rule_kind": "watchlist",
-  "rule_type": "vehicle",
-  "details": {
-    "plate": "KA01AB1234",
-    "score": 91,
-    "status": "alert",
-    "review_required": false,
-    "entry_id": 1,
-    "entity_type": "VEHICLE",
-    "risk_level": "HIGH",
-    "match_type": "exact",
-    "distance": 0.0,
-    "matched_identifier": "KA01AB1234",
-    "plate_confidence": 0.912,
-    "also_matched": []
-  }
-}
-```
-
----
-
-## Repository Layout
-
-- `ai-engine/`: Core analytics engine, YOLO detection, ByteTrack tracking, rule engine, ANPR service, watchlist service, and FastAPI server.
-  - `app/anpr/`: Plate localization, PaddleOCR wrapper, format validation, and consensus voting.
-  - `app/watchlist/`: Watchlist models, normalization, matcher, PostgreSQL/in-memory repositories, and background worker.
-  - `app/db/`: Connection management and database migration runner.
-  - `scripts/`: Operational tools (`run_pipeline.py`, `watchlist_cli.py`, `watchlist_simulate.py`, `watchlist_bench.py`, `db_migrate.py`).
-  - `tests/`: 276 unit, contract, integration, and scenario acceptance tests.
-- `video-ingestion/`: Video ingestion library, multi-camera manager, and RTSP reconnect sources.
-- `database/migrations/`: SQL migration files (`001_watchlist.sql`).
-- `configs/`: Declarative camera specifications, zones/lines config, and demo datasets (`watchlist_demo.csv`).
-- `docs/`: Architectural Decision Records (ADRs 0001–0008), benchmark records, API contracts, testing guides, and watchlist documentation.
+| **Watchlist Lookup** | Exact Hit (10k entries)| **0.78 ms** | Sub-millisecond indexed lookup |
+| **YuNet Face Detect** | Upper Crop (128x128 px)| **8.5 ms** | OpenCV DNN CPU execution |
+| **SFace Face Embed** | Aligned (112x112 px) | **12.4 ms** | 128-d L2-normalized float32 vector |
+| **ColorLayout Re-ID** | Person Crop (64x128 px)| **1.8 ms** | Gray-world normalized HSV histograms |
+| **Identity Capacity** | Worker Throughput | **~44 crops/s** | Sustains multi-camera pedestrian tracking |
 
 ---
 
 ## Responsible Use & Privacy Policy
 
+- **Biometrics Policy ([docs/privacy.md](docs/privacy.md)):** Face matching and Re-ID capabilities are **disabled by default**. They must only be operated in authorized environments with consenting participants or permitted research datasets.
 - **No Third-Party PII:** All development, testing, and benchmark datasets utilize strictly synthetic license plates and synthetic identity references.
-- **Access Control:** Watchlist identity resolution requires authenticated role permissions (Investigator/Admin).
-- **Compliance:** Deployment organizations are responsible for data retention, camera authorization, and jurisdictional surveillance compliance.
+- **Zero Image Storage:** Only mathematical embeddings are persisted. Raw facial images and crops are never stored.
+- **Access Control:** Identity resolution requires authenticated role permissions (Investigator/Admin).
 
 ---
 
@@ -258,7 +208,7 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
 - [x] **Week 1 (Days 1–7):** Ingestion, YOLOv8, ByteTrack, Spatial Zones & Lines, Stream API.
 - [x] **Week 2 Day 8:** ANPR Engine (PaddleOCR PP-OCRv6 + positional layout rules + consensus voting).
 - [x] **Week 2 Day 9:** PostgreSQL Watchlist System, OCR-aware near matcher, visual overlays, resilience fallback, and test suite.
-- [ ] **Week 2 Day 10:** Face Detection & Appearance Embedding Re-ID prototype.
+- [x] **Week 2 Day 10:** Face Detection, Quality Gate, Appearance Embedding Re-ID prototype, and consent-gated enrollment.
 - [ ] **Week 2 Day 11–12:** Multi-camera behavioral correlation & composite threat scoring.
 - [ ] **Week 2 Day 13–14:** Redis Streams event publishing & consolidated PostgreSQL persistence schema.
 - [ ] **Week 3 (Days 15–21):** Node.js backend API, WebSocket alert broadcast, React surveillance dashboard.
