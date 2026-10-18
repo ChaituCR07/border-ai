@@ -76,7 +76,7 @@ def test_watchlist_alert_only_for_listed_plates(tmp_path, sample_video, plate, l
 
     matches = [e for e in events if e["type"] == "WATCHLIST_MATCH"]
     st = p.status()
-    assert st["watchlist"]["dropped"] == 0 if "dropped" in st["watchlist"] else True
+    assert st["watchlist"].get("dropped", 0) == 0
     if listed:
         assert len(matches) == 1
         m = matches[0]

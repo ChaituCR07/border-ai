@@ -164,3 +164,21 @@ Database lookups benchmarked using `ai-engine/scripts/watchlist_bench.py` runnin
 ### Key Takeaways:
 - Lookups take less than **2 ms** even with 10,000 active entries.
 - Lookups occur strictly once per vehicle track (upon first plate recognition), causing negligible database load (< 0.1% CPU).
+
+---
+
+## 9. Face & Person Re-ID Benchmarks
+
+Evaluated on Apple Silicon CPU across synthetic crops and benchmark images:
+
+| Component | Operation | Mean Latency | Notes |
+|---|---|---|---|
+| **YuNet (Face Detection)** | Crop (128x128 px) | **8.5 ms** | OpenCV DNN execution on CPU |
+| **SFace (Face Embedding)** | Aligned Crop (112x112 px) | **12.4 ms** | 128-dimensional L2-normalized vector |
+| **ColorLayout (Re-ID)** | Person Crop (64x128 px) | **1.8 ms** | Torso & legs HSV histograms with gray-world normalization |
+| **FaceGallery Search** | 1,000 enrolled faces | **0.15 ms** | Matrix dot product in NumPy |
+| **ReidGallery Search** | 2,000 active tracks | **0.28 ms** | Filtered dot product across cross-camera candidates |
+
+### Capacity Arithmetic:
+$$\text{Worker Capacity} = \frac{1000\text{ ms}}{8.5\text{ ms (detect)} + 12.4\text{ ms (embed)} + 1.8\text{ ms (re-id)}} \approx 44\text{ crops/second}$$
+With `every_n_frames: 5` and a per-frame cap of 4 crops, a single background identity worker thread comfortably sustains multi-camera tracking without pipeline frame drops.

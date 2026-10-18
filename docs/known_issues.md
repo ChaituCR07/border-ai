@@ -15,7 +15,10 @@
 | K11 | ANPR | Severe camera angles (> 35 degrees) and headlight glare degrade character segmentation | Medium | Known | Camera placement guidelines, CLAHE preprocessing, and consensus voting across frames |
 | K12 | Watchlist | Tracker ID switch splits one vehicle into two tracks (two lookups) | Low | Mitigated | Cooldown suppresses duplicate alert within 60s; hits are stored |
 | K13 | Watchlist | OCR-tolerant near matches risk false matches on visually similar plates | Medium | Mitigated | Near matches default to review status requiring human confirmation |
-| K14 | Watchlist | Face and Person entity embeddings are stored but matching is not executed | Low | Planned | Person & Face embedding similarity search planned for Day 10 |
+| K14 | Watchlist | Face and Person entity embeddings are stored but matching is not executed | Low | Resolved | Implemented in Day 10 with FaceGallery, SFace, and consent gating |
+| K15 | Identity | Face matching accuracy drops significantly on steep-angle or low-light CCTV | Medium | Mitigated | Quality gate skips blurry/turned faces; matches are review-only by default |
+| K16 | Identity | Pedestrian ID switch may contaminate a track's face embedding | Medium | Mitigated | Multi-frame consistency threshold (>= 0.75) detects and rejects mixed tracks |
+| K17 | Re-ID | Color-layout baseline Re-ID confuses people wearing similar dark clothing | Medium | Mitigated | Candidates are flagged with '= CAM_XXX #YY?' and require human confirmation |
 
 ## Severity Classification
 - **High:** Incorrect/lost security events, service crashes, data corruption.

@@ -45,3 +45,17 @@ def test_the_repository_reports_an_unreachable_database():
             repo.ping()
     finally:
         repo.close()
+
+
+def test_migration_002_is_applied_and_enforces_embedding_rules(pg_repo):
+    import psycopg
+    with pg_repo.pool.connection() as conn:
+        assert conn.execute("SELECT 1 FROM schema_migrations WHERE version = '002_face_embeddings.sql'").fetchone()
+    with pytest.raises(psycopg.errors.CheckViolation):          # a FACE row without an embedding is refused
+        with pg_repo.pool.connection() as conn:
+            conn.execute("INSERT INTO watchlist (entity_type, identifier, normalized_identifier, name, risk_level) "
+                         "VALUES ('FACE', 's', 's', 'n', 'LOW')")
+    with pytest.raises(psycopg.errors.CheckViolation):          # a plate row with an embedding is refused
+        with pg_repo.pool.connection() as conn:
+            conn.execute("INSERT INTO watchlist (entity_type, identifier, normalized_identifier, name, risk_level, embedding) "
+                         "VALUES ('VEHICLE', 'KA01AB1234', 'KA01AB1234', 'n', 'LOW', '\\x00')")
