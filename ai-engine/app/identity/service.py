@@ -194,7 +194,7 @@ class IdentityService:
                 if st is None:
                     continue
                 st.ended = True
-                st.last_ts = max(st.last_ts, t.last_seen)
+                st.last_ts = max(st.last_ts, getattr(t, "last_seen", st.last_ts))
                 if st.pending <= 0:
                     self._states.pop((camera_id, t.track_id), None)
                     done.append(st)
@@ -371,6 +371,8 @@ class IdentityService:
             similarity=decision.similarity))
         if not allowed:
             self._inc("face_suppressed")
+            with self._lock:
+                st.face_done = True
             return []
         self._inc("face_alerts" if decision.status == "alert" else "face_reviews")
         with self._lock:
