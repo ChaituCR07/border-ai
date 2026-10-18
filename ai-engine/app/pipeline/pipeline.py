@@ -59,7 +59,7 @@ class Pipeline:
                  write_video: bool = True, log_tracks: bool = False,
                  offline: Optional[bool] = None, jpeg_quality: int = 80,
                  out_queue_size: int = 8, max_seconds: float = 0, max_frames: int = 0,
-                 anpr=None, watchlist=None):
+                 anpr=None, watchlist=None, identity=None):
         self.detector = detector
         self.mgr = manager
         self.params = tracker_params
@@ -97,6 +97,11 @@ class Pipeline:
         if self.watchlist is not None:
             self.watchlist.attach(emit=self._emit_async, timers=self.timers,
                                   block_when_full=self.offline)
+
+        self.identity = identity
+        if self.identity is not None:
+            self.identity.attach(emit=self._emit_async, timers=self.timers,
+                                 block_when_full=self.offline)
 
         # Load and validate every camera's rules NOW, so bad config fails at startup
         self._rules_cfg = {cid: rules.rules_for(cid) for cid in self.camera_ids}
@@ -145,6 +150,8 @@ class Pipeline:
             t.start()
         if self.watchlist is not None:
             self.watchlist.start()
+        if self.identity is not None:
+            self.identity.start()
         if self.anpr is not None:
             self.anpr.start()
         self.mgr.start_all()
@@ -199,6 +206,11 @@ class Pipeline:
                     self.watchlist.stop(drain=True, timeout=60)
                 except Exception:
                     log.exception("Watchlist shutdown failed")
+            if self.identity is not None:
+                try:
+                    self.identity.stop(drain=True, timeout=60)
+                except Exception:
+                    log.exception("Identity shutdown failed")
             self._flush_rules()
             self._close_outputs()
             self.mgr.stop_all()
@@ -258,6 +270,11 @@ class Pipeline:
             if self.watchlist is not None:
                 self.watchlist.on_tracks_removed(cid, upd.removed)
                 flags = self.watchlist.flags_snapshot(cid)
+            if self.identity is not None:
+                self.identity.submit(cid, ft, f.image)
+                self.identity.on_tracks_removed(cid, upd.removed)
+                flags.update(self.identity.flags_snapshot(cid))
+                plates.update(self.identity.labels_snapshot(cid))
             display_events = events + self._take_async(cid)
 
             n_active = len(store.active_tracks())
@@ -418,6 +435,7 @@ class Pipeline:
             "events_total": self.events.count,
             "anpr": self.anpr.status() if self.anpr is not None else None,
             "watchlist": self.watchlist.status() if self.watchlist is not None else None,
+            "identity": self.identity.status() if self.identity is not None else None,
             "detector": self.detector.info(),
             "process": process,
         }
@@ -453,5 +471,6 @@ class Pipeline:
             "rules": {cid: asdict(r) for cid, r in self._rules_cfg.items()},
             "anpr": asdict(self.anpr.cfg) if self.anpr is not None else None,
             "watchlist": asdict(self.watchlist.cfg) if self.watchlist is not None else None,
+            "identity": asdict(self.identity.cfg) if self.identity is not None else None,
         }
         (self.run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, default=str))
