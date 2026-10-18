@@ -48,6 +48,7 @@ pytest video-ingestion/tests -v
 | 7 | End-to-End Pipeline & Streaming | `ai-engine/tests/test_pipeline_plumbing.py`, `test_pipeline_integration.py`, `test_stream_api.py` |
 | 8 | ANPR & Consensus Voting | `ai-engine/tests/test_plate_format.py`, `test_consensus.py`, `test_anpr_preprocess_and_locator.py`, `test_ocr_parsing.py`, `test_anpr_metrics.py`, `test_anpr_service.py`, `test_pipeline_anpr.py` |
 | 9 | Watchlist & Resilience | `ai-engine/tests/test_watchlist_normalize.py`, `test_watchlist_matcher.py`, `test_watchlist_config_and_csv.py`, `test_watchlist_repo_contract.py`, `test_watchlist_db.py`, `test_watchlist_service.py`, `test_watchlist_scenarios.py`, `test_events_contract.py`, `test_pipeline_watchlist.py`, `test_watchlist_scale.py` |
+| 10 | Identity & Person Re-ID | `ai-engine/tests/test_identity_core.py`, `test_identity_face_and_reid_embedder.py`, `test_identity_service.py`, `test_identity_enroll.py`, `test_identity_repo_extension.py`, `test_pipeline_identity.py` |
 
 ---
 
