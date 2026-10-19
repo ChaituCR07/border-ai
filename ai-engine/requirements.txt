@@ -14,3 +14,4 @@ psutil
 psycopg[binary]
 psycopg-pool
 pytest-cov
+tzdata>=2024.1

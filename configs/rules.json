@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "site": {
+    "timezone": "Asia/Kolkata",
+    "cameras": {}
+  },
+  "authorized_plates_csv": "configs/authorized_plates_demo.csv",
+  "rules": [
+    {
+      "rule_id": "R001",
+      "name": "Restricted Zone Entry",
+      "description": "A person or vehicle is inside a restricted zone",
+      "event_type": "ZONE_VIOLATION",
+      "conditions": [
+        {
+          "type": "object",
+          "value": [
+            "person",
+            "car",
+            "truck",
+            "bus",
+            "motorcycle",
+            "bicycle"
+          ]
+        },
+        {
+          "type": "zone",
+          "zone_type": "restricted"
+        }
+      ],
+      "action": {
+        "severity": "HIGH",
+        "score": 30
+      },
+      "cooldown_s": 0,
+      "rearm_s": 30
+    },
+    {
+      "rule_id": "R002",
+      "name": "Wrong Direction",
+      "description": "A line is crossed in a direction other than the expected one",
+      "event_type": "DIRECTION_VIOLATION",
+      "conditions": [
+        {
+          "type": "object",
+          "value": [
+            "person",
+            "car",
+            "truck",
+            "bus",
+            "motorcycle",
+            "bicycle"
+          ]
+        },
+        {
+          "type": "line_crossing",
+          "line": "L1",
+          "expected_direction": "IN",
+          "within_s": 5
+        }
+      ],
+      "action": {
+        "severity": "MEDIUM",
+        "score": 20
+      }
+    },
+    {
+      "rule_id": "R003",
+      "name": "Loitering",
+      "description": "A person stays inside a zone for more than 60 seconds",
+      "event_type": "LOITERING_VIOLATION",
+      "conditions": [
+        {
+          "type": "object",
+          "value": [
+            "person"
+          ]
+        },
+        {
+          "type": "zone",
+          "zone_type": "any",
+          "min_dwell_s": 60
+        }
+      ],
+      "action": {
+        "severity": "MEDIUM",
+        "score": 15
+      }
+    },
+    {
+      "rule_id": "R004",
+      "name": "After-Hours Activity",
+      "description": "Movement of a tracked object between 22:00 and 05:00 local time",
+      "event_type": "AFTER_HOURS_ACTIVITY",
+      "conditions": [
+        {
+          "type": "object",
+          "value": [
+            "person",
+            "car",
+            "truck",
+            "bus",
+            "motorcycle",
+            "bicycle"
+          ]
+        },
+        {
+          "type": "time",
+          "between": [
+            "22:00",
+            "05:00"
+          ]
+        },
+        {
+          "type": "track_age",
+          "min_s": 2
+        }
+      ],
+      "action": {
+        "severity": "LOW",
+        "score": 10
+      },
+      "rearm_s": 3600
+    },
+    {
+      "rule_id": "R005",
+      "name": "Unauthorized Vehicle in Restricted Zone After Hours",
+      "description": "Section 38 example: a vehicle in a restricted zone at night whose plate is not in the authorized list",
+      "event_type": "UNAUTHORIZED_VEHICLE_AFTER_HOURS",
+      "conditions": [
+        {
+          "type": "object",
+          "value": [
+            "car",
+            "truck",
+            "bus",
+            "motorcycle"
+          ]
+        },
+        {
+          "type": "zone",
+          "zone_type": "restricted"
+        },
+        {
+          "type": "time",
+          "between": [
+            "22:00",
+            "05:00"
+          ]
+        },
+        {
+          "type": "plate",
+          "authorized": false
+        }
+      ],
+      "action": {
+        "severity": "CRITICAL",
+        "score": 40
+      }
+    }
+  ]
+}

@@ -36,7 +36,7 @@ pytest video-ingestion/tests -v
 
 ---
 
-## 3. Complete Project Test Map (Days 2 to 9)
+## 3. Complete Project Test Map (Days 2 to 11)
 
 | Day | Modules Protected | Key Test Files |
 |---|---|---|
@@ -49,6 +49,7 @@ pytest video-ingestion/tests -v
 | 8 | ANPR & Consensus Voting | `ai-engine/tests/test_plate_format.py`, `test_consensus.py`, `test_anpr_preprocess_and_locator.py`, `test_ocr_parsing.py`, `test_anpr_metrics.py`, `test_anpr_service.py`, `test_pipeline_anpr.py` |
 | 9 | Watchlist & Resilience | `ai-engine/tests/test_watchlist_normalize.py`, `test_watchlist_matcher.py`, `test_watchlist_config_and_csv.py`, `test_watchlist_repo_contract.py`, `test_watchlist_db.py`, `test_watchlist_service.py`, `test_watchlist_scenarios.py`, `test_events_contract.py`, `test_pipeline_watchlist.py`, `test_watchlist_scale.py` |
 | 10 | Identity & Person Re-ID | `ai-engine/tests/test_identity_core.py`, `test_identity_face_and_reid_embedder.py`, `test_identity_service.py`, `test_identity_enroll.py`, `test_identity_repo_extension.py`, `test_pipeline_identity.py` |
+| 11 | Behaviour Rules & Scenarios | `ai-engine/tests/test_behaviour_config.py`, `test_behaviour_conditions.py`, `test_behaviour_engine.py`, `test_behaviour_scenarios.py`, `test_pipeline_behaviour.py`, `test_behaviour_tools.py` |
 
 ---
 
