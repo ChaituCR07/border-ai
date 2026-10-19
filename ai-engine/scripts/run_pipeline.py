@@ -17,6 +17,8 @@ from app.tracking.tracker import TrackerParams  # noqa: E402
 from app.anpr.factory import build_anpr  # noqa: E402
 from app.watchlist.factory import build_watchlist  # noqa: E402
 from app.identity.factory import build_identity  # noqa: E402
+from app.behaviour.factory import build_behaviour  # noqa: E402
+from app.behaviour.timeutil import get_zone, parse_clock_start  # noqa: E402
 from ingestion.camera_manager import (CameraConfig, CameraManager, build_source,  # noqa: E402
                                       load_camera_configs)
 
@@ -82,6 +84,9 @@ def format_status(st: dict) -> str:
     i = st.get("identity")
     if i:
         lines.append("  identity: " + " | ".join(f"{k} {v}" for k, v in i.items()))
+    b = st.get("behaviour")
+    if b:
+        lines.append("  behaviour: " + " | ".join(f"{k} {v}" for k, v in b.items()))
     p = st.get("process") or {}
     if p:
         lines.append("  process: " + " | ".join(f"{k} {v}" for k, v in p.items()))
@@ -140,6 +145,10 @@ def main():
     ap.add_argument("--no-watchlist", action="store_true", help="disable watchlist matching")
     ap.add_argument("--identity", action="store_true",
                     help="enable face matching and person Re-ID (consenting subjects only)")
+    ap.add_argument("--rules", help="rules file (default configs/rules.json)")
+    ap.add_argument("--no-behaviour", action="store_true", help="disable the behaviour engine")
+    ap.add_argument("--clock-start", help="simulated start time for offline clips, e.g. 2026-10-12T02:13:00 "
+                                          "(read in the site time zone unless it has an offset)")
     ap.add_argument("--no-video", action="store_true", help="do not write annotated MP4s")
     ap.add_argument("--log-tracks", action="store_true", help="also write per-frame tracks.jsonl")
     ap.add_argument("--half", action="store_true", help="FP16 (GPU only)")
@@ -160,12 +169,22 @@ def main():
     detector = Detector.from_config(**({"half": True} if args.half else {}))
     rules = RuleEngine(config.CONFIG_DIR / "zones")
 
+    behaviour = None if args.no_behaviour else build_behaviour(args.rules)
+    clock_start = None
+    if args.clock_start:
+        if mode != "offline":
+            print("note: --clock-start applies to offline file runs only; live sources use the real clock")
+        else:
+            tz = get_zone(behaviour.cfg.timezone) if behaviour else get_zone("UTC")
+            clock_start = parse_clock_start(args.clock_start, tz)
+
     pipeline = Pipeline(
         detector, mgr, params, rules, config.OUTPUT_DIR / "runs",
         camera_fps={c.camera_id: c.target_fps for c in cfgs if c.target_fps},
         write_video=not args.no_video, log_tracks=args.log_tracks,
         offline=(mode == "offline"), max_seconds=args.seconds, max_frames=args.max_frames,
-        anpr=anpr, watchlist=watchlist, identity=identity)
+        anpr=anpr, watchlist=watchlist, identity=identity,
+        behaviour=behaviour, clock_start=clock_start)
 
     print(f"Run {pipeline.run_id} | mode {mode} | cameras {pipeline.camera_ids}\n"
           f"Output: {pipeline.run_dir}\n")
