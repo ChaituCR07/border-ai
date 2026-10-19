@@ -53,7 +53,7 @@ class Event:
             "dwell_s": None if self.dwell_s is None else round(self.dwell_s, 1),
             "details": self.details,
         }
-        for key in ("plate", "score"):
+        for key in ("plate", "score", "severity"):
             if key in self.details:
                 d[key] = self.details[key]
         return d
