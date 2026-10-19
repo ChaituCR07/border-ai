@@ -14,6 +14,7 @@ class Env:
     tz: ZoneInfo
     age_s: float = 0.0
     authorized: Optional[AuthorizedPlates] = None
+    active_bindings: Optional[set] = None
 
 
 @dataclass
@@ -37,11 +38,23 @@ def _zone(node, ctx, env) -> CondResult:
                if (zid is None or z.zone_id == zid) and (ztype in (None, "any") or z.zone_type == ztype)]
     if not node["inside"]:
         return CondResult(not matches, {}, [] if matches else ["not inside the zone"])
+
+    def find_best(candidates):
+        best = None
+        for z in candidates:
+            dwell = env.now - z.entered_at
+            if dwell >= node["min_dwell_s"] and (best is None or dwell > best[1]):
+                best = (z, dwell)
+        return best
+
     best = None
-    for z in matches:
-        dwell = env.now - z.entered_at
-        if dwell >= node["min_dwell_s"] and (best is None or dwell > best[1]):
-            best = (z, dwell)
+    if env.active_bindings:
+        unfired = [z for z in matches if (("zone_id", z.zone_id),) not in env.active_bindings]
+        if unfired:
+            best = find_best(unfired)
+    if best is None:
+        best = find_best(matches)
+
     if best is None:
         return FALSE
     z, dwell = best

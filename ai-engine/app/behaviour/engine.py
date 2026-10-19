@@ -110,20 +110,33 @@ class BehaviourEngine:
         for o in ft.tracks:
             ctx = self._ctx(cid, o.track_id)
             ctx.touch(o.label, now)
-            env = Env(now, tz, getattr(o, "age_s", 0.0), self.authorized)
+            tkey = (cid, o.track_id)
             for rule in rules:
                 if rule.rule_id in self._broken:
                     continue
-                try:
-                    res = evaluate_all(rule.conditions, ctx, env)
-                except Exception:                                # noqa: BLE001
-                    log.exception("Rule %s failed on %s #%s; disabling it until the next reload",
-                                  rule.rule_id, cid, o.track_id)
-                    self._broken.add(rule.rule_id)
-                    self.stats["errors"] += 1
-                    continue
-                self.stats["evaluations"] += 1
-                out.extend(self._consider(rule, ctx, res, o, ft))
+                active_map = self._active.get(tkey, {}).get(rule.rule_id, {})
+                active_set = set(active_map.keys())
+                env = Env(now, tz, getattr(o, "age_s", 0.0), self.authorized, active_bindings=active_set)
+                while True:
+                    try:
+                        res = evaluate_all(rule.conditions, ctx, env)
+                    except Exception:                                # noqa: BLE001
+                        log.exception("Rule %s failed on %s #%s; disabling it until the next reload",
+                                      rule.rule_id, cid, o.track_id)
+                        self._broken.add(rule.rule_id)
+                        self.stats["errors"] += 1
+                        break
+                    self.stats["evaluations"] += 1
+                    emitted = self._consider(rule, ctx, res, o, ft)
+                    out.extend(emitted)
+                    if not emitted:
+                        break
+                    bkey = tuple(sorted(res.bindings.items()))
+                    if bkey and bkey not in active_set:
+                        active_set.add(bkey)
+                        env.active_bindings = active_set
+                    else:
+                        break
 
         if upd is not None:
             for t in upd.removed:
