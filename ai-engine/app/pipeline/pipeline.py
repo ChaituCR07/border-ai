@@ -59,7 +59,8 @@ class Pipeline:
                  write_video: bool = True, log_tracks: bool = False,
                  offline: Optional[bool] = None, jpeg_quality: int = 80,
                  out_queue_size: int = 8, max_seconds: float = 0, max_frames: int = 0,
-                 anpr=None, watchlist=None, identity=None):
+                 anpr=None, watchlist=None, identity=None,
+                 behaviour=None, clock_start=None):
         self.detector = detector
         self.mgr = manager
         self.params = tracker_params
@@ -102,6 +103,9 @@ class Pipeline:
         if self.identity is not None:
             self.identity.attach(emit=self._emit_async, timers=self.timers,
                                  block_when_full=self.offline)
+
+        self.behaviour = behaviour
+        self.clock_start = clock_start
 
         # Load and validate every camera's rules NOW, so bad config fails at startup
         self._rules_cfg = {cid: rules.rules_for(cid) for cid in self.camera_ids}
@@ -173,7 +177,7 @@ class Pipeline:
 
     # ------------------------------------------------------------------ inference thread
     def _infer_loop(self) -> None:
-        t_base = time.time()
+        t_base = self.clock_start if self.clock_start is not None else time.time()
         try:
             while not self._stop.is_set():
                 if self.max_seconds and time.time() - self.started_at > self.max_seconds:
@@ -259,6 +263,11 @@ class Pipeline:
             self.timers.record("rules_ms", (t3 - t2) * 1000)
 
             self._emit_events(cid, events, video_s)
+            behaviour_events = []
+            if self.behaviour is not None:
+                self.behaviour.observe(cid, events)                       # this frame's zone/line events
+                behaviour_events = self.behaviour.update(ft, upd)
+                self._emit_events(cid, behaviour_events, video_s)
             if self.tracks_log:
                 self.tracks_log.write(ft.to_dict())
 
@@ -275,7 +284,7 @@ class Pipeline:
                 self.identity.on_tracks_removed(cid, upd.removed)
                 flags.update(self.identity.flags_snapshot(cid))
                 plates.update(self.identity.labels_snapshot(cid))
-            display_events = events + self._take_async(cid)
+            display_events = events + behaviour_events + self._take_async(cid)
 
             n_active = len(store.active_tracks())
             res = FrameResult(frame=f, ft=ft, events=display_events, store=store.snapshot(),
@@ -300,6 +309,8 @@ class Pipeline:
     def _emit_async(self, cid: str, events: List[Event]) -> None:
         """Events produced by background threads: write them, and queue them for the overlay feed."""
         self._emit_events(cid, events, None)
+        if self.behaviour is not None:
+            self.behaviour.observe(cid, events)
         with self._feed_lock:
             self._async_feed[cid].extend(events)
 
@@ -436,6 +447,7 @@ class Pipeline:
             "anpr": self.anpr.status() if self.anpr is not None else None,
             "watchlist": self.watchlist.status() if self.watchlist is not None else None,
             "identity": self.identity.status() if self.identity is not None else None,
+            "behaviour": self.behaviour.status() if self.behaviour is not None else None,
             "detector": self.detector.info(),
             "process": process,
         }
@@ -472,5 +484,6 @@ class Pipeline:
             "anpr": asdict(self.anpr.cfg) if self.anpr is not None else None,
             "watchlist": asdict(self.watchlist.cfg) if self.watchlist is not None else None,
             "identity": asdict(self.identity.cfg) if self.identity is not None else None,
+            "behaviour": asdict(self.behaviour.cfg) if self.behaviour is not None else None,
         }
         (self.run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, default=str))

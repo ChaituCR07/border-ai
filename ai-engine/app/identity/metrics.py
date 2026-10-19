@@ -36,15 +36,16 @@ def equal_error_rate(genuine: Sequence[float], impostor: Sequence[float]) -> Tup
 
 
 def threshold_for_far(genuine: Sequence[float], impostor: Sequence[float], target_far: float) -> Optional[float]:
-    """Smallest threshold whose false-match rate is at or below target_far. With few impostor pairs the
-    resolution is limited: a measured FAR of 0 means 'below 1 / number of impostor pairs', not 'zero'."""
-    i = np.sort(np.asarray(impostor))
+    """Smallest threshold whose false-match rate (impostor similarity >= threshold) is at or below
+    target_far. With few impostor pairs the resolution is limited: a measured FAR of 0 means
+    'below 1 / number of impostor pairs', not 'zero'."""
+    i = np.sort(np.asarray(impostor, dtype=float))
     if i.size == 0:
         return None
     for t in np.unique(i):
         if float((i > t).mean()) <= target_far:
-            return float(t)
-    return float(i.max())
+            return float(np.nextafter(t, np.inf))        # just above t, so nothing equal to t counts
+    return float(np.nextafter(i.max(), np.inf))
 
 
 def expected_false_matches(far: float, gallery_size: int, strangers: int) -> float:

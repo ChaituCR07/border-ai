@@ -233,3 +233,30 @@ Submit Job (Deep-copy vehicle crop)
 1. **Zero-Latency Impact on Ingestion:** Face detection and appearance feature extraction run asynchronously. In live mode, oldest jobs are dropped when the queue fills.
 2. **Crop Isolation:** Person crops are copied immediately upon submission, preventing frame visualizer race conditions.
 3. **No Biometric Persistence:** Re-ID gallery entries expire automatically in memory after 900 seconds. No face or person images are ever stored on disk.
+
+## 10. Behaviour Engine (Deterministic Rules)
+
+```
+   Inference Thread                        Worker Threads (ANPR / Watchlist / ID)
+  ──────────────────                      ────────────────────────────────────────
+   Zones & Lines Observations ──┐                 Observations (Plate / Match)
+                                │                              │
+                                ▼                              ▼
+                    ┌──────────────────────────────────────────────┐
+                    │      TrackContext & BehaviourEngine         │
+                    │  (Synchronous evaluation per frame)          │
+                    └──────────────────────┬───────────────────────┘
+                                           │
+                                           ▼
+                                 Behaviour Events (JSONL)
+                            (ZONE_VIOLATION, DIRECTION_VIOLATION,
+                             LOITERING_VIOLATION, AFTER_HOURS, ...)
+                                           │
+                                           ▼
+                                 [Threat Scoring Stage] (Day 12)
+```
+
+### Architectural Traits:
+1. **Separation of Observations and Decisions:** Vision models produce observations (detections, tracks, plate reads, watchlist hits); the behaviour engine turns observations into events. No vision model decides alert levels directly.
+2. **Deterministic Time:** Offline evaluation supports simulated clocks (`--clock-start`), ensuring temporal rule reproducibility independent of execution wall time.
+3. **Episode-Based Suppression:** Alerts fire once per episode with configurable `rearm_s` and `cooldown_s`, preventing frame-by-frame alert flooding.

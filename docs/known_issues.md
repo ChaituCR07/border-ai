@@ -19,6 +19,9 @@
 | K15 | Identity | Face matching accuracy drops significantly on steep-angle or low-light CCTV | Medium | Mitigated | Quality gate skips blurry/turned faces; matches are review-only by default |
 | K16 | Identity | Pedestrian ID switch may contaminate a track's face embedding | Medium | Mitigated | Multi-frame consistency threshold (>= 0.75) detects and rejects mixed tracks |
 | K17 | Re-ID | Color-layout baseline Re-ID confuses people wearing similar dark clothing | Medium | Mitigated | Candidates are flagged with '= CAM_XXX #YY?' and require human confirmation |
+| K18 | Behaviour | Tracker ID switch resets zone dwell time counter | Low | Known | High track buffer mitigates; tune `min_dwell_s` threshold |
+| K19 | Behaviour | Rules depending on asynchronous plate/watchlist events fire a few frames apart between runs | Low | Known | Compare event sets rather than exact frame numbers; deterministic for R001-R004 |
+| K20 | Behaviour | Weekday filters on windows past midnight use local date of evaluation | Low | Documented | Avoid weekday constraints on wrapped midnight windows or account for morning rollover |
 
 ## Severity Classification
 - **High:** Incorrect/lost security events, service crashes, data corruption.
