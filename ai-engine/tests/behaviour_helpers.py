@@ -86,6 +86,10 @@ class GeometryScene:
     Zone Z1 covers x 352-608, y 120-360. Line L1 is y = 240; walking down crosses it going IN."""
 
     def __init__(self, rules, start="2026-10-12 12:00:00", dt=1.0, authorized=None, **cfg_kw):
+        if any(c.get("type") == "plate" and "authorized" in c
+               for r in rules
+               for c in (r.get("conditions") if isinstance(r, dict) else getattr(r, "conditions", []))):
+            cfg_kw.setdefault("authorized_plates_csv", "configs/authorized_plates_demo.csv")
         rc = parse_camera_rules(ZONES_CFG)
         self.zones, self.lines = ZoneEngine(rc.zones, 3), LineEngine(rc.lines, 3)
         self.store = TrackStore("T", max_lost_frames=30)
