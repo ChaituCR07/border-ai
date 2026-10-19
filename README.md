@@ -28,7 +28,7 @@ and (in progress) behaviour rules, threat scoring, and an investigation dashboar
     - **Self-Explaining Events:** Every behaviour event carries `details.reasons` (human-readable evidence), `details.points`, `details.severity`, and `details.bindings`.
     - **Operational Tooling:** `rules_check.py` for zone/rule validation, `replay_behaviour.py` for historical event-stream replay without GPU, and `check_events.py` for ground-truth count verification.
     - **Simulated Clock:** Pipeline supports `--clock-start` for deterministic offline verification of after-hours rules.
-    - **Comprehensive Test Suite:** Expanded to **424 passing tests** (100% green) across `ai-engine` (416 tests) and `video-ingestion` (8 tests), including Plan Tests 1, 2, 5, 6 and Scenario 1 against real geometry engines.
+    - **Comprehensive Test Suite:** Expanded to **446 passing tests** (100% green) across `ai-engine` (438 tests) and `video-ingestion` (8 tests), including Plan Tests 1, 2, 5, 6 and Scenario 1 against real geometry engines.
   - **Upcoming (Days 12–14):** Multi-factor composite threat scoring (Day 12), Redis Streams publishing (Day 13), and consolidated schema persistence (Day 14).
 
 ---
