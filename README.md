@@ -9,18 +9,27 @@ and (in progress) behaviour rules, threat scoring, and an investigation dashboar
 
 ---
 
-## Current Status (Day 10 Complete)
+## Current Status (Day 11 Complete)
 
 - **Week 1 (v0.1-week1) Complete:** Video/RTSP ingestion, YOLOv8 object detection, ByteTrack tracking, multi-zone and virtual line spatial engine, live MJPEG streaming, and structured JSONL event logging.
 - **Week 2 (Intelligence Layer) In Progress:**
   - **Day 8 Complete (ANPR):** Plate localization, PaddleOCR (PP-OCRv6), positional syntax checking (Indian RTO & generic format validation), and multi-frame character/string consensus voting.
   - **Day 9 Complete (Watchlist & Resilience):** PostgreSQL 16 watchlist system with dual-backend repositories (PostgreSQL & in-memory), OCR-tolerant near matching, track overlay visual alerting (red box & banner), in-memory snapshot outage resilience, and a 284-test verification suite.
-  - **Day 10 Complete (Face & Person Re-ID Prototype):**
-    - **Face Watchlist:** Quality gate (resolution $\ge 40\text{ px}$, score $\ge 0.8$, pose yaw $\le 0.5$, sharpness $\ge 30$), multi-frame track feature aggregation with consistency checking ($\ge 0.75$), vector search over enrolled faces, ambiguity rejection (margin $\ge 0.05$), and review-grade `WATCHLIST_MATCH` events.
-    - **Cross-Camera Person Re-ID:** Appearance embedding using normalized torso/leg color layouts with gray-world correction, bounded in-memory `ReidGallery` (900s TTL), time-gap and camera-pair constraints, and `REID_MATCH` candidate generation.
-    - **Responsible-Use Safeguards:** Off by default (`identity.enabled: false`), strictly consent-gated enrollment (`--consent-confirmed`), embeddings only (zero biometric images persisted), identity masking in event streams, and review-only classifications.
-    - **Comprehensive Test Suite:** Expanded to **359 passing tests** (100% green) across `ai-engine` (351 tests) and `video-ingestion` (8 tests).
-  - **Upcoming (Days 11–14):** Multi-camera behavioral correlation, multi-factor composite threat scoring, Redis Streams publishing, and consolidated schema persistence.
+  - **Day 10 Complete (Face & Person Re-ID Prototype):** Face Watchlist, Appearance Embedding Re-ID prototype, consent-gated enrollment, and 359-test baseline.
+  - **Day 11 Complete (Behaviour Engine - Configurable Rules):**
+    - **Configurable Rules Architecture:** Declarative rule engine (`configs/rules.json`) translating low-level observations into structured, severity-tagged behaviour events without modifying source code.
+    - **Core Plan Rules:**
+      - `R001` Restricted Zone Entry (`ZONE_VIOLATION`, Severity: `HIGH`, 30 pts)
+      - `R002` Wrong Direction Tripwire Crossing (`DIRECTION_VIOLATION`, Severity: `MEDIUM`, 20 pts)
+      - `R003` Prolonged Loitering > 60s in any zone (`LOITERING_VIOLATION`, Severity: `MEDIUM`, 15 pts)
+      - `R004` After-Hours Activity 22:00–05:00 local time (`AFTER_HOURS_ACTIVITY`, Severity: `LOW`, 10 pts)
+      - `R005` Section 38 Unauthorized Vehicle in Restricted Zone at Night (`UNAUTHORIZED_VEHICLE_AFTER_HOURS`, Severity: `CRITICAL`, 40 pts)
+    - **Episode Management & De-duplication:** Once-per-episode firing with `rearm_s` and `cooldown_s` to eliminate alert flooding, with per-zone and per-crossing bindings.
+    - **Self-Explaining Events:** Every behaviour event carries `details.reasons` (human-readable evidence), `details.points`, `details.severity`, and `details.bindings`.
+    - **Operational Tooling:** `rules_check.py` for zone/rule validation, `replay_behaviour.py` for historical event-stream replay without GPU, and `check_events.py` for ground-truth count verification.
+    - **Simulated Clock:** Pipeline supports `--clock-start` for deterministic offline verification of after-hours rules.
+    - **Comprehensive Test Suite:** Expanded to **424 passing tests** (100% green) across `ai-engine` (416 tests) and `video-ingestion` (8 tests), including Plan Tests 1, 2, 5, 6 and Scenario 1 against real geometry engines.
+  - **Upcoming (Days 12–14):** Multi-factor composite threat scoring (Day 12), Redis Streams publishing (Day 13), and consolidated schema persistence (Day 14).
 
 ---
 
@@ -35,6 +44,24 @@ and (in progress) behaviour rules, threat scoring, and an investigation dashboar
   - OCR-aware near matching: look-alike substitutions (`B/8`, `O/0`, `1/I`, `S/5`, `Z/2`) cost 0.5; standard substitutions cost 1.0.
   - Dynamic visual flagging: watchlisted targets render with **red bounding boxes**, risk tags (`WATCHLIST HIGH`), and screen alert banners.
   - Outage resilience: seamless fallback to an in-memory snapshot during database drops, with automatic queued hit flushing upon reconnection.
+- **Configurable Behaviour Engine (Day 11):**
+  - Evaluates spatial, temporal, classification, OCR, and watchlist conditions per active track.
+  - Generates self-explaining behaviour alerts (`details.reasons`) with threat points for downstream scoring.
+  - Example Section 38 Rule:
+    ```json
+    {
+      "rule_id": "R005",
+      "name": "Unauthorized Vehicle in Restricted Zone After Hours",
+      "event_type": "UNAUTHORIZED_VEHICLE_AFTER_HOURS",
+      "conditions": [
+        {"type": "object", "value": ["car", "truck", "bus", "motorcycle"]},
+        {"type": "zone", "zone_type": "restricted"},
+        {"type": "time", "between": ["22:00", "05:00"]},
+        {"type": "plate", "authorized": false}
+      ],
+      "action": {"severity": "CRITICAL", "score": 40}
+    }
+    ```
 - **Biometric Face Watchlist & Cross-Camera Re-ID (Day 10):**
   - Face crop extraction, alignment, and 128-d / 512-d L2-normalized embedding (OpenCV YuNet + SFace or InsightFace ArcFace).
   - Multi-frame track aggregation with consistency validation to prevent tracker ID swap errors.
@@ -209,7 +236,8 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
 - [x] **Week 2 Day 8:** ANPR Engine (PaddleOCR PP-OCRv6 + positional layout rules + consensus voting).
 - [x] **Week 2 Day 9:** PostgreSQL Watchlist System, OCR-aware near matcher, visual overlays, resilience fallback, and test suite.
 - [x] **Week 2 Day 10:** Face Detection, Quality Gate, Appearance Embedding Re-ID prototype, and consent-gated enrollment.
-- [ ] **Week 2 Day 11–12:** Multi-camera behavioral correlation & composite threat scoring.
+- [x] **Week 2 Day 11:** Configurable Behaviour Engine (deterministic rules R001–R005, replay, simulated clock, Plan Tests 1, 2, 5, 6, Scenario 1).
+- [ ] **Week 2 Day 12:** Multi-factor composite threat scoring & alert elevation engine.
 - [ ] **Week 2 Day 13–14:** Redis Streams event publishing & consolidated PostgreSQL persistence schema.
 - [ ] **Week 3 (Days 15–21):** Node.js backend API, WebSocket alert broadcast, React surveillance dashboard.
 - [ ] **Week 4 (Days 22–28):** Multi-camera soak testing, end-to-end integration, Docker packaging, and hardware pilot.
