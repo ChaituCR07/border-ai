@@ -1,0 +1,9 @@
+{
+  "clip": "person_walking.mp4",
+  "clock_start": "2026-10-12T02:13:00",
+  "notes": "One person crosses L1 going IN (permitted), enters the restricted zone, and stays for about 6 seconds. It is night.",
+  "expected": {
+    "ZONE_VIOLATION:R001": 1,
+    "AFTER_HOURS_ACTIVITY:R004": 1
+  }
+}

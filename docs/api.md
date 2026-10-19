@@ -329,3 +329,46 @@ Emitted when a person track exhibits high visual appearance similarity to a rece
   }
 }
 ```
+
+
+### Behaviour Event (`ZONE_VIOLATION`, `DIRECTION_VIOLATION`, `LOITERING_VIOLATION`, `AFTER_HOURS_ACTIVITY`, `UNAUTHORIZED_VEHICLE_AFTER_HOURS`)
+
+Emitted when deterministic behaviour rules evaluate to true for an active track.
+
+```json
+{
+  "event_id": "7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d",
+  "camera_id": "CAM_001",
+  "timestamp": "2026-10-12T02:13:00.000Z",
+  "frame_id": 142,
+  "type": "ZONE_VIOLATION",
+  "event": "ZONE_VIOLATION",
+  "severity": "HIGH",
+  "track_id": 17,
+  "confidence": 1.0,
+  "object_class": "person",
+  "bbox": [180.0, 110.0, 240.0, 290.0],
+  "rule": {
+    "id": "R001",
+    "name": "Restricted Zone Entry",
+    "kind": "behaviour",
+    "type": "rule"
+  },
+  "direction": null,
+  "dwell_s": null,
+  "details": {
+    "severity": "HIGH",
+    "points": 30,
+    "rule_id": "R001",
+    "description": "A person or vehicle is inside a restricted zone",
+    "reasons": [
+      "object is a person",
+      "inside zone Z1 (restricted) for 1 s"
+    ],
+    "bindings": {
+      "zone_id": "Z1"
+    },
+    "track_age_s": 9.2
+  }
+}
+```
