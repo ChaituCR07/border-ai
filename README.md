@@ -236,7 +236,7 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
 - [x] **Week 2 Day 8:** ANPR Engine (PaddleOCR PP-OCRv6 + positional layout rules + consensus voting).
 - [x] **Week 2 Day 9:** PostgreSQL Watchlist System, OCR-aware near matcher, visual overlays, resilience fallback, and test suite.
 - [x] **Week 2 Day 10:** Face Detection, Quality Gate, Appearance Embedding Re-ID prototype, and consent-gated enrollment.
-- [x] **Week 2 Day 11:** Configurable Behaviour Engine (deterministic rules R001–R005, replay, simulated clock, Plan Tests 1, 2, 5, 6, Scenario 1).
+- [x] **Week 2 Day 11:** Configurable Behaviour Engine (deterministic rules R001–R005, replay, simulated clock, Plan Tests 1, 2, 5, 6, Scenario 1 and 2).
 - [ ] **Week 2 Day 12:** Multi-factor composite threat scoring & alert elevation engine.
 - [ ] **Week 2 Day 13–14:** Redis Streams event publishing & consolidated PostgreSQL persistence schema.
 - [ ] **Week 3 (Days 15–21):** Node.js backend API, WebSocket alert broadcast, React surveillance dashboard.
