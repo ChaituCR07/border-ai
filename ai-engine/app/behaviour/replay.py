@@ -23,11 +23,12 @@ def load_events(path) -> List[Event]:
         return [event_from_dict(json.loads(line)) for line in f if line.strip()]
 
 
-def replay(events: List[Event], engine, tick_s: float = 1.0, grace_s: float = 5.0) -> List[Event]:
+def replay(events: List[Event], engine, tick_s: float = 1.0, grace_s: float = 5.0,
+           keep_behaviour: bool = False) -> List[Event]:
     """Feed recorded observations through the engine. A track counts as present from its first event
     until `grace_s` after its last event. Behaviour events in the recording are skipped, so you can
     compare an old rule set with a new one on the same recording."""
-    events = sorted((e for e in events if e.rule_kind != "behaviour"), key=lambda e: e.timestamp)
+    events = sorted((e for e in events if keep_behaviour or e.rule_kind != "behaviour"), key=lambda e: e.timestamp)
     if not events:
         return []
     spans: Dict[Tuple[str, int], dict] = {}

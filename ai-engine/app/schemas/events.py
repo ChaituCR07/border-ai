@@ -12,6 +12,7 @@ LINE_CROSSING = "LINE_CROSSING"
 PLATE_RECOGNIZED = "PLATE_RECOGNIZED"
 WATCHLIST_MATCH = "WATCHLIST_MATCH"
 REID_MATCH = "REID_MATCH"
+THREAT_ALERT = "THREAT_ALERT"
 
 
 @dataclass
@@ -53,7 +54,7 @@ class Event:
             "dwell_s": None if self.dwell_s is None else round(self.dwell_s, 1),
             "details": self.details,
         }
-        for key in ("plate", "score", "severity"):
+        for key in ("plate", "score", "severity", "threat_score"):
             if key in self.details:
                 d[key] = self.details[key]
         return d

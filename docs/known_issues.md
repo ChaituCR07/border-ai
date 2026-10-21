@@ -22,6 +22,9 @@
 | K18 | Behaviour | Tracker ID switch resets zone dwell time counter | Low | Known | High track buffer mitigates; tune `min_dwell_s` threshold |
 | K19 | Behaviour | Rules depending on asynchronous plate/watchlist events fire a few frames apart between runs | Low | Known | Compare event sets rather than exact frame numbers; deterministic for R001-R004 |
 | K20 | Behaviour | Weekday filters on windows past midnight use local date of evaluation | Low | Documented | Avoid weekday constraints on wrapped midnight windows or account for morning rollover |
+| K21 | Threat | People tracks lack persistent biometric identity across tracker ID swaps | Medium | Known | Plate merging handles vehicles; Re-ID provides review candidates only |
+| K22 | Threat | Asynchronous evidence (ANPR/Face) may arrive a few frames after track birth | Low | Known | Window evaluation absorbs and updates threat score as evidence resolves |
+| K23 | Threat | Scoring weights and thresholds are design selections | Low | Mitigated | Fully configurable via rules.json scoring section; documented in threat_scoring.md |
 
 ## Severity Classification
 - **High:** Incorrect/lost security events, service crashes, data corruption.

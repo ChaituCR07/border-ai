@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from app.schemas.events import Event
 from app.schemas.tracking import FrameTracks
@@ -22,3 +22,4 @@ class FrameResult:
     n_lost: int
     plates: Dict[int, str] = field(default_factory=dict)
     flags: Dict[int, str] = field(default_factory=dict)       # track_id -> watchlist flag text
+    threat: Dict[int, Tuple[int, str]] = field(default_factory=dict)

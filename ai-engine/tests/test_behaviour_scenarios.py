@@ -79,14 +79,10 @@ def test_loitering_needs_more_than_sixty_seconds_in_a_zone():
 def test_leaving_before_sixty_seconds_is_not_loitering():
     s = GeometryScene(RULES)
     for _ in range(40):
-        s.step([obj(1, 480, 240)])
+        s.step([obj(1, 480, 240)])                       # 40 s inside Z1
     for _ in range(15):
         s.step([obj(1, 100, 240)])                       # walked out
-    for _ in range(60):
-        s.step([obj(1, 480, 240)])                       # came back: a new, shorter stay
-        if s.types.count("LOITERING_VIOLATION"):
-            break
-    assert "LOITERING_VIOLATION" not in s.types or s.types.count("LOITERING_VIOLATION") == 1
+    assert "LOITERING_VIOLATION" not in s.types
 
 
 def test_after_hours_depends_on_the_local_clock():

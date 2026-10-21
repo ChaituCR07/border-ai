@@ -1,0 +1,28 @@
+{
+  "clip": "person_walking.mp4",
+  "camera_id": "CAM_001",
+  "simulated_clock_start": "2026-10-12T02:13:00",
+  "final_score": 60,
+  "final_level": "HIGH",
+  "alert_levels": [
+    "LOW",
+    "MEDIUM",
+    "HIGH"
+  ],
+  "expected_contributions": [
+    {
+      "kind": "after_hours",
+      "points": 10
+    },
+    {
+      "kind": "line_crossing",
+      "points": 20
+    },
+    {
+      "kind": "zone_violation",
+      "points": 30
+    }
+  ],
+  "daytime_final_score": 50,
+  "daytime_final_level": "MEDIUM"
+}

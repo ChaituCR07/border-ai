@@ -260,3 +260,30 @@ Submit Job (Deep-copy vehicle crop)
 1. **Separation of Observations and Decisions:** Vision models produce observations (detections, tracks, plate reads, watchlist hits); the behaviour engine turns observations into events. No vision model decides alert levels directly.
 2. **Deterministic Time:** Offline evaluation supports simulated clocks (`--clock-start`), ensuring temporal rule reproducibility independent of execution wall time.
 3. **Episode-Based Suppression:** Alerts fire once per episode with configurable `rearm_s` and `cooldown_s`, preventing frame-by-frame alert flooding.
+
+## 11. Threat Scoring Engine
+
+```
+   Observations & Behaviour Events
+                 │
+                 ▼
+       ┌──────────────────┐
+       │   ThreatScorer   │
+       │   (app/threat/)  │
+       └─────────┬────────┘
+                 │
+      ┌──────────┴──────────┐
+      ▼                     ▼
+ Live Frame Visualizer    THREAT_ALERT (JSONL)
+ (T60 HIGH, Bounding Box  (Escalation only,
+  Color: Yellow/Orange/Red) Snapshot on Disk)
+                            │
+                            ▼
+                  [Redis Stream] (Day 13)
+```
+
+### Architectural Traits:
+1. **Entity-Based Aggregation:** Threat state is tracked on the logical entity rather than individual bounding boxes or events. License plate readings merge fragmented tracks of the same vehicle.
+2. **Decaying Relevance:** Contributions expire outside a 10-minute sliding window (`window_s: 600`), ensuring past infractions do not create perpetual high-threat entities.
+3. **Escalation-Only Alerting:** Prevents alert fatigue by raising `THREAT_ALERT` only upon initial threshold crossing or level increases (`LOW` -> `MEDIUM` -> `HIGH` -> `CRITICAL`).
+4. **Evidence Snapshots:** Clean, pre-annotation video frames are captured when alerts fire and saved to `outputs/runs/<run_id>/snapshots/` for visual verification.
