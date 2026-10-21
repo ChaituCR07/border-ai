@@ -3,7 +3,7 @@
 Real-time video analytics for existing CCTV/IP-camera infrastructure: detection,
 tracking, restricted-zone and line-crossing events, Automated Number Plate Recognition (ANPR),
 PostgreSQL-backed operational watchlists, facial biometric recognition, cross-camera person appearance Re-ID,
-and (in progress) behaviour rules, threat scoring, and an investigation dashboard.
+behaviour analysis, configurable threat scoring with explainable escalation alerts, and (in progress) an event bus and investigation dashboard.
 
 ![demo](docs/images/week1_demo.gif)
 
@@ -99,6 +99,38 @@ Identity Engine (Async Face & Appearance Re-ID Worker)                       ↓
         ↓                                                                    ↓
 Annotated Video (Red Boxes / Track Labels / Banners)          Plate Records: plates.jsonl (JSONL)
 ```
+
+- **Threat Scoring & Alert Elevation Engine (Day 12):**
+  - Synthesizes geometric observations, identity hits, and behaviour violations into an aggregate 0–100 threat score and 4-tier alert level (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+  - **Decaying Sliding Window:** Active evidence decays after 10 minutes (`window_s: 600s`); repeating observations refresh the expiry timer.
+  - **Plate-Based Track Merging:** Automatically merges fragmented tracks for the same vehicle once a license plate is recognized, preserving score history across tracker ID swaps.
+  - **Zero Double-Counting:** Smart exclusion rules (`excluded_by: ["direction_violation"]`) ensure multi-trigger incidents (like wrong-way tripwires) count accurately.
+  - **Review Multipliers:** Unconfirmed/review-grade detections receive half points (`status_multiplier: 0.5`).
+  - **Escalation-Only Alerts:** Alerts are emitted strictly upon initial score threshold crossing or level increases, with automated quiet-period re-arming (`rearm_s: 300s`).
+  - **Pre-Annotation Evidence Snapshots:** Captured pre-rendering and stored in `outputs/runs/<run_id>/snapshots/` for visual verification and operator review.
+  - **Example THREAT_ALERT Event:**
+    ```json
+    {
+      "type": "THREAT_ALERT",
+      "severity": "HIGH",
+      "threat_score": 60,
+      "track_id": 3,
+      "rule": {"id": "THREAT", "kind": "threat", "type": "high"},
+      "details": {
+        "level": "HIGH",
+        "priority": "HIGH",
+        "previous_level": "MEDIUM",
+        "escalation": true,
+        "summary": "HIGH (60/100): Restricted zone entry +30, Virtual line crossing +20, After-hours movement +10",
+        "snapshot_path": "snapshots/3f2a1b0c.jpg",
+        "contributions": [
+          {"kind": "zone_violation", "label": "Restricted zone entry", "points": 30},
+          {"kind": "line_crossing", "label": "Virtual line crossing", "points": 20},
+          {"kind": "after_hours", "label": "After-hours movement", "points": 10}
+        ]
+      }
+    }
+    ```
 
 ---
 

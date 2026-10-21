@@ -1,6 +1,6 @@
 # Platform Configuration (`configs`)
 
-The `configs/` directory stores declarative configuration files defining AI detection thresholds, camera streams, and spatial security polygons. Decoupling configuration from application code allows dynamic adjustment of camera parameters and security boundaries without restarting core services.
+The `configs/` directory stores declarative configuration files defining AI detection thresholds, camera streams, spatial security boundaries, behavioral rules, threat scoring weights, and watchlist seed datasets. Decoupling configuration from application code allows dynamic operational tuning without service rebuilds.
 
 ---
 
@@ -8,9 +8,11 @@ The `configs/` directory stores declarative configuration files defining AI dete
 
 ```text
 configs/
-├── app.yaml                   # Global AI model, confidence, and tracker settings
-├── cameras.json               # Camera inventory, stream URLs, and target frame rates
-├── rules.json                 # Threat scoring weights and alert thresholds (Week 2)
+├── app.yaml                   # Global AI model, tracker, ANPR, and identity settings
+├── cameras.json               # Camera inventory, stream sources, and target frame rates
+├── rules.json                 # Behaviour rules (rules) and Threat Scoring engine (scoring)
+├── authorized_plates_demo.csv # Authorized plate whitelist for rule R005
+├── watchlist_demo.csv         # Initial watchlist entries for vehicles and persons
 └── zones/
     └── CAM_001.json           # Per-camera normalized spatial polygons & virtual tripwires
 ```
@@ -19,78 +21,117 @@ configs/
 
 ## 2. Configuration Files & Schemas
 
-### 2.1 `app.yaml` — AI Model & Tracker Configuration
-Configures inference models, detection confidence thresholds, and multi-object tracking buffers.
-```yaml
-model:
-  name: yolov8n.pt              # YOLO model weights (yolov8n, yolov8s, etc.)
-  device: auto                  # auto | cpu | cuda:0 | mps
-  confidence: 0.4               # Minimum confidence threshold for valid detection
-  iou: 0.5                      # Non-Maximum Suppression (NMS) IoU threshold
-  image_size: 640               # Model input resolution
-  classes: [person, bicycle, car, motorcycle, bus, truck]
+### 2.1 `rules.json` — Behaviour Rules & Threat Scoring Configuration
+This unified file configures both the **Behaviour Analysis Engine** (`rules`) and the **Threat Scoring Engine** (`scoring`):
 
-tracker:
-  type: bytetrack               # Tracking algorithm: bytetrack | botsort
-  track_thresh: 0.5             # High score threshold for track continuation
-  match_thresh: 0.8             # IoU matching threshold
-  track_buffer: 30              # Max frames to keep lost tracks before deletion
-
-video:
-  target_fps: 15                # Pipeline inference frame rate
-  resize_width: 1280            # Normalized width for consistent inference
-```
-
-### 2.2 `cameras.json` — Camera Stream Definitions
-Defines all input cameras, their stream sources (file or RTSP), and operational flags.
 ```json
 {
-  "cameras": [
+  "rules": [
     {
-      "camera_id": "CAM_001",
-      "name": "North Gate",
-      "source_type": "file",
-      "source": "datasets/videos/person_walking.mp4",
-      "target_fps": 15,
-      "resize_width": 1280,
-      "loop": true,
-      "realtime": true,
-      "enabled": true
-    },
-    {
-      "camera_id": "CAM_003",
-      "name": "South Perimeter (RTSP)",
-      "source_type": "rtsp",
-      "source": "${RTSP_CAM_003_URL}",
-      "target_fps": 15,
-      "resize_width": 1280,
-      "enabled": true
-    }
-  ]
-}
-```
-> **Security Note:** Never hardcode camera credentials in `cameras.json`. Use environment variable expansion (e.g. `"${RTSP_CAM_003_URL}"`) and supply credentials in the gitignored `.env` file.
-
-### 2.3 `zones/<CAMERA_ID>.json` — Spatial Boundary Definitions
-Defines restricted area polygons and directional virtual tripwires.
-```json
-{
-  "camera_id": "CAM_001",
-  "zones": [
-    {
-      "name": "Restricted Zone",
-      "type": "restricted",
-      "polygon": [[0.1, 0.2], [0.6, 0.2], [0.6, 0.8], [0.1, 0.8]]
+      "rule_id": "R001",
+      "name": "Restricted Zone Entry",
+      "event_type": "ZONE_VIOLATION",
+      "severity": "HIGH",
+      "points": 30,
+      "enabled": true,
+      "conditions": [
+        {"type": "object", "value": ["person", "car", "truck", "bus", "motorcycle", "bicycle"]},
+        {"type": "zone", "zone_type": "restricted"}
+      ],
+      "actions": [{"type": "alert", "severity": "HIGH", "score": 30}]
     }
   ],
-  "lines": [
-    {
-      "name": "Entry Line",
-      "p1": [0.0, 0.5],
-      "p2": [1.0, 0.5],
-      "positive_direction": "IN"
-    }
-  ]
+  "scoring": {
+    "max_score": 100,
+    "window_s": 600,
+    "alert_min_score": 10,
+    "cooldown_s": 60,
+    "rearm_s": 300,
+    "merge_by_plate": true,
+    "merge_scope": "camera",
+    "levels": [
+      {"name": "LOW", "min": 0},
+      {"name": "MEDIUM", "min": 30},
+      {"name": "HIGH", "min": 60},
+      {"name": "CRITICAL", "min": 80}
+    ],
+    "bonus": {"multiple_suspicious": {"points": 10, "min_distinct_kinds": 4}},
+    "sources": [
+      {
+        "id": "zone_violation",
+        "label": "Restricted zone entry",
+        "match": {"event_type": "ZONE_VIOLATION"},
+        "points": "from_event"
+      },
+      {
+        "id": "direction_violation",
+        "label": "Unauthorized direction",
+        "match": {"event_type": "DIRECTION_VIOLATION"},
+        "points": "from_event"
+      },
+      {
+        "id": "loitering",
+        "label": "Loitering over 60 seconds",
+        "match": {"event_type": "LOITERING_VIOLATION"},
+        "points": "from_event"
+      },
+      {
+        "id": "after_hours",
+        "label": "After-hours movement",
+        "match": {"event_type": "AFTER_HOURS_ACTIVITY"},
+        "points": "from_event"
+      },
+      {
+        "id": "unauthorized_vehicle_night",
+        "label": "Unauthorized vehicle at night in a restricted zone",
+        "match": {"event_type": "UNAUTHORIZED_VEHICLE_AFTER_HOURS"},
+        "points": "from_event"
+      },
+      {
+        "id": "line_crossing",
+        "label": "Virtual line crossing",
+        "match": {"event_type": "LINE_CROSSING", "where": {"rule_type": "tripwire"}},
+        "points": 20,
+        "excluded_by": ["direction_violation"]
+      },
+      {
+        "id": "watchlist_vehicle",
+        "label": "Watchlisted vehicle",
+        "match": {"event_type": "WATCHLIST_MATCH", "where": {"details.entity_type": ["VEHICLE", "PLATE"]}},
+        "points": 40,
+        "status_multiplier": {"alert": 1.0, "review": 0.5}
+      },
+      {
+        "id": "watchlist_person",
+        "label": "Watchlisted person",
+        "match": {"event_type": "WATCHLIST_MATCH", "where": {"details.entity_type": ["PERSON", "FACE"]}},
+        "points": 50,
+        "status_multiplier": {"alert": 1.0, "review": 0.5}
+      }
+    ]
+  }
 }
 ```
-> **Normalized Coordinates:** Coordinates `[x, y]` are expressed as floating-point ratios between `0.0` and `1.0` relative to frame width and height. This ensures polygons automatically scale correctly regardless of camera resolution changes.
+
+- **`max_score`:** Capping ceiling for total threat score (default 100).
+- **`window_s`:** Active evidence lifetime in seconds (default 600s / 10 minutes).
+- **`alert_min_score`:** Minimum aggregate score required to trigger any alert event (default 10).
+- **`cooldown_s`:** Minimum interval between new alert episodes for an entity (default 60s).
+- **`rearm_s`:** Quiet interval below threshold required before an entity can alert again (default 300s).
+- **`merge_by_plate`:** Automatically merges track states for the same vehicle once an ANPR plate is recognized.
+- **`excluded_by`:** Stops duplicate counting of the same incident (e.g. wrong-way line crossing).
+- **`status_multiplier`:** Halves the weight of unconfirmed/review-status evidence (`0.5`).
+- **`bonus`:** Awards +10 points when an entity triggers $\ge 4$ distinct kinds of suspicious evidence.
+
+### 2.2 `app.yaml` — AI Model & Subsystem Configuration
+Configures YOLOv8, ByteTrack, PaddleOCR, and facial biometric settings.
+
+### 2.3 `cameras.json` — Camera Stream Inventory
+Defines camera IDs, stream sources (video files or RTSP URLs), frame rate pacing, and resolution resizing.
+
+### 2.4 `zones/<CAMERA_ID>.json` — Spatial Polygons & Tripwires
+Defines restricted areas and virtual boundary lines in normalized `[0.0, 1.0]` coordinates.
+
+### 2.5 Demo Seed Datasets
+- **`authorized_plates_demo.csv`:** Authorized vehicle whitelist for Section 38 rules (`KA01AB1234`, `DL08CZ9999`).
+- **`watchlist_demo.csv`:** Initial operational watchlist entries with risk levels (`HIGH`, `CRITICAL`) and entity types (`VEHICLE`, `PERSON`).
