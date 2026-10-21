@@ -186,3 +186,157 @@ class ThreatScorer:
         target.alerted_level = next((n for n, r in LEVEL_RANK.items() if ranks and r == max(ranks)), None)
         times = [t for t in (target.last_alert_ts, st.last_alert_ts) if t is not None]
         target.last_alert_ts = max(times) if times else None
+
+    # ------------------------------------------------------------------ main entry
+    def update(self, ft, upd=None) -> List[Event]:
+        cid, now = ft.camera_id, ft.timestamp
+        with self._lock:
+            pending = self._inbox.pop(cid, [])
+
+        touched = set()
+        for ev in pending:
+            st = self._apply(ev)
+            if st is not None:
+                touched.add(st.key)
+
+        present = set()
+        for o in ft.tracks:
+            key = self._track_map.get((cid, o.track_id))
+            st = self._entities.get(key) if key is not None else None
+            if st is None:
+                continue
+            if st.object_class == "unknown":
+                st.object_class = o.label
+            st.camera_id, st.track_id = cid, o.track_id
+            st.last_bbox, st.last_frame_id = tuple(o.bbox), ft.frame_id
+            st.last_activity = max(st.last_activity, now)
+            present.add(key)
+
+        alerts: List[Event] = []
+        for key in touched | present:
+            st = self._entities.get(key)
+            if st is not None:
+                alert = self._evaluate(st, now)
+                if alert is not None:
+                    alerts.append(alert)
+
+        if now - self._last_prune >= PRUNE_EVERY_S:
+            self._prune(now)
+        return alerts
+
+    # ------------------------------------------------------------------ scoring and alerting
+    def _evaluate(self, st: EntityState, now: float) -> Optional[Event]:
+        cfg = self.cfg
+        for kind in list(st.contributions):                    # expire old evidence
+            bucket = st.contributions[kind]
+            for disc in [d for d, c in bucket.items() if now - c.at > cfg.window_s]:
+                del bucket[disc]
+            if not bucket:
+                del st.contributions[kind]
+
+        kind_points: Dict[str, int] = {}
+        kept: List[Contribution] = []
+        for kind, bucket in st.contributions.items():
+            try:
+                limit = cfg.source(kind).max_occurrences
+            except ValueError:
+                limit = 1
+            best = sorted(bucket.values(), key=lambda c: (c.points, c.at), reverse=True)[:limit]
+            kind_points[kind] = sum(c.points for c in best)
+            kept.extend(best)
+
+        res = total_score(kind_points, cfg)
+        st.score, st.level, st.result, st.kept = res.score, cfg.level_for(res.score), res, kept
+        return self._maybe_alert(st, now)
+
+    def _maybe_alert(self, st: EntityState, now: float) -> Optional[Event]:
+        cfg = self.cfg
+        rank, high_water = LEVEL_RANK[st.level], st.alerted_level
+        if st.score < cfg.alert_min_score:
+            if st.alerted_level is not None:
+                st.below_since = now if st.below_since is None else st.below_since
+                if now - st.below_since >= cfg.rearm_s:
+                    st.alerted_level, st.below_since = None, None     # a quiet period ends the episode
+            return None
+
+        if high_water is None:
+            if st.last_alert_ts is not None and now - st.last_alert_ts < cfg.cooldown_s:
+                self.stats["suppressed_cooldown"] += 1
+                return None
+        elif rank > LEVEL_RANK[high_water]:
+            pass                                                      # escalation always alerts
+        else:
+            if rank < LEVEL_RANK[high_water]:                         # de-escalated: re-arm after a quiet spell
+                st.below_since = now if st.below_since is None else st.below_since
+                if now - st.below_since >= cfg.rearm_s:
+                    st.alerted_level, st.below_since = st.level, None
+            else:
+                st.below_since = None
+            return None
+
+        previous = st.alerted_level
+        st.alerted_level, st.last_alert_ts, st.below_since = st.level, now, None
+        self.alerts_by_level[st.level] += 1
+        self.stats["alerts"] += 1
+        return self._build_alert(st, now, previous)
+
+    def _build_alert(self, st: EntityState, now: float, previous: Optional[str]) -> Event:
+        res = st.result
+        counted = sorted((c for c in st.kept if c.kind in res.counted), key=lambda c: -c.points)
+        parts = [f"{c.label} +{c.points}" for c in counted]
+        if res.bonus:
+            parts.append(f"multiple suspicious events +{res.bonus}")
+        summary = f"{st.level} ({st.score}/{self.cfg.max_score}): " + ", ".join(parts)
+        details = {
+            "alert_id": uuid.uuid4().hex, "threat_score": st.score, "severity": st.level, "priority": st.level,
+            "level": st.level, "previous_level": previous, "escalation": previous is not None,
+            "summary": summary, "capped": res.capped, "window_s": self.cfg.window_s,
+            "entity": _entity_name(st.key), "contributions": [c.to_dict() for c in counted],
+            "excluded": res.excluded,
+        }
+        if res.bonus:
+            details["bonus"] = {"multiple_suspicious": res.bonus}
+        if st.plate:
+            details["plate"] = st.plate
+        return Event(
+            type=THREAT_ALERT, camera_id=st.camera_id, timestamp=now, frame_id=st.last_frame_id,
+            track_id=st.track_id, object_class=st.object_class, confidence=st.score / float(self.cfg.max_score),
+            bbox=st.last_bbox, rule_id="THREAT", rule_name="Threat score", rule_kind="threat",
+            rule_type=st.level.lower(), details=details)
+
+    # ------------------------------------------------------------------ queries and cleanup
+    def _state(self, st: EntityState) -> ThreatState:
+        res = st.result or ScoreResult(0, 0, 0, False)
+        return ThreatState(_entity_name(st.key), st.camera_id, st.track_id, st.plate, st.object_class, st.score,
+                           st.level, res.raw, res.bonus, res.capped, dict(res.counted), list(res.excluded),
+                           sorted(st.kept, key=lambda c: -c.points))
+
+    def current(self, camera_id: str, track_id: int) -> Optional[ThreatState]:
+        key = self._track_map.get((camera_id, track_id))
+        st = self._entities.get(key) if key is not None else None
+        return self._state(st) if st is not None else None
+
+    def all_states(self) -> List[ThreatState]:
+        return [self._state(st) for st in self._entities.values()]
+
+    def snapshot(self, camera_id: str) -> Dict[int, Tuple[int, str]]:
+        """track_id -> (score, level) for the overlay."""
+        out = {}
+        for (cid, tid), key in list(self._track_map.items()):
+            st = self._entities.get(key)
+            if cid == camera_id and st is not None and st.score > 0:
+                out[tid] = (st.score, st.level)
+        return out
+
+    def _prune(self, now: float) -> None:
+        self._last_prune = now
+        idle = self.cfg.window_s + self.cfg.rearm_s
+        gone = [k for k, st in self._entities.items() if not st.contributions and now - st.last_activity > idle]
+        for k in gone:
+            del self._entities[k]
+        for tk in [tk for tk, ek in self._track_map.items() if ek not in self._entities]:
+            del self._track_map[tk]
+        self.stats["pruned_entities"] += len(gone)
+
+    def status(self) -> dict:
+        return {"entities": len(self._entities), "alerts_by_level": dict(self.alerts_by_level), **dict(self.stats)}
