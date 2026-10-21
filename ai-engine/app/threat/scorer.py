@@ -331,6 +331,13 @@ class ThreatScorer:
     def _prune(self, now: float) -> None:
         self._last_prune = now
         idle = self.cfg.window_s + self.cfg.rearm_s
+        for st in list(self._entities.values()):
+            for kind in list(st.contributions):
+                bucket = st.contributions[kind]
+                for disc in [d for d, c in bucket.items() if now - c.at > self.cfg.window_s]:
+                    del bucket[disc]
+                if not bucket:
+                    del st.contributions[kind]
         gone = [k for k, st in self._entities.items() if not st.contributions and now - st.last_activity > idle]
         for k in gone:
             del self._entities[k]

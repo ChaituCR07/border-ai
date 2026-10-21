@@ -54,19 +54,26 @@ def beh(event_type, points, ts, track=1, cam="CAM", cls="person", rule_id="R001"
 
 
 def zone_v(ts, **kw):
-    return beh("ZONE_VIOLATION", 30, ts, rule_id="R001", **kw)
+    kw.setdefault("rule_id", "R001")
+    return beh("ZONE_VIOLATION", 30, ts, **kw)
 
 
 def direction_v(ts, **kw):
-    return beh("DIRECTION_VIOLATION", 20, ts, rule_id="R002", severity="MEDIUM", **kw)
+    kw.setdefault("rule_id", "R002")
+    kw.setdefault("severity", "MEDIUM")
+    return beh("DIRECTION_VIOLATION", 20, ts, **kw)
 
 
 def after_hours(ts, **kw):
-    return beh("AFTER_HOURS_ACTIVITY", 10, ts, rule_id="R004", severity="LOW", **kw)
+    kw.setdefault("rule_id", "R004")
+    kw.setdefault("severity", "LOW")
+    return beh("AFTER_HOURS_ACTIVITY", 10, ts, **kw)
 
 
 def loitering(ts, **kw):
-    return beh("LOITERING_VIOLATION", 15, ts, rule_id="R003", severity="MEDIUM", **kw)
+    kw.setdefault("rule_id", "R003")
+    kw.setdefault("severity", "MEDIUM")
+    return beh("LOITERING_VIOLATION", 15, ts, **kw)
 
 
 def line_cross(ts, direction="IN", track=1, cam="CAM", cls="person", line="L1"):
