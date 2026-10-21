@@ -343,6 +343,20 @@ class Pipeline:
                 self._event_counts[event_key(e)] += 1
             self.counters[cid]["events"] += len(events)
 
+    def _save_snapshots(self, alerts, image) -> None:
+        """Evidence frame for each new alert. Contains people and plates: stays under outputs/, never in Git."""
+        if not self.save_snapshots:
+            return
+        folder = self.run_dir / "snapshots"
+        folder.mkdir(exist_ok=True)
+        for a in alerts:
+            path = folder / f"{a.details['alert_id']}.jpg"
+            try:
+                cv2.imwrite(str(path), image, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                a.details["snapshot_path"] = f"snapshots/{path.name}"
+            except Exception:
+                log.exception("Could not save the evidence snapshot for %s", a.details['alert_id'])
+
     def _enqueue(self, cid: str, res: FrameResult) -> None:
         q = self._out_queues[cid]
         if self.offline:
