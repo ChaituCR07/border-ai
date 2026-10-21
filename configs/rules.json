@@ -158,5 +158,130 @@
         "score": 40
       }
     }
-  ]
+  ],
+  "scoring": {
+    "max_score": 100,
+    "window_s": 600,
+    "alert_min_score": 10,
+    "cooldown_s": 60,
+    "rearm_s": 300,
+    "merge_by_plate": true,
+    "merge_scope": "camera",
+    "levels": [
+      {
+        "name": "LOW",
+        "min": 0
+      },
+      {
+        "name": "MEDIUM",
+        "min": 30
+      },
+      {
+        "name": "HIGH",
+        "min": 60
+      },
+      {
+        "name": "CRITICAL",
+        "min": 80
+      }
+    ],
+    "bonus": {
+      "multiple_suspicious": {
+        "points": 10,
+        "min_distinct_kinds": 4
+      }
+    },
+    "sources": [
+      {
+        "id": "zone_violation",
+        "label": "Restricted zone entry",
+        "match": {
+          "event_type": "ZONE_VIOLATION"
+        },
+        "points": "from_event"
+      },
+      {
+        "id": "direction_violation",
+        "label": "Unauthorized direction",
+        "match": {
+          "event_type": "DIRECTION_VIOLATION"
+        },
+        "points": "from_event"
+      },
+      {
+        "id": "loitering",
+        "label": "Loitering over 60 seconds",
+        "match": {
+          "event_type": "LOITERING_VIOLATION"
+        },
+        "points": "from_event"
+      },
+      {
+        "id": "after_hours",
+        "label": "After-hours movement",
+        "match": {
+          "event_type": "AFTER_HOURS_ACTIVITY"
+        },
+        "points": "from_event"
+      },
+      {
+        "id": "unauthorized_vehicle_night",
+        "label": "Unauthorized vehicle at night in a restricted zone",
+        "match": {
+          "event_type": "UNAUTHORIZED_VEHICLE_AFTER_HOURS"
+        },
+        "points": "from_event"
+      },
+      {
+        "id": "line_crossing",
+        "label": "Virtual line crossing",
+        "match": {
+          "event_type": "LINE_CROSSING",
+          "where": {
+            "rule_type": "tripwire"
+          }
+        },
+        "points": 20,
+        "excluded_by": [
+          "direction_violation"
+        ]
+      },
+      {
+        "id": "watchlist_vehicle",
+        "label": "Watchlisted vehicle",
+        "match": {
+          "event_type": "WATCHLIST_MATCH",
+          "where": {
+            "details.entity_type": [
+              "VEHICLE",
+              "PLATE"
+            ]
+          }
+        },
+        "points": 40,
+        "status_multiplier": {
+          "alert": 1.0,
+          "review": 0.5
+        }
+      },
+      {
+        "id": "watchlist_person",
+        "label": "Watchlisted person",
+        "match": {
+          "event_type": "WATCHLIST_MATCH",
+          "where": {
+            "details.entity_type": [
+              "PERSON",
+              "FACE"
+            ]
+          }
+        },
+        "points": 50,
+        "status_multiplier": {
+          "alert": 1.0,
+          "review": 0.5
+        }
+      }
+    ]
+  }
 }
