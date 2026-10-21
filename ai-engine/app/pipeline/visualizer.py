@@ -86,9 +86,11 @@ def _draw_trail(image: np.ndarray, trail, color, thickness: int) -> None:
         cv2.line(image, pts[i - 1], pts[i], color, th, cv2.LINE_AA)
 
 
+LEVEL_COLORS = {"MEDIUM": (0, 215, 255), "HIGH": (0, 140, 255), "CRITICAL": (0, 0, 255)}     # BGR
+
 def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
                 show_trails: bool = True, show_lost: bool = True,
-                extra_labels=None, flags=None) -> np.ndarray:
+                extra_labels=None, flags=None, threat=None) -> np.ndarray:
     """Boxes + 'class #id' labels + trajectory trails. Draws in place."""
     h, w = image.shape[:2]
     thickness = max(1, round(min(h, w) / 400))
@@ -106,7 +108,10 @@ def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
     for o in tracks:
         color = color_for_id(o.track_id)
         flag = flags.get(o.track_id) if flags else None
+        level = threat.get(o.track_id) if threat else None
         box_color = (0, 0, 255) if flag else color                 # red for watchlisted vehicles
+        if level and not flag and level[1] in LEVEL_COLORS:
+            box_color = LEVEL_COLORS[level[1]]                      # watchlist red still wins
 
         if store is not None and show_trails:
             t = store.get(o.track_id)
@@ -123,6 +128,8 @@ def draw_tracks(image: np.ndarray, tracks: List[TrackedObject], store=None,
             label += f" {extra_labels[o.track_id]}"
         if flag:
             label += f"  WATCHLIST {flag}"
+        if level and level[0] > 0:
+            label += f"  T{level[0]} {level[1]}"
         (tw, th), base = cv2.getTextSize(label, FONT, font_scale, 1)
         y_top = max(p1[1] - th - base, 0)
         cv2.rectangle(image, (p1[0], y_top), (p1[0] + tw, y_top + th + base), box_color, -1)
