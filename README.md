@@ -9,7 +9,7 @@ and (in progress) behaviour rules, threat scoring, and an investigation dashboar
 
 ---
 
-## Current Status (Day 11 Complete)
+## Current Status (Day 12 Complete)
 
 - **Week 1 (v0.1-week1) Complete:** Video/RTSP ingestion, YOLOv8 object detection, ByteTrack tracking, multi-zone and virtual line spatial engine, live MJPEG streaming, and structured JSONL event logging.
 - **Week 2 (Intelligence Layer) In Progress:**
@@ -29,7 +29,16 @@ and (in progress) behaviour rules, threat scoring, and an investigation dashboar
     - **Operational Tooling:** `rules_check.py` for zone/rule validation, `replay_behaviour.py` for historical event-stream replay without GPU, and `check_events.py` for ground-truth count verification.
     - **Simulated Clock:** Pipeline supports `--clock-start` for deterministic offline verification of after-hours rules.
     - **Comprehensive Test Suite:** Expanded to **446 passing tests** (100% green) across `ai-engine` (438 tests) and `video-ingestion` (8 tests), including Plan Tests 1, 2, 5, 6 and Scenario 1 against real geometry engines.
-  - **Upcoming (Days 12–14):** Multi-factor composite threat scoring (Day 12), Redis Streams publishing (Day 13), and consolidated schema persistence (Day 14).
+  - **Day 12 Complete (Threat Scoring Engine & Evidence Snapshots):**
+    - **Configurable Threat Scoring Engine:** Declarative scoring configuration (`scoring` in `configs/rules.json`) aggregating geometric observations, identity hits, and behaviour events into an explainable 0–100 threat score and 4-tier level (`LOW 0-29`, `MEDIUM 30-59`, `HIGH 60-79`, `CRITICAL 80-100`).
+    - **Mathematical & Temporal Semantics:** Sliding time window (`window_s: 600s`), occurrence limiting (`max_occurrences: 1`), double-counting prevention (`excluded_by: ["direction_violation"]` on virtual line crossing), review-grade multiplier (0.5 for unconfirmed watchlist matches), and multi-suspicious bonus (+10 for >= 4 distinct suspicious kinds).
+    - **Plate-Based Track Merging:** Identifies vehicles by recognized license plate (`merge_by_plate: true`), merging fragmented tracks to preserve threat history across tracker ID switches.
+    - **Escalation-Only Alerts:** Eliminates alert fatigue by raising prioritized `THREAT_ALERT` events strictly upon threshold crossing (`alert_min_score: 10`) or level increases (`LOW` -> `MEDIUM` -> `HIGH` -> `CRITICAL`), re-arming after quiet intervals (`rearm_s: 300s`).
+    - **Explainable Auditing & Evidence Snapshots:** Each alert details itemized contributions (source event ID, label, points, timestamps, reasons) and automatically captures a clean pre-annotation JPEG evidence frame in `outputs/runs/<run_id>/snapshots/`.
+    - **Operational Tooling:** `threat_calc.py` for arithmetic verification, `score_replay.py` for offline event log replay and weight tuning, and upgraded `rules_check.py` for rules-to-scoring cross-validation.
+    - **Executable Plan Scenarios:** Verified Plan Scenario 1 (Restricted area at night: 60, `HIGH`) and Plan Scenario 2 (Watchlisted vehicle in restricted zone: 100, `CRITICAL`) through the real geometry, track store, and rule engines.
+    - **Test Suite Milestone:** Expanded to **501 passing tests** (100% green) across `ai-engine` (493 tests, 33 db-skipped when offline) and `video-ingestion` (8 tests).
+  - **Upcoming (Days 13–14):** Redis Streams publishing & event processor (Day 13), and consolidated schema persistence (Day 14).
 
 ---
 
@@ -184,7 +193,7 @@ cd ai-engine && pytest -m db -v
 cd ai-engine && pytest -m "not slow" --cov=app --cov-report=term-missing
 ```
 
-### Test Coverage Summary: 359 Passed (100% Green)
+### Test Coverage Summary: 501 Passed (100% Green)
 - **`ai-engine` (351 tests):**
   - **Unit Tests:** Plate normalization, OCR distances, face quality gate, yaw angle ratios, L2 normalization, embedding cosine similarities, and configuration validation.
   - **Dual-Backend Contract Tests:** Identical behavioral verification run against both `InMemoryWatchlistRepo` and `PostgresWatchlistRepo` for plates, face embeddings, and hit history.
@@ -237,7 +246,7 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
 - [x] **Week 2 Day 9:** PostgreSQL Watchlist System, OCR-aware near matcher, visual overlays, resilience fallback, and test suite.
 - [x] **Week 2 Day 10:** Face Detection, Quality Gate, Appearance Embedding Re-ID prototype, and consent-gated enrollment.
 - [x] **Week 2 Day 11:** Configurable Behaviour Engine (deterministic rules R001–R005, replay, simulated clock, Plan Tests 1, 2, 5, 6, Scenario 1).
-- [ ] **Week 2 Day 12:** Multi-factor composite threat scoring & alert elevation engine.
+- [x] **Week 2 Day 12:** Multi-factor composite threat scoring & alert elevation engine.
 - [ ] **Week 2 Day 13–14:** Redis Streams event publishing & consolidated PostgreSQL persistence schema.
 - [ ] **Week 3 (Days 15–21):** Node.js backend API, WebSocket alert broadcast, React surveillance dashboard.
 - [ ] **Week 4 (Days 22–28):** Multi-camera soak testing, end-to-end integration, Docker packaging, and hardware pilot.

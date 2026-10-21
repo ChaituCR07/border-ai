@@ -1,3 +1,4 @@
+import cv2
 import json
 import logging
 import platform
@@ -60,7 +61,8 @@ class Pipeline:
                  offline: Optional[bool] = None, jpeg_quality: int = 80,
                  out_queue_size: int = 8, max_seconds: float = 0, max_frames: int = 0,
                  anpr=None, watchlist=None, identity=None,
-                 behaviour=None, clock_start=None):
+                 behaviour=None, clock_start=None,
+                 scorer=None, save_snapshots=True):
         self.detector = detector
         self.mgr = manager
         self.params = tracker_params
@@ -106,6 +108,8 @@ class Pipeline:
 
         self.behaviour = behaviour
         self.clock_start = clock_start
+        self.scorer = scorer
+        self.save_snapshots = save_snapshots
 
         # Load and validate every camera's rules NOW, so bad config fails at startup
         self._rules_cfg = {cid: rules.rules_for(cid) for cid in self.camera_ids}
@@ -284,13 +288,22 @@ class Pipeline:
                 self.identity.on_tracks_removed(cid, upd.removed)
                 flags.update(self.identity.flags_snapshot(cid))
                 plates.update(self.identity.labels_snapshot(cid))
-            display_events = events + behaviour_events + self._take_async(cid)
+            alerts = []
+            if self.scorer is not None:
+                self.scorer.observe(cid, events + behaviour_events)       # zone/line observations and rule outcomes
+                alerts = self.scorer.update(ft, upd)
+                if alerts:
+                    self._save_snapshots(alerts, f.image)                 # copy BEFORE the frame is drawn on
+                    self._emit_events(cid, alerts, video_s)
+            threat = self.scorer.snapshot(cid) if self.scorer is not None else {}
+
+            display_events = events + behaviour_events + alerts + self._take_async(cid)
 
             n_active = len(store.active_tracks())
             res = FrameResult(frame=f, ft=ft, events=display_events, store=store.snapshot(),
                               rule_stats=self.rules.stats(cid), video_s=video_s,
                               n_active=n_active, n_lost=len(store.lost_tracks()),
-                              plates=plates, flags=flags)
+                              plates=plates, flags=flags, threat=threat)
             self._enqueue(cid, res)
 
             self.counters[cid]["processed"] += 1
@@ -311,6 +324,8 @@ class Pipeline:
         self._emit_events(cid, events, None)
         if self.behaviour is not None:
             self.behaviour.observe(cid, events)
+        if self.scorer is not None:
+            self.scorer.observe(cid, events)
         with self._feed_lock:
             self._async_feed[cid].extend(events)
 
@@ -327,6 +342,20 @@ class Pipeline:
                 self.events.write(e.to_dict())
                 self._event_counts[event_key(e)] += 1
             self.counters[cid]["events"] += len(events)
+
+    def _save_snapshots(self, alerts, image) -> None:
+        """Evidence frame for each new alert. Contains people and plates: stays under outputs/, never in Git."""
+        if not self.save_snapshots:
+            return
+        folder = self.run_dir / "snapshots"
+        folder.mkdir(exist_ok=True)
+        for a in alerts:
+            path = folder / f"{a.details['alert_id']}.jpg"
+            try:
+                cv2.imwrite(str(path), image, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                a.details["snapshot_path"] = f"snapshots/{path.name}"
+            except Exception:
+                log.exception("Could not save the evidence snapshot for %s", a.details['alert_id'])
 
     def _enqueue(self, cid: str, res: FrameResult) -> None:
         q = self._out_queues[cid]
@@ -448,6 +477,7 @@ class Pipeline:
             "watchlist": self.watchlist.status() if self.watchlist is not None else None,
             "identity": self.identity.status() if self.identity is not None else None,
             "behaviour": self.behaviour.status() if self.behaviour is not None else None,
+            "scoring": self.scorer.status() if self.scorer is not None else None,
             "detector": self.detector.info(),
             "process": process,
         }
@@ -485,5 +515,6 @@ class Pipeline:
             "watchlist": asdict(self.watchlist.cfg) if self.watchlist is not None else None,
             "identity": asdict(self.identity.cfg) if self.identity is not None else None,
             "behaviour": asdict(self.behaviour.cfg) if self.behaviour is not None else None,
+            "scoring": asdict(self.scorer.cfg) if self.scorer is not None else None,
         }
         (self.run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, default=str))

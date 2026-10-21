@@ -372,3 +372,82 @@ Emitted when deterministic behaviour rules evaluate to true for an active track.
   }
 }
 ```
+
+### Threat Alert Event (`THREAT_ALERT`)
+
+Emitted when an entity's aggregate threat score crosses the minimum alert threshold or escalates to a higher threat level.
+
+```json
+{
+  "event_id": "9f8e7d6c-5b4a-3210-fedc-ba9876543210",
+  "camera_id": "CAM_001",
+  "timestamp": "2026-10-12T02:13:05.000Z",
+  "frame_id": 150,
+  "type": "THREAT_ALERT",
+  "severity": "HIGH",
+  "threat_score": 60,
+  "track_id": 3,
+  "confidence": 0.6,
+  "object_class": "person",
+  "bbox": [180.0, 110.0, 240.0, 290.0],
+  "rule": {
+    "id": "THREAT",
+    "name": "Threat score",
+    "kind": "threat",
+    "type": "high"
+  },
+  "direction": null,
+  "dwell_s": null,
+  "details": {
+    "alert_id": "e2b3c4d5f6a74b8c9d0e1f2a3b4c5d6e",
+    "threat_score": 60,
+    "severity": "HIGH",
+    "priority": "HIGH",
+    "level": "HIGH",
+    "previous_level": "MEDIUM",
+    "escalation": true,
+    "summary": "HIGH (60/100): Restricted zone entry +30, Virtual line crossing +20, After-hours movement +10",
+    "capped": false,
+    "window_s": 600.0,
+    "entity": "CAM_001#3",
+    "plate": null,
+    "snapshot_path": "snapshots/e2b3c4d5f6a74b8c9d0e1f2a3b4c5d6e.jpg",
+    "contributions": [
+      {
+        "kind": "zone_violation",
+        "label": "Restricted zone entry",
+        "points": 30,
+        "event_type": "ZONE_VIOLATION",
+        "event_id": "7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d",
+        "at": "2026-10-12T02:13:05.000Z",
+        "reasons": ["inside zone Z1 (restricted) for 1 s"]
+      },
+      {
+        "kind": "line_crossing",
+        "label": "Virtual line crossing",
+        "points": 20,
+        "event_type": "LINE_CROSSING",
+        "event_id": "6a5b4c3d-2e1f-0a9b-8c7d-6e5f4a3b2c1d",
+        "at": "2026-10-12T02:13:02.000Z",
+        "reasons": ["Virtual line crossing"]
+      },
+      {
+        "kind": "after_hours",
+        "label": "After-hours movement",
+        "points": 10,
+        "event_type": "AFTER_HOURS_ACTIVITY",
+        "event_id": "5a4b3c2d-1e0f-9a8b-7c6d-5e4f3a2b1c0d",
+        "at": "2026-10-12T02:13:00.000Z",
+        "reasons": ["time 02:13 is between 22:00 and 05:00"]
+      }
+    ],
+    "excluded": []
+  }
+}
+```
+
+#### Mapping to Day 14 Database Schema
+- `events.severity` $\leftarrow$ `severity` (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`)
+- `events.threat_score` $\leftarrow$ `threat_score` (integer $0..100$)
+- `alerts.priority` $\leftarrow$ `details.priority` (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`)
+- `alerts.snapshot_path` $\leftarrow$ `details.snapshot_path`
