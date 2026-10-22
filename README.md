@@ -6,7 +6,7 @@ Real-time video analytics for existing CCTV/IP-camera infrastructure: detection,
 
 ---
 
-## Current Status (Day 12 Complete)
+## Current Status (Day 13 Complete)
 
 - **Week 1 (v0.1-week1) Complete:** Video/RTSP ingestion, YOLOv8 object detection, ByteTrack tracking, multi-zone and virtual line spatial engine, live MJPEG streaming, and structured JSONL event logging.
 - **Week 2 (Intelligence Layer) In Progress:**
@@ -15,7 +15,8 @@ Real-time video analytics for existing CCTV/IP-camera infrastructure: detection,
   - **Day 10 Complete (Face & Person Re-ID Prototype):** Face Watchlist, Appearance Embedding Re-ID prototype, consent-gated enrollment, and 359-test baseline.
   - **Day 11 Complete (Behaviour Engine - Configurable Rules):** Declarative rule engine (`configs/rules.json`) translating low-level observations into structured, severity-tagged behaviour events (`R001` Restricted Zone, `R002` Wrong Direction, `R003` Loitering, `R004` After-Hours, `R005` Unauthorized Night Vehicle), episode management with `rearm_s` and `cooldown_s`, simulated clock (`--clock-start`), and Plan Tests 1, 2, 5, 6.
   - **Day 12 Complete (Threat Scoring Engine & Evidence Snapshots):** Declarative threat scoring configuration (`scoring` in `configs/rules.json`) aggregating observations, watchlist hits, and behaviour violations into an explainable 0–100 threat score and 4-tier level (`LOW 0-29`, `MEDIUM 30-59`, `HIGH 60-79`, `CRITICAL 80-100`), 600s sliding window decay, plate-based track merging, double-counting prevention, escalation-only alerting, clean pre-annotation evidence snapshots in `outputs/runs/<run_id>/snapshots/`, and Plan Scenarios 1 & 2 verified on real geometry engines.
-  - **Upcoming (Days 13–14):** Redis Streams publishing & event processor (Day 13), and consolidated schema persistence (Day 14).
+  - **Day 13 Complete (Redis Event Pipeline & Event Processor):** Resilient Redis Streams event bus (`surveillance.events`, `surveillance.alerts`, `surveillance.events.dead`), versioned JSON envelope (`v=1`), non-blocking multi-priority publisher (`buffer_high`, `buffer_low`) with exponential backoff and bounded memory, consumer group event processor with idempotency cache, dead-letter routing, `XAUTOCLAIM` stale entry recovery, pluggable sinks (console alerts, JSONL files), journal replay utility, and complete failure drill test suite (69 event tests passing 100%).
+  - **Upcoming (Day 14):** Consolidated PostgreSQL core schema persistence (`cameras`, `detections`, `vehicles`, `events`, `alerts`).
 
 ---
 

@@ -124,7 +124,33 @@ This unified file configures both the **Behaviour Analysis Engine** (`rules`) an
 - **`bonus`:** Awards +10 points when an entity triggers $\ge 4$ distinct kinds of suspicious evidence.
 
 ### 2.2 `app.yaml` — AI Model & Subsystem Configuration
-Configures YOLOv8, ByteTrack, PaddleOCR, and facial biometric settings.
+Configures YOLOv8, ByteTrack, PaddleOCR, facial biometric settings, and the **Redis Event Pipeline**:
+
+```yaml
+events:
+  enabled: false                          # Opt-in publishing; override via CLI (--publish)
+  redis_url: redis://localhost:6379/0     # Connection URL (reads REDIS_URL or .env)
+  stream: surveillance.events             # Primary event stream (MAXLEN ~100k)
+  alerts_stream: surveillance.alerts      # High-priority threat alert copy (MAXLEN ~10k)
+  dead_stream: surveillance.events.dead   # Poison / failed message quarantine (MAXLEN ~10k)
+  alert_types: [THREAT_ALERT]             # Types copied to alerts_stream
+  batch_size: 100                         # Events per network round-trip
+  flush_ms: 50                            # Max publisher batch accumulation delay
+  buffer_high: 5000                       # In-memory queue cap for alerts/violations
+  buffer_low: 20000                       # In-memory queue cap for observation events
+  retry_initial_s: 0.5                    # Initial reconnection backoff
+  retry_max_s: 10.0                       # Maximum reconnection backoff
+  shutdown_timeout_s: 10.0                # Graceful queue drain timeout at shutdown
+  processor:
+    group: processor                      # Consumer group name
+    consumer: processor-1                 # Default worker identifier
+    start: "0"                            # Group start position ("0" = all, "$" = new)
+    block_ms: 1000                        # Max consumer block wait on empty stream
+    batch: 50                             # Batch size per XREADGROUP
+    reclaim_idle_ms: 30000                # Idle threshold before taking over stale PEL messages
+    max_deliveries: 5                     # Max delivery attempts before dead-letter routing
+    dedupe_cache: 20000                   # LRU cache size for processed event IDs
+```
 
 ### 2.3 `cameras.json` — Camera Stream Inventory
 Defines camera IDs, stream sources (video files or RTSP URLs), frame rate pacing, and resolution resizing.

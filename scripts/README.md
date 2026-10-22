@@ -91,3 +91,35 @@ python scripts/face_enroll.py \
     --risk LOW \
     --consent-confirmed
 ```
+
+### 2.7 Event Processor Daemon (`run_event_processor.py`)
+Runs the streaming event processor worker that reads from Redis Streams and routes to registered sinks:
+```bash
+cd ai-engine
+python scripts/run_event_processor.py --consumer worker-1 --out ../outputs/processed/events.jsonl
+```
+
+### 2.8 Stream Monitoring & Lag Inspection (`stream_stats.py`)
+Prints active stream lengths, consumer groups, pending unacknowledged entries, and consumer lag:
+```bash
+cd ai-engine
+python scripts/stream_stats.py
+```
+
+### 2.9 Stream Real-Time Tailing (`stream_tail.py`)
+Tails live stream entries or inspects dead-letter queues:
+```bash
+cd ai-engine
+# Tail live events stream
+python scripts/stream_tail.py --stream events --follow
+
+# Inspect dead-letter messages with failure reasons
+python scripts/stream_tail.py --stream dead --count 20
+```
+
+### 2.10 Offline Journal Replay (`replay_journal.py`)
+Replays a local disk journal (`events.jsonl`) to Redis Streams after edge network restoration:
+```bash
+cd ai-engine
+python scripts/replay_journal.py --events ../outputs/runs/run_20261022_120000/events.jsonl --rate 500
+```
