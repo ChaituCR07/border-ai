@@ -132,3 +132,39 @@ identity:
     gallery_ttl_s: 900
     gallery_max_items: 2000
     max_queries: 2
+
+events:
+  enabled: false                          # publishing is opt-in (needs Redis); also --publish on the command line
+  redis_url: redis://localhost:6379/0     # overridden by REDIS_URL, or REDIS_HOST / REDIS_PORT / REDIS_PASSWORD from .env
+  stream: surveillance.events             # every event
+  alerts_stream: surveillance.alerts      # a copy of the alert types, for a WebSocket gateway
+  dead_stream: surveillance.events.dead   # messages that could not be handled
+  alert_types: [THREAT_ALERT]
+  maxlen: 100000                          # approximate cap of the main stream
+  alerts_maxlen: 10000
+  batch_size: 100                         # events per network round trip
+  flush_ms: 50                            # how long the publisher waits to fill a batch
+  buffer_high: 5000                       # events buffered while Redis is unavailable (precious types)
+  buffer_low: 20000                       # same, for observation noise (dropped first)
+  high_priority_types:
+    - THREAT_ALERT
+    - WATCHLIST_MATCH
+    - ZONE_VIOLATION
+    - DIRECTION_VIOLATION
+    - LOITERING_VIOLATION
+    - AFTER_HOURS_ACTIVITY
+    - UNAUTHORIZED_VEHICLE_AFTER_HOURS
+  retry_initial_s: 0.5
+  retry_max_s: 10
+  shutdown_timeout_s: 10                  # how long the pipeline waits to flush the buffer at shutdown
+  processor:
+    group: processor
+    consumer: processor-1
+    start: "0"                            # "0" = also read what was published before the group existed; "$" = only new
+    block_ms: 1000
+    batch: 50
+    reclaim_idle_ms: 30000                # a message pending this long is taken over (consumer crashed or failed)
+    reclaim_every_s: 5
+    max_deliveries: 5                     # then it goes to the dead-letter stream
+    dedupe_cache: 20000                   # recent event IDs remembered by the processor
+    dead_maxlen: 10000
