@@ -46,3 +46,36 @@ def repo(request):
         yield InMemoryWatchlistRepo()
     else:
         yield request.getfixturevalue("pg_repo")
+
+
+@pytest.fixture(scope="session")
+def redis_url():
+    redis = pytest.importorskip("redis")
+    from app.events.config import EventsConfig, resolve_redis_url
+    url = resolve_redis_url(EventsConfig())
+    try:
+        redis.Redis.from_url(url, socket_connect_timeout=2).ping()
+    except Exception as e:                                                    # noqa: BLE001
+        pytest.skip(f"Redis not reachable ({type(e).__name__}); start it with: docker compose up -d redis")
+    return url
+
+
+@pytest.fixture
+def stream_name():
+    return f"test.{uuid.uuid4().hex[:10]}"
+
+
+@pytest.fixture(params=["memory", pytest.param("redis", marks=pytest.mark.redis)])
+def stream_client(request, stream_name):
+    """Every test that uses `stream_client` runs against BOTH implementations."""
+    from app.events.streams import InMemoryStreamClient, RedisStreamClient
+    if request.param == "memory":
+        client = InMemoryStreamClient()
+    else:
+        client = RedisStreamClient.from_url(request.getfixturevalue("redis_url"))
+    yield client
+    for name in (stream_name, f"{stream_name}.dead", f"{stream_name}.alerts"):
+        try:
+            client.delete(name)
+        except Exception:                                                     # noqa: BLE001
+            pass
