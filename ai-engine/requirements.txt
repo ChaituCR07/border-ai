@@ -15,3 +15,5 @@ psycopg[binary]
 psycopg-pool
 pytest-cov
 tzdata>=2024.1
+
+redis>=5.0.0
