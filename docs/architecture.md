@@ -287,3 +287,43 @@ Submit Job (Deep-copy vehicle crop)
 2. **Decaying Relevance:** Contributions expire outside a 10-minute sliding window (`window_s: 600`), ensuring past infractions do not create perpetual high-threat entities.
 3. **Escalation-Only Alerting:** Prevents alert fatigue by raising `THREAT_ALERT` only upon initial threshold crossing or level increases (`LOW` -> `MEDIUM` -> `HIGH` -> `CRITICAL`).
 4. **Evidence Snapshots:** Clean, pre-annotation video frames are captured when alerts fire and saved to `outputs/runs/<run_id>/snapshots/` for visual verification.
+
+## 12. Redis Event Pipeline & Processor
+
+```
+     Vision Pipeline (Edge Camera Node)
+                      │
+        ┌─────────────┴─────────────┐
+        ▼                           ▼
+ Local Journal (Disk)       In-Memory Buffers
+ (events.jsonl - Source     (_high: 5k, _low: 20k)
+  of Truth)                         │
+                                    ▼
+                         EventPublisher Thread
+                         (Non-blocking, retry backoff)
+                                    │
+                                    ▼
+                         Redis Streams Broker
+                         (surveillance.events,
+                          surveillance.alerts)
+                                    │
+                                    ▼
+                          EventProcessor Service
+                          (Consumer group: 'processor')
+                          ┌─────────┴─────────┐
+                          ▼                   ▼
+                  Idempotency Filter   Dead-Letter Queue
+                  (dedupe_cache: 20k) (surveillance.events.dead)
+                          │
+                          ▼
+                  Pluggable Sinks
+                  ├── ConsoleAlertSink
+                  ├── JsonlFileSink
+                  └── PostgresEventSink (Day 14)
+```
+
+### Architectural Traits:
+1. **Zero-Latency Ingress:** Vision inference threads perform an in-memory queue push that returns in microseconds. Network I/O and Redis round-trips run on a dedicated publisher thread.
+2. **Dual-Layer Persistence:** The local camera node journal (`events.jsonl`) is written synchronously first; the Redis Stream is a decoupled, retryable transmission copy. If Redis is down, missed events are recovered via journal replay.
+3. **Priority Overflow Shedding:** Under sustained broker outages, noisy observations (`ZONE_ENTER`, `LINE_CROSSING`) are shed first when buffers reach capacity, protecting high-priority `THREAT_ALERT` messages.
+4. **Resilient Consumer Groups:** Unacknowledged messages resulting from consumer worker crashes are automatically reclaimed by sibling workers via `XAUTOCLAIM` after `reclaim_idle_ms`.

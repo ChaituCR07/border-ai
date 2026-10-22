@@ -26,6 +26,10 @@
 | K22 | Threat | Asynchronous evidence (ANPR/Face) may arrive a few frames after track birth | Low | Known | Window evaluation absorbs and updates threat score as evidence resolves |
 | K23 | Threat | Scoring weights and thresholds are design selections | Low | Mitigated | Fully configurable via rules.json scoring section; documented in threat_scoring.md |
 
+| K24 | Event Bus | Message order is per stream, not guaranteed across multiple consumers in a single consumer group | Low | Documented | Sinks must order events by embedded timestamp (`ts_ms`), never stream arrival order |
+| K25 | Event Bus | Prolonged network outage exceeding publisher memory buffer drops observation telemetry | Medium | Mitigated | Bounded queues drop noisy events first; critical threat alerts survive; local journal (`events.jsonl`) retains complete record for replay |
+| K26 | Event Bus | Redis stream retention (`MAXLEN ~ 100k`) retains plate numbers and track metadata in broker memory | Low | Documented | Restrict Redis to loopback/private subnet; password authentication; set retention window aligned with privacy policies |
+
 ## Severity Classification
 - **High:** Incorrect/lost security events, service crashes, data corruption.
 - **Medium:** Degraded tracking or detection precision under challenging edge cases.

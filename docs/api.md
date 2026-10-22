@@ -451,3 +451,35 @@ Emitted when an entity's aggregate threat score crosses the minimum alert thresh
 - `events.threat_score` $\leftarrow$ `threat_score` (integer $0..100$)
 - `alerts.priority` $\leftarrow$ `details.priority` (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`)
 - `alerts.snapshot_path` $\leftarrow$ `details.snapshot_path`
+
+---
+
+## 8. Redis Event Pipeline Envelope & Stream Channels (Day 13)
+
+### Stream Names
+- `surveillance.events`: Default stream for all validated surveillance events emitted by edge camera pipelines (`MAXLEN ~ 100000`).
+- `surveillance.alerts`: High-priority alert stream receiving copies of `THREAT_ALERT` events for real-time WebSocket consumers (`MAXLEN ~ 10000`).
+- `surveillance.events.dead`: Dead-letter stream storing invalid, unsupported-version, or permanently failing messages with error metadata (`MAXLEN ~ 10000`).
+
+### Stream Entry Envelope Format (Schema Version 1)
+Every stream entry contains flat key-value strings:
+
+```json
+{
+  "v": "1",
+  "event_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "type": "THREAT_ALERT",
+  "camera": "CAM_001",
+  "ts": "1700000000000",
+  "severity": "CRITICAL",
+  "run_id": "run_20261022_120000",
+  "data": "{\"event_id\":\"9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d\",\"camera\":\"CAM_001\",\"type\":\"THREAT_ALERT\",\"track_id\":42,\"timestamp\":\"2026-10-12T02:13:30.000000Z\",\"threat_score\":100,\"plate\":\"KA01AB1234\",\"details\":{\"level\":\"CRITICAL\",\"threat_score\":100,\"previous_level\":\"HIGH\"}}"
+}
+```
+
+### Dead-Letter Stream Entry Metadata
+When routed to `surveillance.events.dead`, entries are enriched with:
+- `dead_reason`: Explanation of failure (e.g., `invalid:missing_data`, `unsupported_version:2`, or `failed_5_times:RuntimeError:...`).
+- `origin_id`: Stream message ID where the failure occurred.
+- `group`: Consumer group that processed the entry.
+- `dead_at`: ISO8601 UTC timestamp of dead-letter routing.

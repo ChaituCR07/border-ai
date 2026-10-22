@@ -51,6 +51,7 @@ pytest video-ingestion/tests -v
 | 10 | Identity & Person Re-ID | `ai-engine/tests/test_identity_core.py`, `test_identity_face_and_reid_embedder.py`, `test_identity_service.py`, `test_identity_enroll.py`, `test_identity_repo_extension.py`, `test_pipeline_identity.py` |
 | 11 | Behaviour Rules & Scenarios | `ai-engine/tests/test_behaviour_config.py`, `test_behaviour_conditions.py`, `test_behaviour_engine.py`, `test_behaviour_scenarios.py`, `test_pipeline_behaviour.py`, `test_behaviour_tools.py` |
 | 12 | Threat Scoring & Evidence Snapshots | `ai-engine/tests/threat_helpers.py`, `test_threat_config.py`, `test_threat_scoring_math.py`, `test_threat_scorer.py`, `test_threat_scenarios.py`, `test_pipeline_threat.py`, `test_threat_tools.py` |
+| 13 | Redis Event Pipeline & Processor | `ai-engine/tests/events_helpers.py`, `test_events_envelope.py`, `test_events_stream_contract.py`, `test_events_publisher.py`, `test_events_processor.py`, `test_events_end_to_end.py`, `test_pipeline_events.py`, `test_events_tools.py`, `test_events_redis.py` |
 
 ---
 
