@@ -112,7 +112,7 @@ def test_alerts_follow_escalation_and_never_repeat_a_level():
     b = Bench()
     b.step([after_hours(b.t)])                                  # 10  LOW
     b.step([zone_v(b.t)])                                       # 40  MEDIUM
-    b.step([direction_v(b.t, rule_id="R009")])                  # 60  HIGH
+    b.step([line_cross(b.t)])                                   # 60  HIGH
     assert b.levels == ["LOW", "MEDIUM", "HIGH"]
     b.step([after_hours(b.t)])                                  # more of the same: no alert
     b.step([watch(b.t)])                                        # 100 CRITICAL
