@@ -18,7 +18,8 @@ from app.anpr.factory import build_anpr  # noqa: E402
 from app.watchlist.factory import build_watchlist  # noqa: E402
 from app.identity.factory import build_identity  # noqa: E402
 from app.behaviour.factory import build_behaviour  # noqa: E402
-from app.threat.factory import build_scorer  # noqa: E402
+from app.threat.factory import build_scorer
+from app.events.factory import build_publisher  # noqa: E402
 from app.behaviour.timeutil import get_zone, parse_clock_start  # noqa: E402
 from ingestion.camera_manager import (CameraConfig, CameraManager, build_source,  # noqa: E402
                                       load_camera_configs)
@@ -91,6 +92,9 @@ def format_status(st: dict) -> str:
     t = st.get("scoring")
     if t:
         lines.append("  scoring: " + " | ".join(f"{k} {v}" for k, v in t.items()))
+    b = st.get("events_bus")
+    if b:
+        lines.append("  event bus: " + " | ".join(f"{k} {v}" for k, v in b.items()))
     p = st.get("process") or {}
     if p:
         lines.append("  process: " + " | ".join(f"{k} {v}" for k, v in p.items()))
@@ -153,6 +157,7 @@ def main():
     ap.add_argument("--no-behaviour", action="store_true", help="disable the behaviour engine")
     ap.add_argument("--no-scoring", action="store_true", help="disable threat scoring")
     ap.add_argument("--no-snapshots", action="store_true", help="do not save evidence frames for alerts")
+    ap.add_argument("--publish", action="store_true", help="publish events to Redis Streams")
     ap.add_argument("--clock-start", help="simulated start time for offline clips, e.g. 2026-10-12T02:13:00 "
                                           "(read in the site time zone unless it has an offset)")
     ap.add_argument("--no-video", action="store_true", help="do not write annotated MP4s")
@@ -177,6 +182,7 @@ def main():
 
     behaviour = None if args.no_behaviour else build_behaviour(args.rules)
     scorer = None if args.no_scoring else build_scorer(args.rules)
+    publisher = build_publisher(app_cfg, force=args.publish)
     clock_start = None
     if args.clock_start:
         if mode != "offline":
@@ -191,7 +197,7 @@ def main():
         write_video=not args.no_video, log_tracks=args.log_tracks,
         offline=(mode == "offline"), max_seconds=args.seconds, max_frames=args.max_frames,
         anpr=anpr, watchlist=watchlist, identity=identity,
-        behaviour=behaviour, clock_start=clock_start, scorer=scorer, save_snapshots=not args.no_snapshots)
+        behaviour=behaviour, clock_start=clock_start, scorer=scorer, save_snapshots=not args.no_snapshots, publisher=publisher)
 
     print(f"Run {pipeline.run_id} | mode {mode} | cameras {pipeline.camera_ids}\n"
           f"Output: {pipeline.run_dir}\n")

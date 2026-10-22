@@ -62,7 +62,7 @@ class Pipeline:
                  out_queue_size: int = 8, max_seconds: float = 0, max_frames: int = 0,
                  anpr=None, watchlist=None, identity=None,
                  behaviour=None, clock_start=None,
-                 scorer=None, save_snapshots=True):
+                 scorer=None, save_snapshots=True, publisher=None):
         self.detector = detector
         self.mgr = manager
         self.params = tracker_params
@@ -110,6 +110,9 @@ class Pipeline:
         self.clock_start = clock_start
         self.scorer = scorer
         self.save_snapshots = save_snapshots
+        self.publisher = publisher
+        if self.publisher is not None:
+            self.publisher.run_id = self.run_id
 
         # Load and validate every camera's rules NOW, so bad config fails at startup
         self._rules_cfg = {cid: rules.rules_for(cid) for cid in self.camera_ids}
@@ -162,6 +165,8 @@ class Pipeline:
             self.identity.start()
         if self.anpr is not None:
             self.anpr.start()
+        if self.publisher is not None:
+            self.publisher.start()
         self.mgr.start_all()
         self.started_at = time.time()
         self.state = "running"
@@ -220,6 +225,11 @@ class Pipeline:
                 except Exception:
                     log.exception("Identity shutdown failed")
             self._flush_rules()
+            if self.publisher is not None:
+                try:
+                    self.publisher.stop(drain=True, timeout=self.publisher.cfg.shutdown_timeout_s)
+                except Exception:
+                    log.exception("Event publisher shutdown failed")
             self._close_outputs()
             self.mgr.stop_all()
             self._finalize()
@@ -341,6 +351,8 @@ class Pipeline:
                     e.details["video_time_s"] = round(video_s, 2)
                 self.events.write(e.to_dict())
                 self._event_counts[event_key(e)] += 1
+                if self.publisher is not None:
+                    self.publisher.publish(e)
             self.counters[cid]["events"] += len(events)
 
     def _save_snapshots(self, alerts, image) -> None:
@@ -478,6 +490,7 @@ class Pipeline:
             "identity": self.identity.status() if self.identity is not None else None,
             "behaviour": self.behaviour.status() if self.behaviour is not None else None,
             "scoring": self.scorer.status() if self.scorer is not None else None,
+            "events_bus": self.publisher.status() if self.publisher is not None else None,
             "detector": self.detector.info(),
             "process": process,
         }
