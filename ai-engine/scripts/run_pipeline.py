@@ -158,6 +158,8 @@ def main():
     ap.add_argument("--no-scoring", action="store_true", help="disable threat scoring")
     ap.add_argument("--no-snapshots", action="store_true", help="do not save evidence frames for alerts")
     ap.add_argument("--publish", action="store_true", help="publish events to Redis Streams")
+    ap.add_argument("--no-track-summaries", action="store_true", help="disable emission of TRACK_SUMMARY events")
+    ap.add_argument("--track-summary-min-hits", type=int, default=5, help="minimum track hits to emit TRACK_SUMMARY")
     ap.add_argument("--clock-start", help="simulated start time for offline clips, e.g. 2026-10-12T02:13:00 "
                                           "(read in the site time zone unless it has an offset)")
     ap.add_argument("--no-video", action="store_true", help="do not write annotated MP4s")
@@ -197,7 +199,8 @@ def main():
         write_video=not args.no_video, log_tracks=args.log_tracks,
         offline=(mode == "offline"), max_seconds=args.seconds, max_frames=args.max_frames,
         anpr=anpr, watchlist=watchlist, identity=identity,
-        behaviour=behaviour, clock_start=clock_start, scorer=scorer, save_snapshots=not args.no_snapshots, publisher=publisher)
+        behaviour=behaviour, clock_start=clock_start, scorer=scorer, save_snapshots=not args.no_snapshots, publisher=publisher,
+                     track_summary_min_hits=None if args.no_track_summaries else args.track_summary_min_hits)
 
     print(f"Run {pipeline.run_id} | mode {mode} | cameras {pipeline.camera_ids}\n"
           f"Output: {pipeline.run_dir}\n")

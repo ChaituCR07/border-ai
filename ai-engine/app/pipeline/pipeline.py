@@ -20,6 +20,7 @@ from app.pipeline.queues import put_blocking, put_drop_oldest
 from app.pipeline.renderer import FrameRenderer
 from app.pipeline.sinks import FrameHub, JsonlSink, VideoSink
 from app.pipeline.types import FrameResult
+from app.pipeline.track_summary import track_summary_event
 from app.schemas.events import Event, PLATE_RECOGNIZED
 from app.tracking.manager import MultiCameraTracker
 from app.tracking.tracker import TrackerParams
@@ -62,7 +63,7 @@ class Pipeline:
                  out_queue_size: int = 8, max_seconds: float = 0, max_frames: int = 0,
                  anpr=None, watchlist=None, identity=None,
                  behaviour=None, clock_start=None,
-                 scorer=None, save_snapshots=True, publisher=None):
+                 scorer=None, save_snapshots=True, publisher=None, track_summary_min_hits: Optional[int] = 5):
         self.detector = detector
         self.mgr = manager
         self.params = tracker_params
@@ -111,6 +112,7 @@ class Pipeline:
         self.scorer = scorer
         self.save_snapshots = save_snapshots
         self.publisher = publisher
+        self.track_summary_min_hits = track_summary_min_hits
         if self.publisher is not None:
             self.publisher.run_id = self.run_id
 
@@ -225,6 +227,7 @@ class Pipeline:
                 except Exception:
                     log.exception("Identity shutdown failed")
             self._flush_rules()
+            self._flush_track_summaries()
             if self.publisher is not None:
                 try:
                     self.publisher.stop(drain=True, timeout=self.publisher.cfg.shutdown_timeout_s)
@@ -271,6 +274,11 @@ class Pipeline:
             ft, upd = self.tracker.update(fd, timestamp=ts)
             store = self.tracker.store(cid)
             t2 = time.perf_counter()
+            if self.track_summary_min_hits is not None:
+                summaries = [s for t in upd.removed
+                             if (s := track_summary_event(t, cid, ft.frame_id, self.track_summary_min_hits))]
+                if summaries:
+                    self._emit_events(cid, summaries, video_s)
             events = self.rules.update(ft, upd, store)
             t3 = time.perf_counter()
             self.timers.record("track_ms", (t2 - t1) * 1000)
@@ -384,6 +392,19 @@ class Pipeline:
                 self._emit_events(cid, events, self._last_video_s.get(cid))
             except Exception:
                 log.exception("Flush failed for %s", cid)
+
+    def _flush_track_summaries(self) -> None:
+        if self.track_summary_min_hits is None:
+            return
+        for cid, ft in self._last_ft.items():
+            try:
+                store = self.tracker.store(cid)
+                summaries = [s for t in list(store.tracks.values())
+                             if (s := track_summary_event(t, cid, ft.frame_id, self.track_summary_min_hits))]
+                if summaries:
+                    self._emit_events(cid, summaries, self._last_video_s.get(cid))
+            except Exception:
+                log.exception("Track summary flush failed for %s", cid)
 
     # ------------------------------------------------------------------ output threads
     def _output_loop(self, cid: str) -> None:
