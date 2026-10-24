@@ -12,6 +12,9 @@ from app import config  # noqa: E402
 from app.events.config import EventsConfig  # noqa: E402
 from app.events.factory import build_redis_client  # noqa: E402
 from app.events.processor import ConsoleAlertSink, EventProcessor, JsonlFileSink  # noqa: E402
+from app.db.events_repo import PostgresEventRepository  # noqa: E402
+from app.events.db_sink import PostgresEventSink  # noqa: E402
+from app.watchlist.dsn import build_dsn  # noqa: E402
 
 
 def main():
@@ -20,13 +23,20 @@ def main():
     ap.add_argument("--start", choices=["0", "$"], help="where a NEW group starts reading")
     ap.add_argument("--out", default=str(config.OUTPUT_DIR / "processed" / "events.jsonl"))
     ap.add_argument("--stats-every", type=float, default=5.0)
+    ap.add_argument("--db", action="store_true", help="store events in PostgreSQL")
+    ap.add_argument("--no-file", action="store_true", help="do not write the JSONL copy")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
     cfg = EventsConfig.from_config(config.load_app_config().get("events"))
     if args.start:
         cfg.processor.start = args.start
-    sinks = [JsonlFileSink(args.out), ConsoleAlertSink()]       # tomorrow: PostgresEventSink
+    sinks = [ConsoleAlertSink()]
+    if not args.no_file:
+        sinks.append(JsonlFileSink(args.out))
+    if args.db:
+        repo = PostgresEventRepository(build_dsn())
+        sinks.append(PostgresEventSink(repo))
     from app.events.streams import StreamUnavailable
     while True:
         try:
