@@ -79,3 +79,17 @@ def stream_client(request, stream_name):
             client.delete(name)
         except Exception:                                                     # noqa: BLE001
             pass
+
+
+@pytest.fixture(params=["memory", pytest.param("postgres", marks=pytest.mark.db)])
+def event_repo(request):
+    """Every test that uses `event_repo` runs against BOTH implementations."""
+    from app.db.events_repo import InMemoryEventRepository, PostgresEventRepository
+    if request.param == "memory":
+        yield InMemoryEventRepository()
+        return
+    repo = PostgresEventRepository(request.getfixturevalue("pg_dsn"))
+    with repo._conn() as conn:
+        conn.execute("TRUNCATE alert_history, alerts, vehicles, detections, events, cameras RESTART IDENTITY CASCADE")
+    yield repo
+    repo.close()
