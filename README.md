@@ -2,7 +2,10 @@
 
 Real-time video analytics for existing CCTV/IP-camera infrastructure: detection, tracking, restricted-zone and line-crossing events, Automated Number Plate Recognition (ANPR), PostgreSQL-backed operational watchlists, facial biometric recognition, cross-camera person appearance Re-ID, declarative behaviour rules, composite threat scoring with explainable escalation alerts, and an investigation dashboard.
 
-![demo](docs/images/week1_demo.gif)
+| **Week 1 Demo: Vision Pipeline & Spatial Tripwires** | **Week 2 Demo: Automated Number Plate Recognition (ANPR)** |
+|:---:|:---:|
+| ![Week 1 Demo](docs/images/week1_demo.gif) | ![Week 2 Demo](docs/images/week2_demo.gif) |
+| *Real-time YOLOv8 detection, ByteTrack tracking, virtual tripwires & multi-zone boundaries.* | *License plate localization, PaddleOCR PP-OCRv6, character consensus voting & watchlist visual tagging.* |
 
 ---
 
@@ -291,6 +294,7 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
 - [x] **Week 2 Day 10:** Face Detection, Quality Gate, Appearance Embedding Re-ID prototype, and consent-gated enrollment.
 - [x] **Week 2 Day 11:** Configurable Behaviour Engine (deterministic rules R001–R005, replay, simulated clock, Plan Tests 1, 2, 5, 6, Scenario 1).
 - [x] **Week 2 Day 12:** Multi-factor composite threat scoring & alert elevation engine.
-- [ ] **Week 2 Day 13–14:** Redis Streams event publishing & consolidated PostgreSQL persistence schema.
+- [x] **Week 2 Day 13:** Redis Streams event publishing, versioned envelope, non-blocking priority queues & event processor.
+- [x] **Week 2 Day 14:** Core PostgreSQL schema (`cameras`, `events`, `alerts`, `vehicles`, `detections`), idempotent sink & data retention.
 - [ ] **Week 3 (Days 15–21):** Node.js backend API, WebSocket alert broadcast, React surveillance dashboard.
 - [ ] **Week 4 (Days 22–28):** Multi-camera soak testing, end-to-end integration, Docker packaging, and hardware pilot.
