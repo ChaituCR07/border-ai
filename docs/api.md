@@ -483,3 +483,25 @@ When routed to `surveillance.events.dead`, entries are enriched with:
 - `origin_id`: Stream message ID where the failure occurred.
 - `group`: Consumer group that processed the entry.
 - `dead_at`: ISO8601 UTC timestamp of dead-letter routing.
+
+---
+
+## 9. Core Database Data Models & Query Endpoints Contract (Day 14)
+
+### Canonical Status & Priority Vocabularies
+- **Alert Statuses:** `NEW`, `ACKNOWLEDGED`, `IN_PROGRESS`, `RESOLVED`, `FALSE_POSITIVE`
+- **Alert Priorities:** `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`
+- **Camera Statuses:** `ACTIVE`, `INACTIVE`, `OFFLINE`, `MAINTENANCE`, `UNREGISTERED`
+
+### Event Reference Mapping
+Every stored event possesses both a globally unique string `event_id` (UUIDv4) and a human-readable display identifier formatted via `event_ref(event_seq)`:
+- Example: `EVT_000129`
+
+### REST API Query Contracts (Day 15 Target)
+The Day 14 schema and repository expose the exact query interfaces required by the upcoming Day 15 REST API:
+- `GET /api/cameras`: Lists configured cameras (`camera_id`, `name`, `location`, `status`, `rtsp_url`).
+- `GET /api/events`: Paged, newest-first event listing supporting filters: `camera_id`, `type`, `severity`, `plate`, `since`, `until`, `limit`, `offset`.
+- `GET /api/events/:id`: Lookup by `event_id` (UUID) or `event_ref` (e.g. `EVT_000129`).
+- `GET /api/alerts`: Filtered alert listing (`status`, `priority`, `camera_id`, `limit`, `offset`).
+- `PATCH /api/alerts/:id/acknowledge`: Executes audited workflow state transition (`NEW -> ACKNOWLEDGED`).
+- `GET /api/analytics/threats`: Aggregated alert counters grouped by priority (`total`, `new`, `open`).

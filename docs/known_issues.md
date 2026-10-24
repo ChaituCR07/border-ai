@@ -30,6 +30,11 @@
 | K25 | Event Bus | Prolonged network outage exceeding publisher memory buffer drops observation telemetry | Medium | Mitigated | Bounded queues drop noisy events first; critical threat alerts survive; local journal (`events.jsonl`) retains complete record for replay |
 | K26 | Event Bus | Redis stream retention (`MAXLEN ~ 100k`) retains plate numbers and track metadata in broker memory | Low | Documented | Restrict Redis to loopback/private subnet; password authentication; set retention window aligned with privacy policies |
 
+| K27 | Database | Detections are per-track summaries rather than a per-frame telemetry firehose | Low | Design Choice | Prevents I/O saturation and disk bloat while preserving essential track metrics |
+| K28 | Database | Terminal alert statuses (RESOLVED, FALSE_POSITIVE) cannot be reopened via standard workflow | Low | Documented | Final states prevent accidental regression; supervisor DB edit required if reopen needed |
+| K29 | Database | Sequence reference event_ref(event_seq) may experience numerical gaps on duplicate deliveries | Low | Expected | ON CONFLICT DO NOTHING consumes identity sequence numbers; gap-tolerant by design |
+| K30 | Database | db_retention.py deletes relational records but preserves evidence frame snapshots on disk | Low | Documented | Snapshot files in outputs/runs/ require separate disk maintenance policy |
+
 ## Severity Classification
 - **High:** Incorrect/lost security events, service crashes, data corruption.
 - **Medium:** Degraded tracking or detection precision under challenging edge cases.

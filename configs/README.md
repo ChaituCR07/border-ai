@@ -153,7 +153,7 @@ events:
 ```
 
 ### 2.3 `cameras.json` — Camera Stream Inventory
-Defines camera IDs, stream sources (video files or RTSP URLs), frame rate pacing, and resolution resizing.
+Defines camera IDs, display names, physical locations, stream sources (video files or RTSP URLs), frame rate pacing, and resolution resizing. Seeded directly into the PostgreSQL `cameras` table via `scripts/seed_cameras.py`.
 
 ### 2.4 `zones/<CAMERA_ID>.json` — Spatial Polygons & Tripwires
 Defines restricted areas and virtual boundary lines in normalized `[0.0, 1.0]` coordinates.

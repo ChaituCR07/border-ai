@@ -123,3 +123,28 @@ Replays a local disk journal (`events.jsonl`) to Redis Streams after edge networ
 cd ai-engine
 python scripts/replay_journal.py --events ../outputs/runs/run_20261022_120000/events.jsonl --rate 500
 ```
+
+### 2.11 Camera Inventory Seeding (`seed_cameras.py`)
+Seeds or updates camera inventory from `configs/cameras.json` into the PostgreSQL `cameras` table:
+```bash
+cd ai-engine
+python scripts/seed_cameras.py
+```
+
+### 2.12 Database Table Statistics & Counters (`db_stats.py`)
+Prints table row counts and breakdown of active alerts by priority and workflow status:
+```bash
+cd ai-engine
+python scripts/db_stats.py
+```
+
+### 2.13 Policy-Driven Data Retention (`db_retention.py`)
+Executes retention cleanup of historical events and resolved alerts by age threshold:
+```bash
+cd ai-engine
+# Dry-run inspection
+python scripts/db_retention.py --events-days 30 --alerts-days 365
+
+# Execute deletion
+python scripts/db_retention.py --events-days 30 --alerts-days 365 --yes
+```

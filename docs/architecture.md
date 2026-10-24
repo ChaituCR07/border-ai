@@ -327,3 +327,34 @@ Submit Job (Deep-copy vehicle crop)
 2. **Dual-Layer Persistence:** The local camera node journal (`events.jsonl`) is written synchronously first; the Redis Stream is a decoupled, retryable transmission copy. If Redis is down, missed events are recovered via journal replay.
 3. **Priority Overflow Shedding:** Under sustained broker outages, noisy observations (`ZONE_ENTER`, `LINE_CROSSING`) are shed first when buffers reach capacity, protecting high-priority `THREAT_ALERT` messages.
 4. **Resilient Consumer Groups:** Unacknowledged messages resulting from consumer worker crashes are automatically reclaimed by sibling workers via `XAUTOCLAIM` after `reclaim_idle_ms`.
+
+## 13. Core Relational Database & Persistence Architecture (PostgreSQL)
+
+```
+        EventProcessor (Consumer Group Daemon)
+                          │
+                          ▼
+                  PostgresEventSink
+             (Idempotent, Error Classification)
+                          │
+                          ▼
+               PostgresEventRepository
+        (Single Transaction Per Ingested Event)
+                          │
+       ┌──────────────────┼──────────────────┐
+       ▼                  ▼                  ▼
+  [events]            [alerts]          [vehicles]
+  (All events,       (THREAT_ALERT     (PLATE_RECOGNIZED
+   idempotency key)   escalations)      sightings)
+       │                  │                  │
+       ▼                  ▼                  ▼
+  [cameras]         [alert_history]    [detections]
+  (Seeded /         (Audited human     (TRACK_SUMMARY
+   unregistered)     transitions)       per-object metrics)
+```
+
+### Architectural Traits:
+1. **Single Atomic Transaction:** Every event envelope and its derived child rows (`alerts`, `vehicles`, `detections`) are written within a single database transaction. A partial write cannot occur.
+2. **Hard Idempotency:** The primary key `events.event_id` combined with `ON CONFLICT DO NOTHING` ensures zero duplicate row creation under stream retries or offline journal replays.
+3. **Decoupled Read & Write Ownership:** Python AI Engine owns streaming write ingestion to `events`, `alerts`, `vehicles`, `detections`; Node.js backend owns alert triage state updates and camera administration.
+4. **Graceful Hardware Ingress:** Camera nodes publishing without prior configuration seeding are automatically registered as `UNREGISTERED` placeholders rather than dropping events.
