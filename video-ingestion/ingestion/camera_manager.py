@@ -45,6 +45,7 @@ class CameraConfig:
     loop: bool = False
     realtime: bool = True
     enabled: bool = True
+    location: str = ""
 
 
 def load_camera_configs(path: Path) -> List[CameraConfig]:

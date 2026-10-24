@@ -9,7 +9,8 @@
       "resize_width": 1280,
       "loop": true,
       "realtime": true,
-      "enabled": true
+      "enabled": true,
+      "location": "North gate, sector 4"
     },
     {
       "camera_id": "CAM_002",
@@ -20,7 +21,8 @@
       "resize_width": 1280,
       "loop": true,
       "realtime": true,
-      "enabled": true
+      "enabled": true,
+      "location": "East perimeter road, checkpoint 2"
     },
     {
       "camera_id": "CAM_003",
@@ -29,7 +31,8 @@
       "source": "rtsp://localhost:8554/cam3",
       "target_fps": 15,
       "resize_width": 1280,
-      "enabled": true
+      "enabled": true,
+      "location": "South fence perimeter, sector 7"
     }
   ]
 }
