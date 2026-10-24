@@ -19,7 +19,7 @@ EVENT_COLUMNS = ("event_id, event_ref(event_seq) AS event_ref, camera_id, event_
                  "run_id, metadata, received_at")
 ALERT_COLUMNS = ("alert_id, event_id, camera_id, priority, threat_score, status, entity, summary, "
                  "acknowledged_by, acknowledged_at, resolved_at, created_at, updated_at")
-MAX_PAGE = 1000
+MAX_PAGE = 10000
 
 
 class InvalidRecord(ValueError):
