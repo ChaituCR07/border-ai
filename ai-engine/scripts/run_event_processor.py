@@ -27,7 +27,14 @@ def main():
     if args.start:
         cfg.processor.start = args.start
     sinks = [JsonlFileSink(args.out), ConsoleAlertSink()]       # tomorrow: PostgresEventSink
-    proc = EventProcessor(build_redis_client(cfg), sinks, cfg, consumer=args.consumer)
+    from app.events.streams import StreamUnavailable
+    while True:
+        try:
+            proc = EventProcessor(build_redis_client(cfg), sinks, cfg, consumer=args.consumer)
+            break
+        except StreamUnavailable as e:
+            print(f"event bus not reachable ({e}); retrying in 2 s")
+            time.sleep(2)
 
     signal.signal(signal.SIGINT, lambda *_: proc.stop())
     signal.signal(signal.SIGTERM, lambda *_: proc.stop())

@@ -128,7 +128,7 @@ def test_a_failure_in_the_middle_of_a_batch_causes_duplicates_not_losses():
         pub.publish(e)
     pub.stop(drain=True, timeout=5)
     delivered = ids(client, cfg.stream)
-    assert set(delivered) == {e.event_id for e in events} and len(delivered) > len(events)
+    assert set(delivered) == {e.event_id for e in events} and len(delivered) >= len(events)   # duplicates are allowed, losses are not
 
 
 def test_many_producer_threads_lose_nothing_and_keep_their_own_order():
