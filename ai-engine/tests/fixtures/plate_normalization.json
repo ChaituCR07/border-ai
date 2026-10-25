@@ -1,0 +1,10 @@
+[
+  { "input": "ka-01 ab 1234", "expected": "KA01AB1234" },
+  { "input": "KAO1AB1234", "expected": "KA01AB1234" },
+  { "input": "ka 01 ab 1234", "expected": "KA01AB1234" },
+  { "input": "MH-12-DE-1433", "expected": "MH12DE1433" },
+  { "input": "dl 1 c aa 1111", "expected": "DL1CAA1111" },
+  { "input": "GJ05JA5050", "expected": "GJ05JA5050" },
+  { "input": "KA 04 MS 9000", "expected": "KA04MS9000" },
+  { "input": "KA01AB1234", "expected": "KA01AB1234" }
+]

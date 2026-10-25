@@ -9,18 +9,18 @@ Real-time video analytics for existing CCTV/IP-camera infrastructure: detection,
 
 ---
 
-## Current Status (Day 14 Complete)
+## Current Status (Week 3 / Day 15 In Progress)
 
-- **Week 1 (v0.1-week1) Complete:** Video/RTSP ingestion, YOLOv8 object detection, ByteTrack tracking, multi-zone and virtual line spatial engine, live MJPEG streaming, and structured JSONL event logging.
-- **Week 2 (Data & Streaming Architecture) Complete:**
-  - **Day 8 Complete (ANPR):** Plate localization, PaddleOCR (PP-OCRv6), positional syntax checking (Indian RTO & generic format validation), and multi-frame character/string consensus voting.
-  - **Day 9 Complete (Watchlist & Resilience):** PostgreSQL 16 watchlist system with dual-backend repositories (PostgreSQL & in-memory), OCR-tolerant near matching, track overlay visual alerting (red box & banner), in-memory snapshot outage resilience, and a 284-test verification suite.
-  - **Day 10 Complete (Face & Person Re-ID Prototype):** Face Watchlist, Appearance Embedding Re-ID prototype, consent-gated enrollment, and 359-test baseline.
-  - **Day 11 Complete (Behaviour Engine - Configurable Rules):** Declarative rule engine (`configs/rules.json`) translating low-level observations into structured, severity-tagged behaviour events (`R001` Restricted Zone, `R002` Wrong Direction, `R003` Loitering, `R004` After-Hours, `R005` Unauthorized Night Vehicle), episode management with `rearm_s` and `cooldown_s`, simulated clock (`--clock-start`), and Plan Tests 1, 2, 5, 6.
-  - **Day 12 Complete (Threat Scoring Engine & Evidence Snapshots):** Declarative threat scoring configuration (`scoring` in `configs/rules.json`) aggregating observations, watchlist hits, and behaviour violations into an explainable 0–100 threat score and 4-tier level (`LOW 0-29`, `MEDIUM 30-59`, `HIGH 60-79`, `CRITICAL 80-100`), 600s sliding window decay, plate-based track merging, double-counting prevention, escalation-only alerting, clean pre-annotation evidence snapshots in `outputs/runs/<run_id>/snapshots/`, and Plan Scenarios 1 & 2 verified on real geometry engines.
-  - **Day 13 Complete (Redis Event Pipeline & Event Processor):** Resilient Redis Streams event bus (`surveillance.events`, `surveillance.alerts`, `surveillance.events.dead`), versioned JSON envelope (`v=1`), non-blocking multi-priority publisher (`buffer_high`, `buffer_low`) with exponential backoff and bounded memory, consumer group event processor with idempotency cache, dead-letter routing, `XAUTOCLAIM` stale entry recovery, pluggable sinks (console alerts, JSONL files), journal replay utility, and complete failure drill test suite (69 event tests passing 100%).
-  - **Day 14 Complete (PostgreSQL Core Schema & Event Sink):** Production relational schema (`003_core_schema.sql`) covering `cameras`, `events`, `alerts`, `alert_history`, `vehicles`, `detections`, and aggregated views (`vehicle_plates`, `alert_counts`); pure envelope mapping; dual-backend repository (in-memory + PostgreSQL); idempotent `PostgresEventSink`; audited alert workflow state machine; `TRACK_SUMMARY` track telemetry; camera seeding; operational retention tool (`db_retention.py`); and 61 new database tests passing 100%.
-  - **Upcoming (Week 3 / Day 15):** Node.js + TypeScript REST API over core PostgreSQL database tables.
+- **Week 1 (v0.1-week1) Complete:** Video/RTSP ingestion, YOLOv8 object detection, ByteTrack persistent tracking, multi-zone and virtual line spatial engine, live low-latency MJPEG streaming, and structured JSONL event logging.
+- **Week 2 (Data & Streaming Architecture) Complete:** ANPR consensus engine (PaddleOCR PP-OCRv6 + layout validation), PostgreSQL 16 watchlist system with outage resilience fallback, biometric face detection & cross-camera Re-ID prototype, configurable declarative behaviour engine (rules R001–R005), multi-factor decaying threat scoring (0–100 explainable window), Redis Streams asynchronous event pipeline, and production relational schema (`003_core_schema.sql`) with idempotent PostgreSQL event sinks.
+- **Week 3 (Productization & Dashboards) In Progress:**
+  - **Day 15 Complete (Backend REST APIs - Node.js + TypeScript):** Production Fastify v5 REST API (Node.js 22 LTS + TypeScript) with schema-first Zod validation, handwritten parameterized SQL via node-postgres, keyset cursor pagination with microsecond timestamp fidelity (ADR 0015), strict data ownership (ADR 0014), atomic idempotent alert acknowledgement and non-biometric watchlist guard (ADR 0016), zero-filled time-series analytics, safe evidence snapshot serving, automated OpenAPI 3.0 documentation (`/docs`), and a 48-test suite covering unit, dual-backend repository contracts, Fastify routes, real PostgreSQL integration, and cross-language Python sink -> PostgreSQL -> Fastify REST API verification.
+  - **Day 16 (Upcoming):** Live Operator Command Dashboard (Vite + React + TypeScript + TanStack Query + CSS Tokens).
+  - **Day 17 (Upcoming):** WebSocket Server & Real-time Live Alert Feed.
+  - **Day 18 (Upcoming):** Forensic Search & Investigation Workbench.
+  - **Day 19 (Upcoming):** Cross-Camera Journey Correlation & Trajectory Reconstruction.
+  - **Day 20 (Upcoming):** Alert Notification Engine (Webhook, Email, Audit).
+  - **Day 21 (Upcoming):** Week 3 Integration, Performance Soak & Milestone Review.
 
 ---
 
@@ -90,6 +90,15 @@ Real-time video analytics for existing CCTV/IP-camera infrastructure: detection,
       }
     }
     ```
+
+- **Backend REST API Service (Node.js + TypeScript + Fastify v5):**
+  - **Schema-First Type Safety:** Powered by Fastify v5 and `fastify-type-provider-zod` with strict request/response validation, automated OpenAPI 3.0 export, and Swagger UI at `/docs`.
+  - **Strict Data Ownership (ADR 0014):** Python AI Engine owns writes to `events`, `detections`, and `vehicles`. Node.js API acts as a read-mostly consumer with exclusive write ownership of `api_audit_log` and state transitions on `alerts`.
+  - **Keyset Cursor Pagination (ADR 0015):** High-throughput $O(1)$ tuple pagination on `(timestamp DESC, event_id DESC)` eliminating page drift during live surveillance. Preserves microsecond `timestamptz` precision via custom type parsers.
+  - **Idempotent Alert Lifecycle (ADR 0016):** Atomic `PATCH /api/alerts/:id/acknowledge` guarantees single-winner acknowledgement across concurrent operators without duplicate audit rows or state corruption.
+  - **Privacy-Preserving Watchlists:** Non-biometric REST boundary rejecting any face embeddings or raw images. Full vehicle plate normalisation matching Python ANPR logic, and mandatory consent references for persons.
+  - **Operational Intelligence & Zero-Filled Analytics:** Hourly and daily time-series aggregation zero-filled across missing intervals, camera operational counters, threat score distribution histograms, and safe sandboxed snapshot evidence serving (`/api/snapshots/*`).
+
 - **Administrative & Operational CLI:** Comprehensive CLI tools for schema migration, synthetic demo seeding, entity curation, dry-run plate checks, consent-gated face enrollment, threat arithmetic calculation, rules validation, and offline event replay.
 
 ---
@@ -116,6 +125,15 @@ Behaviour Engine (Declarative Rules R001–R005) ──────────�
 Threat Scoring Engine (Decaying Window, Plate Merging) ───────► Events: THREAT_ALERT (JSONL)
         ↓                                                                    ↓
 Visualizer Overlay (Bounding Box Colors, T<score> Labels, Banners)   Pre-Annotation Snapshots (.jpg)
+        ↓                                                                    ↓
+Redis Streams Event Bus (v1 Envelope) ─────────────────────────► PostgreSQL 16 (003_core_schema.sql)
+                                                                             ↓
+                                                                 Node.js 22 REST API (Fastify v5 + Zod)
+                                                                 - Keyset Pagination & Microsecond Ts
+                                                                 - Idempotent Alert Transitions
+                                                                 - Zero-Filled Analytics & Snapshots
+                                                                             ↓
+                                                                 Day 16 Command Dashboard (Vite + React)
 ```
 
 ---
@@ -143,6 +161,15 @@ Run the idempotent migrations (001 and 002) and seed synthetic demo data:
 python ai-engine/scripts/db_migrate.py up
 python ai-engine/scripts/watchlist_cli.py import configs/watchlist_demo.csv
 ```
+
+### 3. Launch Backend REST API (Node.js + Fastify)
+Start the typed REST API service exposing cameras, events, alerts, and analytics:
+```bash
+cd backend
+npm install
+npm run dev
+```
+Interactive Swagger documentation will be available at `http://localhost:4000/docs` and `/openapi.json`.
 
 ### 3. Run Pipeline with Live Demo & Threat Scoring
 Execute the end-to-end pipeline with simulated night clock and threat scoring:
@@ -225,7 +252,13 @@ cd ai-engine && pytest -m db -v
 cd ai-engine && pytest -m "not slow" --cov=app --cov-report=term-missing
 ```
 
-### Test Coverage Summary: 501 Passed (100% Green)
+### Test Coverage Summary: 549 Passed (100% Green)
+- **`backend` (48 passed, 0 skipped - 100% Green):**
+  - **Unit Tests (`tests/unit/`):** Pure function tests for time parsing, base64url cursor encoding/decoding, cross-language plate normalisation fixtures, and AppError classes.
+  - **Contract Tests (`tests/contract/`):** Behavioral parity tests verifying identical contract execution across `InMemory` and `Pg` repositories for cameras and watchlists.
+  - **Route Tests (`tests/routes/`):** Comprehensive `app.inject()` suites covering cameras CRUD, events keyset pagination, atomic alert acknowledgement, biometric field rejection, analytics buckets, and path traversal security.
+  - **Database Integration Tests (`tests/integration/`):** Real PostgreSQL 16 queries, microsecond tuple cursor comparisons, and 10-worker concurrent acknowledge race conditions.
+  - **Cross-Language E2E Tests (`tests/e2e/`):** Python `PostgresEventSink` -> PostgreSQL -> Fastify REST API query verification.
 - **`ai-engine` (493 passed, 33 db-skipped when offline):**
   - **Unit Tests:** Plate normalization, OCR distances, face quality gate, yaw angle ratios, L2 normalization, embedding cosine similarities, scoring arithmetic, decaying window expiry, and configuration validation.
   - **Dual-Backend Contract Tests:** Identical behavioral verification run against both `InMemoryWatchlistRepo` and `PostgresWatchlistRepo` for plates, face embeddings, and hit history.
@@ -296,5 +329,6 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
 - [x] **Week 2 Day 12:** Multi-factor composite threat scoring & alert elevation engine.
 - [x] **Week 2 Day 13:** Redis Streams event publishing, versioned envelope, non-blocking priority queues & event processor.
 - [x] **Week 2 Day 14:** Core PostgreSQL schema (`cameras`, `events`, `alerts`, `vehicles`, `detections`), idempotent sink & data retention.
-- [ ] **Week 3 (Days 15–21):** Node.js backend API, WebSocket alert broadcast, React surveillance dashboard.
+- [x] **Week 3 Day 15:** Node.js + TypeScript REST APIs (Fastify, Zod, Keyset Pagination, Idempotent Alerts, ADRs 0014-0016, OpenAPI).
+- [ ] **Week 3 Days 16–21:** Live Command Dashboard, WebSocket live broadcast, forensic search, journey correlation.
 - [ ] **Week 4 (Days 22–28):** Multi-camera soak testing, end-to-end integration, Docker packaging, and hardware pilot.

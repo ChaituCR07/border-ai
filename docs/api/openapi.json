@@ -1,0 +1,1901 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Border-AI Video Intelligence Platform API",
+    "description": "REST API exposing cameras, events, alerts, watchlist, and analytics from PostgreSQL",
+    "version": "0.3.0"
+  },
+  "components": {
+    "schemas": {}
+  },
+  "paths": {
+    "/openapi.json": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/ready": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/cameras": {
+      "get": {
+        "summary": "List cameras with optional filters",
+        "tags": [
+          "Cameras"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "in": "query",
+            "name": "enabled",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "camera_id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "location_label": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "stream_url": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "has_credentials": {
+                            "type": "boolean"
+                          },
+                          "credentials_ref": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "live_view_url": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "camera_id",
+                          "name",
+                          "location_label",
+                          "stream_url",
+                          "has_credentials",
+                          "credentials_ref",
+                          "enabled",
+                          "live_view_url",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Register a new camera",
+        "tags": [
+          "Cameras"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "camera_id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{2,32}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "location_label": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "nullable": true
+                  },
+                  "stream_url": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "credentials_ref": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "nullable": true
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "required": [
+                  "camera_id",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "camera_id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "location_label": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "stream_url": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "has_credentials": {
+                          "type": "boolean"
+                        },
+                        "credentials_ref": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "live_view_url": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "camera_id",
+                        "name",
+                        "location_label",
+                        "stream_url",
+                        "has_credentials",
+                        "credentials_ref",
+                        "enabled",
+                        "live_view_url",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cameras/{id}": {
+      "get": {
+        "summary": "Get camera details by ID",
+        "tags": [
+          "Cameras"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{2,32}$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "camera_id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "location_label": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "stream_url": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "has_credentials": {
+                          "type": "boolean"
+                        },
+                        "credentials_ref": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "live_view_url": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "camera_id",
+                        "name",
+                        "location_label",
+                        "stream_url",
+                        "has_credentials",
+                        "credentials_ref",
+                        "enabled",
+                        "live_view_url",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update mutable camera properties",
+        "tags": [
+          "Cameras"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "location_label": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "nullable": true
+                  },
+                  "stream_url": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "credentials_ref": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "nullable": true
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{2,32}$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "camera_id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "location_label": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "stream_url": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "has_credentials": {
+                          "type": "boolean"
+                        },
+                        "credentials_ref": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "live_view_url": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "camera_id",
+                        "name",
+                        "location_label",
+                        "stream_url",
+                        "has_credentials",
+                        "credentials_ref",
+                        "enabled",
+                        "live_view_url",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "summary": "List events with keyset pagination and filtering",
+        "tags": [
+          "Events"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "camera_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "event_type",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "severity",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "min_score",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "max_score",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "track_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "plate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "cursor",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "event_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "camera_id": {
+                            "type": "string"
+                          },
+                          "event_type": {
+                            "type": "string"
+                          },
+                          "track_id": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "severity": {
+                            "type": "string",
+                            "enum": [
+                              "LOW",
+                              "MEDIUM",
+                              "HIGH",
+                              "CRITICAL"
+                            ]
+                          },
+                          "threat_score": {
+                            "type": "number"
+                          },
+                          "timestamp": {
+                            "type": "string"
+                          },
+                          "snapshot_url": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "has_snapshot": {
+                            "type": "boolean"
+                          },
+                          "snapshot_available": {
+                            "type": "boolean"
+                          },
+                          "plate": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "event_id",
+                          "camera_id",
+                          "event_type",
+                          "track_id",
+                          "severity",
+                          "threat_score",
+                          "timestamp",
+                          "snapshot_url",
+                          "has_snapshot",
+                          "snapshot_available"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "limit": {
+                          "type": "number"
+                        },
+                        "next_cursor": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "has_more": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "limit",
+                        "next_cursor",
+                        "has_more"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{id}": {
+      "get": {
+        "summary": "Get event details by UUID",
+        "tags": [
+          "Events"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "event_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "camera_id": {
+                          "type": "string"
+                        },
+                        "event_type": {
+                          "type": "string"
+                        },
+                        "track_id": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "severity": {
+                          "type": "string",
+                          "enum": [
+                            "LOW",
+                            "MEDIUM",
+                            "HIGH",
+                            "CRITICAL"
+                          ]
+                        },
+                        "threat_score": {
+                          "type": "number"
+                        },
+                        "timestamp": {
+                          "type": "string"
+                        },
+                        "snapshot_url": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "has_snapshot": {
+                          "type": "boolean"
+                        },
+                        "snapshot_available": {
+                          "type": "boolean"
+                        },
+                        "plate": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "explanation": {
+                          "type": "object",
+                          "additionalProperties": {},
+                          "nullable": true
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "alert": {
+                          "type": "object",
+                          "properties": {
+                            "alert_id": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "OPEN",
+                                "ACKNOWLEDGED",
+                                "RESOLVED"
+                              ]
+                            },
+                            "priority": {
+                              "type": "string",
+                              "enum": [
+                                "LOW",
+                                "MEDIUM",
+                                "HIGH",
+                                "CRITICAL"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "alert_id",
+                            "status",
+                            "priority"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "event_id",
+                        "camera_id",
+                        "event_type",
+                        "track_id",
+                        "severity",
+                        "threat_score",
+                        "timestamp",
+                        "snapshot_url",
+                        "has_snapshot",
+                        "snapshot_available",
+                        "metadata"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/alerts": {
+      "get": {
+        "summary": "List alerts with filtering and pagination",
+        "tags": [
+          "Alerts"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "ACKNOWLEDGED",
+                "RESOLVED"
+              ]
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            },
+            "in": "query",
+            "name": "priority",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "camera_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "cursor",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "alert_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "event_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "priority": {
+                            "type": "string",
+                            "enum": [
+                              "LOW",
+                              "MEDIUM",
+                              "HIGH",
+                              "CRITICAL"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "OPEN",
+                              "ACKNOWLEDGED",
+                              "RESOLVED"
+                            ]
+                          },
+                          "acknowledged_by": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "acknowledged_at": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "event": {
+                            "type": "object",
+                            "properties": {
+                              "camera_id": {
+                                "type": "string"
+                              },
+                              "event_type": {
+                                "type": "string"
+                              },
+                              "threat_score": {
+                                "type": "number"
+                              },
+                              "plate": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "snapshot_url": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "camera_id",
+                              "event_type",
+                              "threat_score",
+                              "snapshot_url"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "alert_id",
+                          "event_id",
+                          "priority",
+                          "status",
+                          "acknowledged_by",
+                          "acknowledged_at",
+                          "created_at",
+                          "event"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "limit": {
+                          "type": "number"
+                        },
+                        "next_cursor": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "has_more": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "limit",
+                        "next_cursor",
+                        "has_more"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/alerts/{id}/acknowledge": {
+      "patch": {
+        "summary": "Acknowledge an alert (idempotent and race-safe)",
+        "tags": [
+          "Alerts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "acknowledged_by": {
+                    "type": "string",
+                    "maxLength": 64
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "alert_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "event_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "priority": {
+                          "type": "string",
+                          "enum": [
+                            "LOW",
+                            "MEDIUM",
+                            "HIGH",
+                            "CRITICAL"
+                          ]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OPEN",
+                            "ACKNOWLEDGED",
+                            "RESOLVED"
+                          ]
+                        },
+                        "acknowledged_by": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "acknowledged_at": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "camera_id": {
+                              "type": "string"
+                            },
+                            "event_type": {
+                              "type": "string"
+                            },
+                            "threat_score": {
+                              "type": "number"
+                            },
+                            "plate": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "snapshot_url": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "camera_id",
+                            "event_type",
+                            "threat_score",
+                            "snapshot_url"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "alert_id",
+                        "event_id",
+                        "priority",
+                        "status",
+                        "acknowledged_by",
+                        "acknowledged_at",
+                        "created_at",
+                        "event"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/watchlist": {
+      "get": {
+        "summary": "List active watchlist entries",
+        "tags": [
+          "Watchlist"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "VEHICLE",
+                "PERSON"
+              ]
+            },
+            "in": "query",
+            "name": "entity_type",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            },
+            "in": "query",
+            "name": "risk_level",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "in": "query",
+            "name": "include_deleted",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "entity_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "entity_type": {
+                            "type": "string",
+                            "enum": [
+                              "VEHICLE",
+                              "PERSON"
+                            ]
+                          },
+                          "identifier": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "risk_level": {
+                            "type": "string",
+                            "enum": [
+                              "LOW",
+                              "MEDIUM",
+                              "HIGH",
+                              "CRITICAL"
+                            ]
+                          },
+                          "notes": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "consent_reference": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "active": {
+                            "type": "boolean"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "entity_id",
+                          "entity_type",
+                          "identifier",
+                          "name",
+                          "risk_level",
+                          "notes",
+                          "consent_reference",
+                          "active",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new watchlist entry (strictly non-biometric)",
+        "tags": [
+          "Watchlist"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "embedding": {
+                        "not": {}
+                      },
+                      "image": {
+                        "not": {}
+                      },
+                      "face": {
+                        "not": {}
+                      },
+                      "photo": {
+                        "not": {}
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "entity_type": {
+                        "type": "string",
+                        "enum": [
+                          "VEHICLE",
+                          "PERSON"
+                        ]
+                      },
+                      "identifier": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "risk_level": {
+                        "type": "string",
+                        "enum": [
+                          "LOW",
+                          "MEDIUM",
+                          "HIGH",
+                          "CRITICAL"
+                        ]
+                      },
+                      "notes": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "nullable": true
+                      },
+                      "consent_reference": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "nullable": true
+                      }
+                    },
+                    "required": [
+                      "entity_type",
+                      "identifier",
+                      "name",
+                      "risk_level"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "entity_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "entity_type": {
+                          "type": "string",
+                          "enum": [
+                            "VEHICLE",
+                            "PERSON"
+                          ]
+                        },
+                        "identifier": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "risk_level": {
+                          "type": "string",
+                          "enum": [
+                            "LOW",
+                            "MEDIUM",
+                            "HIGH",
+                            "CRITICAL"
+                          ]
+                        },
+                        "notes": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "consent_reference": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "active": {
+                          "type": "boolean"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "entity_id",
+                        "entity_type",
+                        "identifier",
+                        "name",
+                        "risk_level",
+                        "notes",
+                        "consent_reference",
+                        "active",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/watchlist/{id}": {
+      "delete": {
+        "summary": "Soft-delete a watchlist entry (idempotent)",
+        "tags": [
+          "Watchlist"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "not": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/events": {
+      "get": {
+        "summary": "Time series analytics for events with zero-filling",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hour",
+                "day"
+              ],
+              "default": "hour"
+            },
+            "in": "query",
+            "name": "bucket",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "camera_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bucket_tz": {
+                      "type": "string",
+                      "enum": [
+                        "UTC"
+                      ]
+                    },
+                    "buckets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "bucket": {
+                            "type": "string"
+                          },
+                          "total": {
+                            "type": "number"
+                          },
+                          "critical": {
+                            "type": "number"
+                          },
+                          "high": {
+                            "type": "number"
+                          },
+                          "medium": {
+                            "type": "number"
+                          },
+                          "low": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "bucket",
+                          "total",
+                          "critical",
+                          "high",
+                          "medium",
+                          "low"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "by_type": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "event_type": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "event_type",
+                          "count"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "bucket_tz",
+                    "buckets",
+                    "by_type"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/cameras": {
+      "get": {
+        "summary": "Camera operational activity counters",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "camera_id": {
+                            "type": "string"
+                          },
+                          "events": {
+                            "type": "number"
+                          },
+                          "alerts_open": {
+                            "type": "number"
+                          },
+                          "max_threat_score": {
+                            "type": "number"
+                          },
+                          "last_event_at": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "camera_id",
+                          "events",
+                          "alerts_open",
+                          "max_threat_score",
+                          "last_event_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/threats": {
+      "get": {
+        "summary": "Threat metrics, score histogram, and priority counters",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "camera_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "severity_counts": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "number"
+                          }
+                        },
+                        "open_alerts_by_priority": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "number"
+                          }
+                        },
+                        "score_histogram": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "from": {
+                                "type": "number"
+                              },
+                              "to": {
+                                "type": "number"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "from",
+                              "to",
+                              "count"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "top_event_types": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "event_type": {
+                                "type": "string"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "event_type",
+                              "count"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "top_plates": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "plate": {
+                                "type": "string"
+                              },
+                              "events": {
+                                "type": "number"
+                              },
+                              "max_score": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "plate",
+                              "events",
+                              "max_score"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "severity_counts",
+                        "open_alerts_by_priority",
+                        "score_histogram",
+                        "top_event_types",
+                        "top_plates"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/snapshots/{*}": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "*",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://0.0.0.0:4000",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Cameras",
+      "description": "Camera inventory, credentials references, and live MJPEG streaming"
+    },
+    {
+      "name": "Events",
+      "description": "Video analytics events with keyset pagination and threat explanation"
+    },
+    {
+      "name": "Alerts",
+      "description": "Threat alert feed with idempotent, race-safe acknowledgement"
+    },
+    {
+      "name": "Watchlist",
+      "description": "Strictly non-biometric vehicle and person watchlist management"
+    },
+    {
+      "name": "Analytics",
+      "description": "Aggregated time-series, operational camera metrics, and threat histograms"
+    },
+    {
+      "name": "Health",
+      "description": "Liveness and database readiness probes"
+    }
+  ]
+}

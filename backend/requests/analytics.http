@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:4000
+
+### Time Series Event Analytics (Zero-filled)
+GET {{baseUrl}}/api/analytics/events?bucket=hour
+Accept: application/json
+
+### Camera Operational Metrics
+GET {{baseUrl}}/api/analytics/cameras
+Accept: application/json
+
+### Threat Score Breakdown & Priority Counters
+GET {{baseUrl}}/api/analytics/threats
+Accept: application/json
