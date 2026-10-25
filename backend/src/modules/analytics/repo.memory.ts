@@ -76,13 +76,19 @@ export class InMemoryAnalyticsRepo implements AnalyticsRepo {
 
     const severity_counts: Record<string, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
     for (const e of evts) {
-      if (e.severity in severity_counts) severity_counts[e.severity]++;
+      const s = String(e.severity);
+      if (s in severity_counts) {
+        severity_counts[s] = (severity_counts[s] ?? 0) + 1;
+      }
     }
 
     const open_alerts_by_priority: Record<string, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
     for (const a of this.alerts) {
-      if (a.status === 'OPEN' && a.priority in open_alerts_by_priority) {
-        open_alerts_by_priority[a.priority]++;
+      if (a.status === 'OPEN') {
+        const p = String(a.priority);
+        if (p in open_alerts_by_priority) {
+          open_alerts_by_priority[p] = (open_alerts_by_priority[p] ?? 0) + 1;
+        }
       }
     }
 
