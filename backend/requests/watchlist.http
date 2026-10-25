@@ -1,0 +1,32 @@
+@baseUrl = http://localhost:4000
+
+### List Active Watchlist Entries
+GET {{baseUrl}}/api/watchlist
+Accept: application/json
+
+### Add Vehicle to Watchlist (Normalised)
+POST {{baseUrl}}/api/watchlist
+Content-Type: application/json
+
+{
+  "entity_type": "VEHICLE",
+  "identifier": "ka 01 ab 1234",
+  "name": "Stolen White SUV",
+  "risk_level": "HIGH",
+  "notes": "Wanted in connection with Case #402"
+}
+
+### Add Person to Watchlist (Requires Consent Reference)
+POST {{baseUrl}}/api/watchlist
+Content-Type: application/json
+
+{
+  "entity_type": "PERSON",
+  "identifier": "SUBJECT-402",
+  "name": "Subject 402",
+  "risk_level": "MEDIUM",
+  "consent_reference": "CONSENT-2026-088"
+}
+
+### Soft Delete Watchlist Entry
+DELETE {{baseUrl}}/api/watchlist/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb

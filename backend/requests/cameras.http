@@ -1,0 +1,32 @@
+@baseUrl = http://localhost:4000
+
+### List Cameras
+GET {{baseUrl}}/api/cameras
+Accept: application/json
+
+### Register New Camera
+POST {{baseUrl}}/api/cameras
+Content-Type: application/json
+
+{
+  "camera_id": "CAM-05",
+  "name": "East Gate Approach",
+  "location_label": "Sector 5, Km 22",
+  "stream_url": "rtsp://10.0.5.21:554/live",
+  "credentials_ref": "CAM_05_CREDS",
+  "enabled": true
+}
+
+### Get Camera Detail
+GET {{baseUrl}}/api/cameras/CAM-05
+Accept: application/json
+
+### Update Camera
+PUT {{baseUrl}}/api/cameras/CAM-05
+Content-Type: application/json
+
+{
+  "name": "East Gate Main Approach",
+  "location_label": "Sector 5, Km 22",
+  "enabled": true
+}

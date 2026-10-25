@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:4000
+
+### List Open Alerts
+GET {{baseUrl}}/api/alerts?status=OPEN&limit=20
+Accept: application/json
+
+### Acknowledge Alert (Idempotent)
+PATCH {{baseUrl}}/api/alerts/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/acknowledge
+Content-Type: application/json
+
+{
+  "acknowledged_by": "operator.alpha"
+}
