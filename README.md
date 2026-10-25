@@ -321,14 +321,14 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
 
 ## Roadmap
 
-- [x] **Week 1 (Days 1–7):** Ingestion, YOLOv8, ByteTrack, Spatial Zones & Lines, Stream API.
-- [x] **Week 2 Day 8:** ANPR Engine (PaddleOCR PP-OCRv6 + positional layout rules + consensus voting).
-- [x] **Week 2 Day 9:** PostgreSQL Watchlist System, OCR-aware near matcher, visual overlays, resilience fallback, and test suite.
-- [x] **Week 2 Day 10:** Face Detection, Quality Gate, Appearance Embedding Re-ID prototype, and consent-gated enrollment.
-- [x] **Week 2 Day 11:** Configurable Behaviour Engine (deterministic rules R001–R005, replay, simulated clock, Plan Tests 1, 2, 5, 6, Scenario 1).
-- [x] **Week 2 Day 12:** Multi-factor composite threat scoring & alert elevation engine.
-- [x] **Week 2 Day 13:** Redis Streams event publishing, versioned envelope, non-blocking priority queues & event processor.
-- [x] **Week 2 Day 14:** Core PostgreSQL schema (`cameras`, `events`, `alerts`, `vehicles`, `detections`), idempotent sink & data retention.
-- [x] **Week 3 Day 15:** Node.js + TypeScript REST APIs (Fastify, Zod, Keyset Pagination, Idempotent Alerts, ADRs 0014-0016, OpenAPI).
-- [ ] **Week 3 Days 16–21:** Live Command Dashboard, WebSocket live broadcast, forensic search, journey correlation.
-- [ ] **Week 4 (Days 22–28):** Multi-camera soak testing, end-to-end integration, Docker packaging, and hardware pilot.
+- [x] **Week 1 (Days 1–7) Ingestion & Spatial Foundation:** Thread-per-camera ingestion (RTSP/file), YOLOv8 object detection, ByteTrack tracking, multi-zone and tripwire spatial analytics, live low-latency MJPEG streaming, and structured JSONL event logging.
+- [x] **Week 2 (Days 8–14) Data & Streaming Architecture:** ANPR engine (PaddleOCR + layout syntax rules + multi-frame consensus), PostgreSQL 16 watchlist system with outage resilience fallback, biometric face detection & appearance Re-ID prototype, configurable declarative behaviour engine (rules R001–R005), multi-factor decaying threat scoring (0–100 explainable window), Redis Streams asynchronous event pipeline, and production relational schema (`003_core_schema.sql`) with idempotent PostgreSQL event sinks.
+- [ ] **Week 3 (Days 15–21) Productization & Dashboards:**
+  - [x] **Day 15 — Backend REST APIs:** Production Fastify v5 REST API (Node.js 22 LTS + TypeScript) with schema-first Zod validation, handwritten parameterized SQL via node-postgres, keyset cursor pagination with microsecond timestamp fidelity (ADR 0015), strict data ownership (ADR 0014), atomic idempotent alert acknowledgement and non-biometric watchlist guard (ADR 0016), zero-filled time-series analytics, safe evidence snapshot serving, automated OpenAPI 3.0 documentation (`/docs`), and a 48-test suite (unit, contract parity, Fastify routes, PostgreSQL integration, and cross-language Python sink -> PostgreSQL -> Fastify REST API verification).
+  - [ ] **Day 16 — Live Operator Command Dashboard:** Real-time web surveillance interface using Vite + React 18/19 + TypeScript + TanStack Query with live camera grid status, live video feed integration via MJPEG gateway, threat score counters, alert feed with instant operator acknowledge actions, and trend charts.
+  - [ ] **Day 17 — WebSocket Live Alert Server & Push Broadcasting:** Low-latency alert distribution via Fastify WebSocket and Redis pub/sub, broadcasting new threat detections and live acknowledgement sync across multi-operator terminals in sub-second time.
+  - [ ] **Day 18 — Forensic Search & Investigation Workbench:** Multi-parametric historical investigation portal supporting fuzzy plate queries, multi-camera time range filters, track journey inspect modal, synchronized video replay, and PDF/JSON incident dossier export.
+  - [ ] **Day 19 — Cross-Camera Journey Correlation & Trajectory Reconstruction:** Multi-camera re-identification integration, automated spatial-temporal vehicle/pedestrian trajectory mapping, dwell-time analysis between camera checkpoints, and interactive journey path visualization.
+  - [ ] **Day 20 — Multi-Channel Alert Dispatcher & External Notifications:** Automated escalation engine dispatching high/critical priority alerts via Webhooks, Email (SMTP), and operator audio triggers with rate limiting, retry backoff, and full dispatch audit logging.
+  - [ ] **Day 21 — Week 3 Milestone Review & Stress Soak Verification:** End-to-end integration across all 6 simulated camera streams, frontend dashboard soak testing, API latency profiling under 100k+ event volume, and Week 3 release tagging (`v0.3-week3`).
+- [ ] **Week 4 (Days 22–28) Hardening, Security & Deployment:** JWT authentication & RBAC, multi-camera soak testing, end-to-end integration, Docker packaging, and hardware pilot.
