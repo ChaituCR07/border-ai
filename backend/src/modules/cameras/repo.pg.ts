@@ -13,8 +13,8 @@ export class PgCamerasRepo implements CamerasRepo {
     return {
       camera_id: row.camera_id,
       name: row.name ?? null,
-      location_label: row.location_label ?? null,
-      stream_url: row.stream_url ?? null,
+      location_label: row.location_label ?? row.location ?? null,
+      stream_url: row.stream_url ?? row.rtsp_url ?? null,
       has_credentials: Boolean(row.credentials_ref),
       credentials_ref: row.credentials_ref ?? null,
       enabled: row.enabled ?? true,
@@ -34,13 +34,13 @@ export class PgCamerasRepo implements CamerasRepo {
       args.push(filters.enabled);
     }
     if (filters.q) {
-      where.push(`(name ILIKE $${idx} OR location_label ILIKE $${idx} OR camera_id ILIKE $${idx})`);
+      where.push(`(name ILIKE $${idx} OR location_label ILIKE $${idx} OR location ILIKE $${idx} OR camera_id ILIKE $${idx})`);
       args.push(`%${filters.q}%`);
       idx++;
     }
 
     const sql = `
-      SELECT camera_id, name, location_label, stream_url, credentials_ref, enabled, created_at, updated_at
+      SELECT camera_id, name, location_label, location, rtsp_url AS stream_url, credentials_ref, enabled, created_at, updated_at
       FROM cameras
       ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
       ORDER BY camera_id ASC
@@ -52,7 +52,7 @@ export class PgCamerasRepo implements CamerasRepo {
 
   async getById(cameraId: string): Promise<CameraResource | null> {
     const sql = `
-      SELECT camera_id, name, location_label, stream_url, credentials_ref, enabled, created_at, updated_at
+      SELECT camera_id, name, location_label, location, rtsp_url AS stream_url, credentials_ref, enabled, created_at, updated_at
       FROM cameras
       WHERE camera_id = $1
     `;
@@ -62,9 +62,9 @@ export class PgCamerasRepo implements CamerasRepo {
 
   async create(dto: CreateCameraDTO): Promise<CameraResource> {
     const sql = `
-      INSERT INTO cameras (camera_id, name, location_label, stream_url, credentials_ref, enabled, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, now())
-      RETURNING camera_id, name, location_label, stream_url, credentials_ref, enabled, created_at, updated_at
+      INSERT INTO cameras (camera_id, name, location_label, location, rtsp_url, credentials_ref, enabled, updated_at)
+      VALUES ($1, $2, $3, COALESCE($3, ''), $4, $5, $6, now())
+      RETURNING camera_id, name, location_label, location, rtsp_url AS stream_url, credentials_ref, enabled, created_at, updated_at
     `;
     const res = await this.pool.query(sql, [
       dto.camera_id,
@@ -80,9 +80,9 @@ export class PgCamerasRepo implements CamerasRepo {
   async update(cameraId: string, dto: UpdateCameraDTO): Promise<CameraResource | null> {
     const sql = `
       UPDATE cameras
-      SET name = $2, location_label = $3, stream_url = $4, credentials_ref = $5, enabled = $6, updated_at = now()
+      SET name = $2, location_label = $3, location = COALESCE($3, location), rtsp_url = $4, credentials_ref = $5, enabled = $6, updated_at = now()
       WHERE camera_id = $1
-      RETURNING camera_id, name, location_label, stream_url, credentials_ref, enabled, created_at, updated_at
+      RETURNING camera_id, name, location_label, location, rtsp_url AS stream_url, credentials_ref, enabled, created_at, updated_at
     `;
     const res = await this.pool.query(sql, [
       cameraId,

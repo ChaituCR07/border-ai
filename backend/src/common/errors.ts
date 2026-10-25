@@ -72,7 +72,7 @@ export function errorHandler(
     });
   }
 
-  req.log.error({ err, requestId }, 'Unhandled application error');
+  req.log.error({ err, requestId }, 'Unhandled application error'); 
 
   return reply.status(500).send({
     error: {
