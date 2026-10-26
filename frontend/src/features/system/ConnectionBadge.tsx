@@ -6,7 +6,7 @@ import { POLL_INTERVALS } from '../../api/intervals';
 export function ConnectionBadge() {
   const { data, isError, isFetching } = useQuery({
     queryKey: keys.ready,
-    queryFn: () => unwrap(api.GET('/api/ready')),
+    queryFn: () => unwrap(api.GET('/api/ready') as any) as Promise<{ status?: string }>,
     refetchInterval: POLL_INTERVALS.HEALTH,
     retry: 2,
     staleTime: 5000,

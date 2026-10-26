@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useCameras, useCameraActivity } from './useCameras';
+import type { CameraActivity } from '../../api/types';
 import { CameraListItem } from './CameraListItem';
 import { useUIStore } from '../../state/uiStore';
 
@@ -13,7 +14,7 @@ export function CameraSidebar() {
   const setSearchQuery = useUIStore((s) => s.setCameraSearchQuery);
 
   const activityMap = useMemo(() => {
-    const map = new Map<string, (typeof activity)[number]>();
+    const map = new Map<string, CameraActivity>();
     activity?.forEach((a) => map.set(a.camera_id, a));
     return map;
   }, [activity]);

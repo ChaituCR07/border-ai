@@ -1,9 +1,4 @@
-import type { components } from '../api/schema';
-
-export type CameraResource = components['schemas']['CameraResourceSchema'];
-export type AlertResource = components['schemas']['AlertResourceSchema'];
-export type EventItem = components['schemas']['EventItemSchema'];
-export type EventDetail = components['schemas']['EventDetailSchema'];
+import type { CameraResource, AlertResource, EventItem, ThreatSummary } from '../api/types';
 
 export function makeCamera(overrides?: Partial<CameraResource>): CameraResource {
   return {
@@ -58,7 +53,7 @@ export function makeEvent(overrides?: Partial<EventItem>): EventItem {
   };
 }
 
-export function makeThreatSummary() {
+export function makeThreatSummary(): ThreatSummary {
   return {
     severity_counts: {
       CRITICAL: 5,
