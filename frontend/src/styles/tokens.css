@@ -1,0 +1,58 @@
+:root {
+  --bg-app: #0b0f14;
+  --bg-panel: #121821;
+  --bg-panel-2: #18212c;
+  --bg-panel-hover: #1f2c3b;
+  --border: #243041;
+  --border-muted: #1c2633;
+  --border-focus: #38bdf8;
+  --text: #e6edf3;
+  --text-muted: #93a1b2;
+  --text-dim: #64748b;
+
+  --sev-critical: #ff4d4f;
+  --sev-critical-bg: rgba(255, 77, 79, 0.15);
+  --sev-high: #ff9f1a;
+  --sev-high-bg: rgba(255, 159, 26, 0.15);
+  --sev-medium: #f5d90a;
+  --sev-medium-bg: rgba(245, 217, 10, 0.15);
+  --sev-low: #4cc2ff;
+  --sev-low-bg: rgba(76, 194, 255, 0.15);
+
+  --ok: #2ecc71;
+  --ok-bg: rgba(46, 204, 113, 0.15);
+  --warn: #f5a623;
+  --warn-bg: rgba(245, 166, 35, 0.15);
+  --offline: #6b7785;
+  --offline-bg: rgba(107, 119, 133, 0.15);
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --gap: 12px;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(0.98); }
+}
+
+@keyframes border-pulse-critical {
+  0%, 100% { border-color: var(--sev-critical); box-shadow: 0 0 12px rgba(255, 77, 79, 0.4); }
+  50% { border-color: rgba(255, 77, 79, 0.4); box-shadow: none; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2.5s infinite ease-in-out;
+}
+
+.border-pulse-critical {
+  animation: border-pulse-critical 2s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
