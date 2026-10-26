@@ -2,10 +2,16 @@ import createClient from 'openapi-fetch';
 import type { paths } from './schema';
 import { ApiError } from './errors';
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+const defaultBase =
+  typeof window !== 'undefined' && window.location?.origin && window.location.origin !== 'null'
+    ? window.location.origin
+    : 'http://localhost:3000';
+
+const baseUrl = import.meta.env.VITE_API_BASE_URL || defaultBase;
 
 export const api = createClient<paths>({
   baseUrl,
+  fetch: (...args) => fetch(...args),
 });
 
 export async function unwrap<T>(

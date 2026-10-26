@@ -30,19 +30,19 @@ export let mockAlerts = [
 ];
 
 export const handlers = [
-  http.get('*/api/health', () => {
+  http.get(/.*\/api\/health$/, () => {
     return HttpResponse.json({ status: 'ok', uptime: 123.45 });
   }),
 
-  http.get('*/api/ready', () => {
+  http.get(/.*\/api\/ready$/, () => {
     return HttpResponse.json({ status: 'ready', database: 'connected' });
   }),
 
-  http.get('*/api/cameras', () => {
+  http.get(/.*\/api\/cameras$/, () => {
     return HttpResponse.json({ data: mockCameras });
   }),
 
-  http.get('*/api/analytics/cameras', () => {
+  http.get(/.*\/api\/analytics\/cameras$/, () => {
     return HttpResponse.json({
       data: mockCameras.map((c) => ({
         camera_id: c.camera_id,
@@ -54,16 +54,18 @@ export const handlers = [
     });
   }),
 
-  http.get('*/api/analytics/threats', () => {
+  http.get(/.*\/api\/analytics\/threats.*/, () => {
     return HttpResponse.json({ data: makeThreatSummary() });
   }),
 
-  http.get('*/api/alerts', ({ request }) => {
+  http.get(/.*\/api\/alerts(\?.*)?$/, ({ request }) => {
     const url = new URL(request.url);
     const priority = url.searchParams.get('priority');
     const camera_id = url.searchParams.get('camera_id');
+    const status = url.searchParams.get('status');
 
     let filtered = [...mockAlerts];
+    if (status) filtered = filtered.filter((a) => a.status === status);
     if (priority) filtered = filtered.filter((a) => a.priority === priority);
     if (camera_id) filtered = filtered.filter((a) => a.event.camera_id === camera_id);
 
@@ -73,8 +75,8 @@ export const handlers = [
     });
   }),
 
-  http.patch('*/api/alerts/:id/acknowledge', ({ params }) => {
-    const { id } = params;
+  http.patch(/.*\/api\/alerts\/([^/]+)\/acknowledge$/, ({ params }) => {
+    const id = params[0] as string;
     const found = mockAlerts.find((a) => a.alert_id === id);
     if (!found) {
       return new HttpResponse(null, { status: 404 });
@@ -85,7 +87,7 @@ export const handlers = [
     return HttpResponse.json({ data: found });
   }),
 
-  http.get('*/api/events', () => {
+  http.get(/.*\/api\/events(\?.*)?$/, () => {
     return HttpResponse.json({
       data: [
         makeEvent({ event_id: 'e1', camera_id: 'CAM-01', severity: 'CRITICAL', threat_score: 95 }),
