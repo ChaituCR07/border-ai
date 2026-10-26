@@ -8,3 +8,5 @@ export function formatPlateDisplay(raw?: string | null): string {
   }
   return clean;
 }
+
+export const formatPlate = formatPlateDisplay;

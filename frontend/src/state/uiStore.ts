@@ -35,6 +35,7 @@ export interface UIState {
   toggleTzMode: () => void;
   setSeverityFilter: (severity: Severity | null) => void;
   setSelectedCameraOnly: (value: boolean) => void;
+  toggleSelectedCameraOnly: () => void;
   setCameraSearchQuery: (query: string) => void;
   openSnapshotDrawer: (data: SnapshotDrawerData) => void;
   closeSnapshotDrawer: () => void;
@@ -59,6 +60,8 @@ export const useUIStore = create<UIState>()(
       toggleTzMode: () => set((s) => ({ tzMode: s.tzMode === 'UTC' ? 'LOCAL' : 'UTC' })),
       setSeverityFilter: (severityFilter) => set({ severityFilter }),
       setSelectedCameraOnly: (selectedCameraOnly) => set({ selectedCameraOnly }),
+      toggleSelectedCameraOnly: () =>
+        set((s) => ({ selectedCameraOnly: !s.selectedCameraOnly })),
       setCameraSearchQuery: (cameraSearchQuery) => set({ cameraSearchQuery }),
       openSnapshotDrawer: (activeSnapshotDrawer) => set({ activeSnapshotDrawer }),
       closeSnapshotDrawer: () => set({ activeSnapshotDrawer: null }),
