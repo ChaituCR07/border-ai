@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import websocket from '@fastify/websocket';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import {
@@ -17,6 +18,9 @@ import type { Config } from './config/env.js';
 import { errorHandler } from './common/errors.js';
 import { authenticate } from './common/auth.js';
 import type { AuditRepo } from './common/audit.js';
+
+import { Hub } from './realtime/hub.js';
+import { wsRoutes } from './realtime/ws-route.js';
 
 import { cameraRoutes } from './modules/cameras/routes.js';
 import type { CamerasRepo } from './modules/cameras/repo.js';
@@ -48,6 +52,7 @@ export interface AppDeps {
   pool?: pg.Pool;
   logger?: boolean | Record<string, unknown>;
   onAlertChanged?: AlertChangeCallback;
+  hub?: Hub;
 }
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
@@ -65,6 +70,19 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.setSerializerCompiler(serializerCompiler);
   app.setErrorHandler(errorHandler);
 
+  const hub =
+    deps.hub ??
+    new Hub({
+      maxClients: 200,
+      maxBufferedBytes: 1024 * 1024,
+      heartbeatMs: 15_000,
+      log: app.log,
+    });
+
+  app.addHook('onClose', async () => {
+    hub.stop();
+  });
+
   // Security Headers
   await app.register(helmet, {
     contentSecurityPolicy: false, // Allows Swagger UI to render smoothly
@@ -77,7 +95,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     credentials: true,
   });
 
-  // Rate Limiting
+  // WebSocket support
+  await app.register(websocket, {
+    options: {
+      maxPayload: 1024,
+    },
+  });
+
+  // Rate Limiting (does not affect websocket message frames once upgraded)
   await app.register(rateLimit, {
     max: 300,
     timeWindow: '1 minute',
@@ -127,8 +152,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     reply.header('x-request-id', req.id);
   });
 
-  // Root & Health routes
+  // Health routes
   await app.register(healthRoutes({ pool: deps.pool }), { prefix: '/api' });
+
+  // WebSocket Route (/api/ws)
+  await app.register(wsRoutes({ hub, config: deps.config }), { prefix: '/api' });
 
   // Main API namespace with authentication seam
   await app.register(

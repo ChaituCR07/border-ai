@@ -26,6 +26,15 @@ export async function authenticate(req: FastifyRequest): Promise<void> {
   };
 }
 
+export async function authenticateWs(req: FastifyRequest): Promise<Actor> {
+  // Day 17 Auth seam: ticket / query-param dev actor verification.
+  // Day 26 replaces this with short-lived ?ticket=... token exchange.
+  const query = req.query as Record<string, string> | undefined;
+  const id = (req.headers['x-actor-id'] as string) || query?.actor_id || 'dev-operator';
+  const role = ((req.headers['x-actor-role'] as Role) || (query?.role as Role) || 'OPERATOR');
+  return { id, role };
+}
+
 export function requireRole(...allowedRoles: Role[]) {
   return async (req: FastifyRequest): Promise<void> => {
     if (!req.actor) {
