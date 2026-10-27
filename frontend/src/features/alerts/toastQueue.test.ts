@@ -2,7 +2,21 @@ import { describe, it, expect } from 'vitest';
 import { enqueue, dismissById, expire, visible, type Toast } from './toastQueue';
 import type { AlertView } from '@border-ai/protocol';
 
-function makeAlert(overrides: Partial<AlertView> & { event?: Partial<AlertView['event']> }): AlertView {
+function makeAlert(overrides: {
+  alert_id?: string;
+  event_id?: string;
+  priority?: AlertView['priority'];
+  status?: AlertView['status'];
+  event?: {
+    camera_id?: string;
+    event_type?: string;
+    threat_score?: number;
+    plate?: string | null;
+    timestamp?: string;
+    snapshot_url?: string | null;
+    snapshot_available?: boolean;
+  };
+}): AlertView {
   return {
     alert_id: overrides.alert_id ?? 'alert-1',
     event_id: overrides.event_id ?? 'evt-1',
@@ -17,12 +31,10 @@ function makeAlert(overrides: Partial<AlertView> & { event?: Partial<AlertView['
       event_type: overrides.event?.event_type ?? 'PERSON_DETECTED',
       threat_score: overrides.event?.threat_score ?? 85,
       plate: overrides.event?.plate ?? null,
-      timestamp: new Date().toISOString(),
-      snapshot_url: null,
-      snapshot_available: false,
-      ...overrides.event,
+      timestamp: overrides.event?.timestamp ?? new Date().toISOString(),
+      snapshot_url: overrides.event?.snapshot_url ?? null,
+      snapshot_available: overrides.event?.snapshot_available ?? false,
     },
-    ...overrides,
   };
 }
 
@@ -72,16 +84,16 @@ describe('Toast Queue Policy (ADR 0021)', () => {
 
     queue = enqueue(queue, a1, t0);
     expect(queue).toHaveLength(1);
-    expect(queue[0].count).toBe(1);
-    expect(queue[0].alert.event.threat_score).toBe(75);
+    expect(queue[0]!.count).toBe(1);
+    expect(queue[0]!.alert.event.threat_score).toBe(75);
 
     // Within 20s window (e.g. at t0 + 5s)
     queue = enqueue(queue, a2, t0 + 5000);
     expect(queue).toHaveLength(1);
-    expect(queue[0].count).toBe(2);
-    expect(queue[0].id).toBe('a2'); // higher threat alert becomes representative
-    expect(queue[0].alert.event.threat_score).toBe(95);
-    expect(queue[0].expiresAt).toBeNull(); // upgraded to sticky because a2 is CRITICAL
+    expect(queue[0]!.count).toBe(2);
+    expect(queue[0]!.id).toBe('a2'); // higher threat alert becomes representative
+    expect(queue[0]!.alert.event.threat_score).toBe(95);
+    expect(queue[0]!.expiresAt).toBeNull(); // upgraded to sticky because a2 is CRITICAL
   });
 
   it('does not coalesce if camera or plate differs', () => {
@@ -144,7 +156,7 @@ describe('Toast Queue Policy (ADR 0021)', () => {
     expect(shown).toHaveLength(3);
     expect(hidden).toBe(2);
     // CRITICAL toasts are sorted above HIGH
-    expect(shown[0].alert.priority).toBe('CRITICAL');
+    expect(shown[0]!.alert.priority).toBe('CRITICAL');
   });
 
   it('expires only expired HIGH toasts while leaving sticky CRITICAL toasts', () => {
@@ -161,7 +173,7 @@ describe('Toast Queue Policy (ADR 0021)', () => {
     // At t0 + 16s: HIGH expired (15s lifetime), CRITICAL remains
     queue = expire(queue, t0 + 16_000);
     expect(queue).toHaveLength(1);
-    expect(queue[0].id).toBe('c1');
+    expect(queue[0]!.id).toBe('c1');
   });
 
   it('dismissById removes specific toast', () => {
@@ -173,6 +185,6 @@ describe('Toast Queue Policy (ADR 0021)', () => {
 
     queue = dismissById(queue, 'a1');
     expect(queue).toHaveLength(1);
-    expect(queue[0].id).toBe('a2');
+    expect(queue[0]!.id).toBe('a2');
   });
 });

@@ -45,7 +45,7 @@ describe('Frontend LiveSocket Unit Tests', () => {
     const onStatus = vi.fn();
     const onMessage = vi.fn();
     const onResync = vi.fn();
-    let currentSocket: FakeBrowserWebSocket | null = null;
+    let currentSocket: any = null;
 
     const socket = new LiveSocket({
       url: 'ws://localhost:4000/api/ws',
@@ -83,7 +83,7 @@ describe('Frontend LiveSocket Unit Tests', () => {
 
   it('triggers onResync(epoch_changed) when server epoch changes on reconnect', () => {
     const onResync = vi.fn();
-    let currentSocket: FakeBrowserWebSocket | null = null;
+    let currentSocket: any = null;
 
     const socket = new LiveSocket({
       url: 'ws://localhost:4000/api/ws',
@@ -126,7 +126,7 @@ describe('Frontend LiveSocket Unit Tests', () => {
   it('delivers sequential alert message without gap', () => {
     const onMessage = vi.fn();
     const onResync = vi.fn();
-    let currentSocket: FakeBrowserWebSocket | null = null;
+    let currentSocket: any = null;
 
     const socket = new LiveSocket({
       url: 'ws://localhost:4000/api/ws',
@@ -170,7 +170,7 @@ describe('Frontend LiveSocket Unit Tests', () => {
   it('detects skipped seq gap, delivers message, and triggers onResync(gap)', () => {
     const onMessage = vi.fn();
     const onResync = vi.fn();
-    let currentSocket: FakeBrowserWebSocket | null = null;
+    let currentSocket: any = null;
 
     const socket = new LiveSocket({
       url: 'ws://localhost:4000/api/ws',
@@ -213,7 +213,7 @@ describe('Frontend LiveSocket Unit Tests', () => {
 
   it('safely ignores unknown message types and malformed JSON without crashing', () => {
     const onMessage = vi.fn();
-    let currentSocket: FakeBrowserWebSocket | null = null;
+    let currentSocket: any = null;
 
     const socket = new LiveSocket({
       url: 'ws://localhost:4000/api/ws',
@@ -241,7 +241,7 @@ describe('Frontend LiveSocket Unit Tests', () => {
   it('reconnects with exponential backoff on close', () => {
     const onStatus = vi.fn();
     let connectCount = 0;
-    let currentSocket: FakeBrowserWebSocket | null = null;
+    let currentSocket: any = null;
 
     const socket = new LiveSocket({
       url: 'ws://localhost:4000/api/ws',
