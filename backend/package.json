@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:db": "REQUIRE_DB=1 vitest run",
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts",
-    "smoke": "bash scripts/smoke.sh"
+    "smoke": "bash scripts/smoke.sh",
+    "demo:alert": "python3 ../scripts/emit_demo_alert.py"
   },
   "keywords": [
     "border-ai",
