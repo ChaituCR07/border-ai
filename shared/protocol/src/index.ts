@@ -33,7 +33,7 @@ export const ServerMessage = z.discriminatedUnion('type', [
   z.object({
     ...base,
     type: z.literal('hello'),
-    server_epoch: z.string().uuid(),
+    server_epoch: z.string().min(1).max(64),
     seq: z.number().int().min(0),
     server_time: z.string().datetime({ offset: true }),
   }),
