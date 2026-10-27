@@ -288,7 +288,7 @@ class ThreatScorer:
             parts.append(f"multiple suspicious events +{res.bonus}")
         summary = f"{st.level} ({st.score}/{self.cfg.max_score}): " + ", ".join(parts)
         details = {
-            "alert_id": uuid.uuid4().hex, "threat_score": st.score, "severity": st.level, "priority": st.level,
+            "alert_id": str(uuid.uuid4()), "threat_score": st.score, "severity": st.level, "priority": st.level,
             "level": st.level, "previous_level": previous, "escalation": previous is not None,
             "summary": summary, "capped": res.capped, "window_s": self.cfg.window_s,
             "entity": _entity_name(st.key), "contributions": [c.to_dict() for c in counted],

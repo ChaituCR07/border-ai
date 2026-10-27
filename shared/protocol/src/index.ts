@@ -15,8 +15,8 @@ export const AlertEvent = z.object({
 export type AlertEvent = z.infer<typeof AlertEvent>;
 
 export const AlertView = z.object({
-  alert_id: z.string().uuid(),
-  event_id: z.string().uuid(),
+  alert_id: z.string().min(1).max(64),
+  event_id: z.string().min(1).max(64),
   priority: Severity,
   status: z.enum(['OPEN', 'ACKNOWLEDGED', 'RESOLVED']),
   acknowledged_by: z.string().nullable(),
