@@ -1,96 +1,165 @@
-# Border-AI WebSocket Real-Time Alert Streaming Contract (Day 17 Hand-off)
+# WebSocket Gateway Protocol Specification (v1)
 
-## 1. Overview
-On Day 17, live alert delivery transitions from REST polling (`GET /api/alerts?status=OPEN`) to a bidirectional WebSocket transport (`/ws/alerts`).
-This document specifies the message protocol, reconnection sequence recovery, and synchronization hand-off between backend Redis alert streams and the frontend `useOpenAlerts` seam.
+**Endpoint:** `GET /api/ws`  
+**Protocol:** WebSocket (`ws://` / `wss://`)  
+**Package:** `@border-ai/protocol`  
 
 ---
 
-## 2. Handshake and Connection Protocol
+## 1. Overview and Core Invariants
 
-### 2.1 Endpoint
-```text
-ws://localhost:4000/ws/alerts
-wss://<production_domain>/ws/alerts
-```
+The Border-AI WebSocket Gateway provides real-time notification of perimeter security alerts.
 
-### 2.2 Server Hello Message
-Immediately upon connection establishment, the server transmits a hello message containing the current microsecond server timestamp:
+1. **Ephemeral Notification, PostgreSQL Truth:**
+   - Real-time messages are delivered **at-most-once**.
+   - If a connection drops, a message is dropped, or a sequence gap is detected, the client performs a **REST resynchronization** (`GET /api/alerts?status=OPEN`).
+2. **One DTO:**
+   - The WebSocket alert view schema is identical to the REST alert view schema (`AlertView`), with an additional `persisted: boolean` flag indicating whether the database sink has committed the row.
+3. **Monotonic Sequences & Epochs:**
+   - Every state-changing message (`alert.created`, `alert.updated`, `resync_required`) increments a server sequence counter (`seq`).
+   - `server_epoch` uniquely identifies the server process lifetime. If `server_epoch` changes on reconnect, the client must trigger a full resynchronization.
+4. **Heartbeat & Gap Detection:**
+   - The server broadcasts an application-level `{ v: 1, type: 'heartbeat', seq: N, server_time: '...' }` every 15 seconds.
+   - If an idle client receives a heartbeat with `heartbeat.seq > client.last_seq`, the client immediately knows it missed messages and initiates a REST resync.
+
+---
+
+## 2. Connection Handshake & Security
+
+### 2.1 Origin Allowlist
+Upgrade requests are validated against the CORS allowed origins before completing the HTTP-to-WebSocket upgrade. Requests with missing or disallowed origins receive `403 Forbidden`.
+
+### 2.2 Inbound Message Caps
+- Maximum client frame payload: `1024 bytes`.
+- Inbound rate limit: at most 20 messages per 10 seconds. Exceeding this closes the socket with `1008` (Policy Violation).
+
+### 2.3 Slow Consumer Protection
+- Per-client buffer cap: `1 MB` (`bufferedAmount > 1_048_576`).
+- If a slow client exceeds this limit, the gateway closes the connection with code `1013` (Try Again Later) to protect server memory.
+
+---
+
+## 3. Server-to-Client Messages
+
+All messages are JSON objects containing `v: 1`, `type: string`, and `seq: number`.
+
+### 3.1 `hello`
+Sent immediately upon successful connection establishment.
 ```json
 {
   "v": 1,
   "type": "hello",
-  "server_time": "2026-10-26T20:00:00.000000Z",
-  "session_id": "ws-sess-01j9b2k3e4r5t6y7u8i9o0p"
+  "server_epoch": "8e3c54aa-1fb2-47c1-bf1a-351dd8c4e402",
+  "seq": 482,
+  "server_time": "2026-10-27T16:00:00.000000Z"
 }
 ```
 
----
+### 3.2 `heartbeat`
+Broadcast every 15 seconds. Does not increment `seq`.
+```json
+{
+  "v": 1,
+  "type": "heartbeat",
+  "seq": 482,
+  "server_time": "2026-10-27T16:00:15.000000Z"
+}
+```
 
-## 3. Real-Time Event Frames
-
-Each notification frame increments an monotonically increasing per-session sequence counter `seq`:
-
-### 3.1 Alert Created (`alert.created`)
-Broadcast when an alert is created by the Threat Scoring Engine and inserted into the Postgres/Redis stream `surveillance.alerts`:
+### 3.3 `alert.created`
+Broadcast when a new perimeter alert is detected. Increments `seq`.
 ```json
 {
   "v": 1,
   "type": "alert.created",
-  "seq": 10234,
+  "seq": 483,
   "data": {
-    "alert_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-    "event_id": "11111111-1111-1111-1111-111111111111",
-    "priority": "CRITICAL",
-    "status": "OPEN",
-    "acknowledged_by": null,
-    "acknowledged_at": null,
-    "created_at": "2026-10-26T20:01:15.123456Z",
-    "event": {
-      "camera_id": "CAM-01",
-      "event_type": "RESTRICTED_ZONE_ENTRY",
-      "threat_score": 95,
-      "plate": "KA01AB1234",
-      "snapshot_url": "/api/snapshots/CAM-01/snap1.jpg"
+    "alert": {
+      "alert_id": "c71a396e-5da7-4e94-9b37-251f2a3260c1",
+      "event_id": "0192e2b3-6c8a-7e1b-bf3d-246e4912ab01",
+      "priority": "CRITICAL",
+      "status": "OPEN",
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "created_at": "2026-10-27T16:00:20.123456Z",
+      "persisted": true,
+      "event": {
+        "camera_id": "CAM-03",
+        "event_type": "RESTRICTED_ZONE_ENTRY",
+        "threat_score": 92,
+        "plate": "KA01AB1234",
+        "timestamp": "2026-10-27T16:00:19.890123Z",
+        "snapshot_url": "/api/snapshots/0192e2b3-6c8a-7e1b-bf3d-246e4912ab01.jpg",
+        "snapshot_available": true
+      }
     }
   }
 }
 ```
 
-### 3.2 Alert Updated (`alert.updated`)
-Broadcast when an operator acknowledges an alert or when an alert resolves:
+### 3.4 `alert.updated`
+Broadcast when an alert state changes (e.g. operator acknowledgment). Increments `seq`.
 ```json
 {
   "v": 1,
   "type": "alert.updated",
-  "seq": 10235,
+  "seq": 484,
   "data": {
-    "alert_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-    "priority": "CRITICAL",
-    "status": "ACKNOWLEDGED",
-    "acknowledged_by": "operator-chaitanya",
-    "acknowledged_at": "2026-10-26T20:02:00.000000Z"
+    "alert": {
+      "alert_id": "c71a396e-5da7-4e94-9b37-251f2a3260c1",
+      "event_id": "0192e2b3-6c8a-7e1b-bf3d-246e4912ab01",
+      "priority": "CRITICAL",
+      "status": "ACKNOWLEDGED",
+      "acknowledged_by": "operator-01",
+      "acknowledged_at": "2026-10-27T16:00:28.456789Z",
+      "created_at": "2026-10-27T16:00:20.123456Z",
+      "persisted": true,
+      "event": {
+        "camera_id": "CAM-03",
+        "event_type": "RESTRICTED_ZONE_ENTRY",
+        "threat_score": 92,
+        "plate": "KA01AB1234",
+        "timestamp": "2026-10-27T16:00:19.890123Z",
+        "snapshot_url": "/api/snapshots/0192e2b3-6c8a-7e1b-bf3d-246e4912ab01.jpg",
+        "snapshot_available": true
+      }
+    }
   }
+}
+```
+
+### 3.5 `resync_required`
+Sent when the gateway experienced an internal recovery or stream reconnection. Increments `seq`.
+```json
+{
+  "v": 1,
+  "type": "resync_required",
+  "seq": 485,
+  "reason": "gateway_stream_reconnected"
 }
 ```
 
 ---
 
-## 4. Gap Detection & REST Catch-Up
+## 4. Client-to-Server Messages
 
-1. **Sequence Discontinuity:**
-   If a client receives a frame where `seq > last_seen_seq + 1`, a network gap is inferred.
-2. **REST Catch-Up:**
-   The client immediately executes a REST catch-up query:
-   ```http
-   GET /api/alerts?status=OPEN&from=<last_seen_created_at>&limit=50
-   ```
-3. **Reconnection Recovery:**
-   Upon reconnecting after a network dropout, the client queries REST for open alerts and resumes sequence tracking from the new connection's `hello` event.
+### 4.1 `ping`
+```json
+{
+  "v": 1,
+  "type": "ping"
+}
+```
+The server responds immediately with a `heartbeat` message.
 
 ---
 
-## 5. Client Heartbeat Ping/Pong
-- Client transmits `{"type": "ping"}` every 20 seconds.
-- Server responds with `{"type": "pong"}`.
-- Connection is marked degraded if no pong is received within 10 seconds.
+## 5. Close Codes
+
+| Code | Reason | Client Action |
+|---|---|---|
+| `1000` | Normal closure (e.g. client navigation or cleanup) | Do not reconnect unless requested |
+| `1001` | Going away (e.g. server restart) | Reconnect with exponential backoff |
+| `1008` | Policy violation (e.g. rate limit, invalid frame) | Reconnect with backoff; log error |
+| `1009` | Message too big (> 1024 bytes) | Fix client message size |
+| `1013` | Try again later (server full or slow consumer) | Backoff and retry (jittered) |
