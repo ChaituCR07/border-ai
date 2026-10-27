@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import websocket from '@fastify/websocket';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import {
@@ -18,6 +19,10 @@ import { errorHandler } from './common/errors.js';
 import { authenticate } from './common/auth.js';
 import type { AuditRepo } from './common/audit.js';
 
+import { Hub } from './realtime/hub.js';
+import { wsRoutes } from './realtime/ws-route.js';
+import type { AlertStreamConsumer } from './realtime/alert-stream-consumer.js';
+
 import { cameraRoutes } from './modules/cameras/routes.js';
 import type { CamerasRepo } from './modules/cameras/repo.js';
 
@@ -27,6 +32,7 @@ import type { EventsRepo } from './modules/events/repo.js';
 import { alertRoutes } from './modules/alerts/routes.js';
 import type { AlertsRepo } from './modules/alerts/repo.js';
 import type { AlertChangeCallback } from './modules/alerts/service.js';
+import type { AlertResource } from './types/domain.js';
 
 import { watchlistRoutes } from './modules/watchlist/routes.js';
 import type { WatchlistRepo } from './modules/watchlist/repo.js';
@@ -48,6 +54,8 @@ export interface AppDeps {
   pool?: pg.Pool;
   logger?: boolean | Record<string, unknown>;
   onAlertChanged?: AlertChangeCallback;
+  hub?: Hub;
+  consumer?: AlertStreamConsumer;
 }
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
@@ -65,9 +73,24 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.setSerializerCompiler(serializerCompiler);
   app.setErrorHandler(errorHandler);
 
+  const hub =
+    deps.hub ??
+    new Hub({
+      maxClients: 200,
+      maxBufferedBytes: 1024 * 1024,
+      heartbeatMs: 15_000,
+      log: app.log,
+    });
+
+  hub.start();
+
+  app.addHook('onClose', async () => {
+    hub.stop();
+  });
+
   // Security Headers
   await app.register(helmet, {
-    contentSecurityPolicy: false, // Allows Swagger UI to render smoothly
+    contentSecurityPolicy: false,
   });
 
   // CORS
@@ -75,6 +98,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     origin: deps.config.corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
+  });
+
+  // WebSocket support
+  await app.register(websocket, {
+    options: {
+      maxPayload: 1024,
+    },
   });
 
   // Rate Limiting
@@ -127,8 +157,41 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     reply.header('x-request-id', req.id);
   });
 
-  // Root & Health routes
+  // Health routes
   await app.register(healthRoutes({ pool: deps.pool }), { prefix: '/api' });
+
+  // WebSocket & Realtime Status Routes (/api/ws, /api/realtime/status)
+  await app.register(wsRoutes({ hub, config: deps.config, consumer: deps.consumer }), { prefix: '/api' });
+
+  // Alert acknowledgement broadcast hook
+  const handleAlertChanged: AlertChangeCallback = (alert: AlertResource) => {
+    hub.broadcastState({
+      v: 1,
+      type: 'alert.updated',
+      data: {
+        alert: {
+          alert_id: alert.alert_id,
+          event_id: alert.event_id,
+          priority: alert.priority,
+          status: alert.status,
+          acknowledged_by: alert.acknowledged_by,
+          acknowledged_at: alert.acknowledged_at,
+          created_at: alert.created_at,
+          persisted: true,
+          event: {
+            camera_id: alert.event.camera_id,
+            event_type: alert.event.event_type,
+            threat_score: alert.event.threat_score,
+            plate: alert.event.plate ?? null,
+            timestamp: alert.created_at,
+            snapshot_url: alert.event.snapshot_url,
+            snapshot_available: Boolean(alert.event.snapshot_url),
+          },
+        },
+      },
+    });
+    deps.onAlertChanged?.(alert);
+  };
 
   // Main API namespace with authentication seam
   await app.register(
@@ -141,7 +204,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         alertRoutes({
           alertsRepo: deps.alertsRepo,
           auditRepo: deps.auditRepo,
-          onAlertChanged: deps.onAlertChanged,
+          onAlertChanged: handleAlertChanged,
         })
       );
       await api.register(watchlistRoutes({ watchlistRepo: deps.watchlistRepo, auditRepo: deps.auditRepo }));

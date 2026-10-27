@@ -7,11 +7,12 @@ import { SeverityCounters } from './features/threats/SeverityCounters';
 import { AlertFeed } from './features/alerts/AlertFeed';
 import { RecentEvents } from './features/events/RecentEvents';
 import { ErrorBoundary } from './features/system/ErrorBoundary';
+import { LiveAlertsProvider } from './features/alerts/LiveAlertsProvider';
 import { useUIStore } from './state/uiStore';
 import { useOpenAlerts } from './features/alerts/useOpenAlerts';
 import { useCameras } from './features/cameras/useCameras';
 
-export default function App() {
+function AppShell() {
   const toggleVideoLayout = useUIStore((s) => s.toggleVideoLayout);
   const toggleTzMode = useUIStore((s) => s.toggleTzMode);
   const setSelectedCamera = useUIStore((s) => s.setSelectedCamera);
@@ -22,7 +23,7 @@ export default function App() {
   useEffect(() => {
     const crit = counts?.CRITICAL ?? 0;
     if (crit > 0) {
-      document.title = `(${crit}) Border AI Command Center`;
+      document.title = `(${crit}) 🚨 Border AI Command Center`;
     } else {
       document.title = 'Border AI Command Center';
     }
@@ -99,5 +100,13 @@ export default function App() {
         </ErrorBoundary>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LiveAlertsProvider>
+      <AppShell />
+    </LiveAlertsProvider>
   );
 }

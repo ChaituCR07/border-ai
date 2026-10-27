@@ -13,6 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@border-ai/protocol": "file:../shared/protocol",
     "@tanstack/react-query": "^5.66.0",
     "clsx": "^2.1.1",
     "openapi-fetch": "^0.13.4",
