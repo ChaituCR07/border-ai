@@ -1,0 +1,26 @@
+{
+  "v": 1,
+  "type": "alert.created",
+  "seq": 43,
+  "data": {
+    "alert": {
+      "alert_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+      "event_id": "11111111-1111-1111-1111-111111111111",
+      "priority": "CRITICAL",
+      "status": "OPEN",
+      "acknowledged_by": null,
+      "acknowledged_at": null,
+      "created_at": "2026-10-27T12:00:00.000000Z",
+      "persisted": true,
+      "event": {
+        "camera_id": "CAM-03",
+        "event_type": "RESTRICTED_ZONE_ENTRY",
+        "threat_score": 92,
+        "plate": "KA01AB1234",
+        "timestamp": "2026-10-27T12:00:00.000000Z",
+        "snapshot_url": "/api/snapshots/CAM-03/snap.jpg",
+        "snapshot_available": true
+      }
+    }
+  }
+}

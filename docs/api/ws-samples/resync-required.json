@@ -1,0 +1,6 @@
+{
+  "v": 1,
+  "type": "resync_required",
+  "seq": 45,
+  "reason": "stream_reconnected"
+}
