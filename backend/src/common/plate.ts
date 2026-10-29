@@ -147,6 +147,9 @@ export function classifyPlateMatch(
   if (mode === 'contains') {
     return cNorm.includes(qNorm) ? 'partial' : 'none';
   }
+  if (mode === 'exact') {
+    return qNorm === cNorm ? 'exact' : 'none';
+  }
 
   // Default / lookalike mode: exact match wins first
   if (qNorm === cNorm) return 'exact';

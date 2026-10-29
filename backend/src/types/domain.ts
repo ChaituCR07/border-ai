@@ -35,6 +35,9 @@ export interface EventResource {
   has_snapshot: boolean;
   snapshot_available: boolean;
   plate?: string | null;
+  plate_match?: 'exact' | 'lookalike' | 'prefix' | 'partial' | null;
+  vehicle_id?: string | null;
+  person_id?: string | null;
 }
 
 export interface EventDetailResource extends EventResource {

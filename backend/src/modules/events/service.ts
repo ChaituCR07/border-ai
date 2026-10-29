@@ -5,7 +5,7 @@ import type { EventResource, EventDetailResource, Severity } from '../../types/d
 import { clampLimit, decodeCursor, encodeCursor, type Cursor, type PaginatedResponse } from '../../common/pagination.js';
 import { notFound, AppError } from '../../common/errors.js';
 import { validateTimeRange } from '../../common/time.js';
-import { normalisePlate } from '../../common/plate.js';
+import { classifyOmniboxQuery } from '../investigation/query-classifier.js';
 
 export class EventsService {
   constructor(
@@ -40,25 +40,99 @@ export class EventsService {
       has_snapshot: hasSnapshot,
       snapshot_available: snapshotAvailable,
       plate: r.plate ?? null,
+      plate_match: r.plate_match ?? null,
+      vehicle_id: r.vehicle_id ?? null,
+      person_id: r.person_id ?? null,
     };
   }
 
   async list(query: any): Promise<PaginatedResponse<EventResource>> {
     validateTimeRange(query.from, query.to);
 
+    // Time-of-day requires explicit from/to dates (ADR 0023 / Pitfall S2)
+    if (query.time_from || query.time_to) {
+      if (!query.from || !query.to) {
+        throw new AppError(
+          400,
+          'VALIDATION_ERROR',
+          'Date range (from and to) is required when using time-of-day filters'
+        );
+      }
+      if (!query.time_from || !query.time_to) {
+        throw new AppError(
+          400,
+          'VALIDATION_ERROR',
+          'Both time_from and time_to are required for time-of-day filtering'
+        );
+      }
+    }
+
+    if (query.tz) {
+      const validZones = typeof Intl.supportedValuesOf === 'function'
+        ? Intl.supportedValuesOf('timeZone')
+        : ['UTC'];
+      if (query.tz !== 'UTC' && !validZones.includes(query.tz)) {
+        throw new AppError(400, 'VALIDATION_ERROR', `Invalid timezone '${query.tz}'`);
+      }
+    }
+
+    // Person ID lookup requires justification (ADR 0024)
+    if (query.person_id) {
+      if (!query.purpose || query.purpose.trim().length < 5) {
+        throw new AppError(
+          422,
+          'PURPOSE_REQUIRED',
+          'A purpose (case reference) is required for person searches'
+        );
+      }
+    }
+
+    // Omnibox free text query fallback
+    let omniboxParsed: Record<string, string> = {};
+    if (query.q) {
+      omniboxParsed = classifyOmniboxQuery(query.q);
+    }
+
+    const sortMode: 'time' | 'score' = query.sort === 'score' ? 'score' : 'time';
     const limit = clampLimit(query.limit, 50, 200);
-    const cursor: Cursor | undefined = query.cursor ? decodeCursor(query.cursor) : undefined;
+    const cursor: Cursor | undefined = query.cursor ? decodeCursor(query.cursor, sortMode) : undefined;
+
+    const cameraId = query.camera_id ?? omniboxParsed.cameraId;
+    const cameraIds = cameraId
+      ? cameraId.split(',').map((s: string) => s.trim()).filter(Boolean)
+      : undefined;
+
+    const eventType = query.event_type ?? omniboxParsed.eventType;
+    const eventTypes = eventType
+      ? eventType.split(',').map((s: string) => s.trim()).filter(Boolean)
+      : undefined;
+
+    const severities = query.severity
+      ? query.severity.split(',').map((s: string) => s.trim() as Severity).filter(Boolean)
+      : undefined;
+
+    const plate = query.plate ?? omniboxParsed.plate;
+    const plateMatch = query.plate_match ?? (omniboxParsed.plateMatch as any) ?? 'lookalike';
 
     const filters: EventFilters = {
-      cameraId: query.camera_id,
-      eventTypes: query.event_type ? query.event_type.split(',').map((s: string) => s.trim()) : undefined,
-      severities: query.severity ? query.severity.split(',').map((s: string) => s.trim() as Severity) : undefined,
+      eventId: omniboxParsed.eventId,
+      cameraId: cameraIds && cameraIds.length === 1 ? cameraIds[0] : undefined,
+      cameraIds: cameraIds && cameraIds.length > 1 ? cameraIds : undefined,
+      eventTypes,
+      severities,
       minScore: query.min_score,
       maxScore: query.max_score,
       from: query.from,
       to: query.to,
       trackId: query.track_id,
-      plate: query.plate ? normalisePlate(query.plate) : undefined,
+      plate,
+      plateMatch,
+      vehicleId: query.vehicle_id,
+      personId: query.person_id,
+      timeFrom: query.time_from,
+      timeTo: query.time_to,
+      tz: query.tz,
+      sort: sortMode,
     };
 
     // Keyset pagination: fetch limit + 1
@@ -66,12 +140,24 @@ export class EventsService {
     const hasMore = rows.length > limit;
     const pageRows = hasMore ? rows.slice(0, limit) : rows;
 
-    const nextCursor = hasMore && pageRows.length > 0
-      ? encodeCursor({
-          t: pageRows[pageRows.length - 1]!.timestamp,
-          id: pageRows[pageRows.length - 1]!.event_id,
-        })
-      : null;
+    let nextCursor: string | null = null;
+    if (hasMore && pageRows.length > 0) {
+      const last = pageRows[pageRows.length - 1]!;
+      nextCursor = encodeCursor(
+        sortMode === 'score'
+          ? {
+              sort: 'score',
+              score: last.threat_score,
+              t: last.timestamp,
+              id: last.event_id,
+            }
+          : {
+              sort: 'time',
+              t: last.timestamp,
+              id: last.event_id,
+            }
+      );
+    }
 
     return {
       data: pageRows.map(r => this.mapResource(r)),
