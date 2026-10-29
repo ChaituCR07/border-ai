@@ -204,7 +204,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       api.addHook('preHandler', authenticate);
 
       await api.register(cameraRoutes({ camerasRepo: deps.camerasRepo, auditRepo: deps.auditRepo }));
-      await api.register(eventRoutes({ eventsRepo: deps.eventsRepo, snapshotDir: deps.config.SNAPSHOT_DIR }));
+      await api.register(
+        eventRoutes({
+          eventsRepo: deps.eventsRepo,
+          snapshotDir: deps.config.SNAPSHOT_DIR,
+          auditRepo: deps.auditRepo,
+        })
+      );
       await api.register(
         alertRoutes({
           alertsRepo: deps.alertsRepo,
@@ -213,7 +219,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         })
       );
       if (deps.investigationRepo) {
-        await api.register(investigationRoutes({ investigationRepo: deps.investigationRepo }));
+        await api.register(
+          investigationRoutes({
+            investigationRepo: deps.investigationRepo,
+            auditRepo: deps.auditRepo,
+          })
+        );
       }
       await api.register(watchlistRoutes({ watchlistRepo: deps.watchlistRepo, auditRepo: deps.auditRepo }));
       await api.register(analyticsRoutes({ analyticsRepo: deps.analyticsRepo }));
