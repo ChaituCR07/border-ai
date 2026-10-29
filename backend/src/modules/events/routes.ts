@@ -3,15 +3,24 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { EventsService } from './service.js';
 import type { EventsRepo } from './repo.js';
-import { EventQuerySchema, EventItemSchema, EventDetailSchema, EventIdSchema } from './schemas.js';
+import type { InvestigationRepo } from '../investigation/repo.js';
+import {
+  EventQuerySchema,
+  EventItemSchema,
+  EventDetailSchema,
+  EventIdSchema,
+  EventContextQuerySchema,
+  EventContextResponseSchema,
+} from './schemas.js';
 
 export interface EventRouteDeps {
   eventsRepo: EventsRepo;
+  investigationRepo?: InvestigationRepo;
   snapshotDir: string;
 }
 
 export function eventRoutes(deps: EventRouteDeps): FastifyPluginAsync {
-  const service = new EventsService(deps.eventsRepo, deps.snapshotDir);
+  const service = new EventsService(deps.eventsRepo, deps.snapshotDir, deps.investigationRepo);
 
   return async (fastify: FastifyInstance) => {
     const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -37,6 +46,24 @@ export function eventRoutes(deps: EventRouteDeps): FastifyPluginAsync {
       },
       async (req) => {
         return service.list(req.query);
+      }
+    );
+
+    app.get(
+      '/events/:id/context',
+      {
+        schema: {
+          tags: ['Events', 'Investigation'],
+          summary: 'Get temporal camera and subject context around an event',
+          params: z.object({ id: EventIdSchema }),
+          querystring: EventContextQuerySchema,
+          response: {
+            200: EventContextResponseSchema,
+          },
+        },
+      },
+      async (req) => {
+        return service.getContext(req.params.id, req.query.window_s, (req as any).actor?.role);
       }
     );
 

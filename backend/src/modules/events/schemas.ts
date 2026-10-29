@@ -55,3 +55,20 @@ export const EventDetailSchema = EventItemSchema.extend({
     priority: SeverityEnum,
   }).nullable().optional(),
 });
+
+export const EventContextQuerySchema = z.object({
+  window_s: z.coerce.number().int().min(5).max(600).default(60),
+});
+
+export const EventContextResponseSchema = z.object({
+  data: z.object({
+    event: EventItemSchema,
+    same_camera_around: z.array(EventItemSchema),
+    same_subject_elsewhere: z.array(EventItemSchema),
+    alert: z.object({
+      alert_id: z.string(),
+      status: z.enum(['OPEN', 'ACKNOWLEDGED', 'RESOLVED']),
+      priority: SeverityEnum,
+    }).nullable().optional(),
+  }),
+});

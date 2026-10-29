@@ -1,6 +1,6 @@
 import type { EventsRepo, EventFilters, EventRow } from './repo.js';
 import type { Cursor } from '../../common/pagination.js';
-import { classifyPlateMatch, type PlateMatch } from '../../common/plate.js';
+import { classifyPlateMatch, plateKey, type PlateMatch } from '../../common/plate.js';
 
 export class InMemoryEventsRepo implements EventsRepo {
   private rows: EventRow[] = [];
@@ -143,6 +143,75 @@ export class InMemoryEventsRepo implements EventsRepo {
     return {
       row,
       alert: this.alerts.get(id) ?? null,
+    };
+  }
+
+  async getContext(
+    eventId: string,
+    windowSeconds: number,
+    allowPersonCorrelation: boolean = false
+  ): Promise<{
+    event: EventRow;
+    alert?: { alert_id: string; status: any; priority: any } | null;
+    sameCameraAround: EventRow[];
+    sameSubjectElsewhere: EventRow[];
+  } | null> {
+    const item = await this.getById(eventId);
+    if (!item) return null;
+    const { row: ev, alert } = item;
+
+    const evTime = new Date(ev.timestamp).getTime();
+    const winMs = windowSeconds * 1000;
+    const fifteenMinMs = 15 * 60 * 1000;
+
+    const sameCameraAround = this.rows
+      .filter(r => {
+        if (r.event_id === ev.event_id) return false;
+        if (r.camera_id !== ev.camera_id) return false;
+        const t = new Date(r.timestamp).getTime();
+        return t >= evTime - winMs && t <= evTime + winMs;
+      })
+      .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+      .slice(0, 50);
+
+    const evPlate = ev.plate ?? (ev.metadata?.plate as string) ?? null;
+    const evPlateKey = evPlate ? plateKey(evPlate) : null;
+    const evVehicleId = ev.vehicle_id ?? (ev.metadata?.vehicle_id as string) ?? null;
+    const evPersonId = ev.person_id ?? (ev.metadata?.person_id as string) ?? null;
+
+    let sameSubjectElsewhere: EventRow[] = [];
+    const canCorrelatePerson = allowPersonCorrelation && Boolean(evPersonId);
+
+    if (evPlateKey || evVehicleId || canCorrelatePerson) {
+      sameSubjectElsewhere = this.rows
+        .filter(r => {
+          if (r.event_id === ev.event_id) return false;
+          if (r.camera_id === ev.camera_id) return false;
+          const t = new Date(r.timestamp).getTime();
+          if (t < evTime - fifteenMinMs || t > evTime + fifteenMinMs) return false;
+
+          if (evVehicleId && (r.vehicle_id === evVehicleId || r.metadata?.vehicle_id === evVehicleId)) {
+            return true;
+          }
+          if (evPlateKey) {
+            const candPlate = r.plate ?? (r.metadata?.plate as string);
+            if (candPlate && plateKey(candPlate) === evPlateKey) return true;
+          }
+          if (canCorrelatePerson) {
+            const candPerson = r.person_id ?? (r.metadata?.person_id as string) ?? (r.metadata?.reid_candidate_id as string) ?? (r.metadata?.subject_id as string);
+            if (candPerson && candPerson === evPersonId) return true;
+          }
+          return false;
+        })
+        .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+        .slice(0, 50);
+    }
+
+    return {
+      event: ev,
+      alert,
+      sameCameraAround,
+      sameSubjectElsewhere,
     };
   }
 }

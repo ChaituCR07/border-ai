@@ -41,4 +41,14 @@ export interface EventRow {
 export interface EventsRepo {
   list(filters: EventFilters, limit: number, cursor?: Cursor): Promise<EventRow[]>;
   getById(id: string): Promise<{ row: EventRow; alert?: { alert_id: string; status: any; priority: any } | null } | null>;
+  getContext(
+    eventId: string,
+    windowSeconds: number,
+    allowPersonCorrelation?: boolean
+  ): Promise<{
+    event: EventRow;
+    alert?: { alert_id: string; status: any; priority: any } | null;
+    sameCameraAround: EventRow[];
+    sameSubjectElsewhere: EventRow[];
+  } | null>;
 }

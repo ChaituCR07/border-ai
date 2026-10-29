@@ -184,4 +184,30 @@ export class EventsService {
       alert: res.alert ?? null,
     };
   }
+
+  async getContext(
+    id: string,
+    windowSeconds = 60,
+    role?: string
+  ): Promise<{
+    data: {
+      event: EventResource;
+      same_camera_around: EventResource[];
+      same_subject_elsewhere: EventResource[];
+      alert?: { alert_id: string; status: any; priority: any } | null;
+    };
+  }> {
+    const isInvestigator = role === 'INVESTIGATOR' || role === 'ADMIN';
+    const ctx = await this.repo.getContext(id, windowSeconds, isInvestigator);
+    if (!ctx) throw notFound(`Event '${id}'`);
+
+    return {
+      data: {
+        event: this.mapResource(ctx.event),
+        same_camera_around: ctx.sameCameraAround.map(r => this.mapResource(r)),
+        same_subject_elsewhere: ctx.sameSubjectElsewhere.map(r => this.mapResource(r)),
+        alert: ctx.alert ?? null,
+      },
+    };
+  }
 }
