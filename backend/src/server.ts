@@ -6,6 +6,7 @@ import { PgEventsRepo } from './modules/events/repo.pg.js';
 import { PgAlertsRepo } from './modules/alerts/repo.pg.js';
 import { PgWatchlistRepo } from './modules/watchlist/repo.pg.js';
 import { PgAnalyticsRepo } from './modules/analytics/repo.pg.js';
+import { PgInvestigationRepo } from './modules/investigation/repo.pg.js';
 import { PgAuditRepo } from './common/audit.js';
 import { Hub } from './realtime/hub.js';
 import { AlertHydrator } from './realtime/hydrator.js';
@@ -31,6 +32,7 @@ async function bootstrap() {
   const alertsRepo = new PgAlertsRepo(pool);
   const watchlistRepo = new PgWatchlistRepo(pool);
   const analyticsRepo = new PgAnalyticsRepo(pool);
+  const investigationRepo = new PgInvestigationRepo(pool);
   const auditRepo = new PgAuditRepo(pool);
 
   const hub = new Hub({
@@ -80,6 +82,7 @@ async function bootstrap() {
     alertsRepo,
     watchlistRepo,
     analyticsRepo,
+    investigationRepo,
     auditRepo,
     pool,
     hub,

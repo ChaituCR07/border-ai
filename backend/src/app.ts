@@ -43,6 +43,9 @@ import type { AnalyticsRepo } from './modules/analytics/repo.js';
 import { snapshotRoutes } from './modules/snapshots/routes.js';
 import { healthRoutes } from './modules/health/routes.js';
 
+import { investigationRoutes } from './modules/investigation/routes.js';
+import type { InvestigationRepo } from './modules/investigation/repo.js';
+
 export interface AppDeps {
   config: Config;
   camerasRepo: CamerasRepo;
@@ -50,6 +53,7 @@ export interface AppDeps {
   alertsRepo: AlertsRepo;
   watchlistRepo: WatchlistRepo;
   analyticsRepo: AnalyticsRepo;
+  investigationRepo?: InvestigationRepo;
   auditRepo?: AuditRepo;
   pool?: pg.Pool;
   logger?: boolean | Record<string, unknown>;
@@ -118,7 +122,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     openapi: {
       info: {
         title: 'Border-AI Video Intelligence Platform API',
-        description: 'REST API exposing cameras, events, alerts, watchlist, and analytics from PostgreSQL',
+        description: 'REST API exposing cameras, events, alerts, watchlist, analytics, and investigation workbench',
         version: '0.3.0',
       },
       servers: [
@@ -131,6 +135,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         { name: 'Cameras', description: 'Camera inventory, credentials references, and live MJPEG streaming' },
         { name: 'Events', description: 'Video analytics events with keyset pagination and threat explanation' },
         { name: 'Alerts', description: 'Threat alert feed with idempotent, race-safe acknowledgement' },
+        { name: 'Investigation', description: 'Forensic search, disjunctive facets, suggest, context, and journey' },
         { name: 'Watchlist', description: 'Strictly non-biometric vehicle and person watchlist management' },
         { name: 'Analytics', description: 'Aggregated time-series, operational camera metrics, and threat histograms' },
         { name: 'Health', description: 'Liveness and database readiness probes' },
@@ -207,6 +212,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           onAlertChanged: handleAlertChanged,
         })
       );
+      if (deps.investigationRepo) {
+        await api.register(investigationRoutes({ investigationRepo: deps.investigationRepo }));
+      }
       await api.register(watchlistRoutes({ watchlistRepo: deps.watchlistRepo, auditRepo: deps.auditRepo }));
       await api.register(analyticsRoutes({ analyticsRepo: deps.analyticsRepo }));
       await api.register(snapshotRoutes({ snapshotDir: deps.config.SNAPSHOT_DIR }));
