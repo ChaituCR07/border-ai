@@ -62,3 +62,43 @@ export const SuggestResponseSchema = z.object({
     })
   ),
 });
+
+export const JourneyQuerySchema = z.object({
+  plate: z.string().min(2).max(16).optional(),
+  vehicle_id: z.string().min(1).max(64).optional(),
+  from: z.string().datetime({ offset: true }).optional(),
+  to: z.string().datetime({ offset: true }).optional(),
+}).strict().refine(
+  data => (data.plate && !data.vehicle_id) || (!data.plate && data.vehicle_id),
+  {
+    message: 'Exactly one of plate or vehicle_id must be provided',
+    path: ['plate'],
+  }
+);
+
+export const JourneyResponseSchema = z.object({
+  data: z.object({
+    sightings: z.array(z.object({
+      camera_id: z.string(),
+      first_seen: z.string(),
+      last_seen: z.string(),
+      event_count: z.number(),
+      max_score: z.number(),
+      event_types: z.array(z.string()),
+      event_ids: z.array(z.string()),
+      plates: z.array(z.string()),
+    })),
+    transitions: z.array(z.object({
+      from: z.string(),
+      to: z.string(),
+      gap_s: z.number(),
+    })),
+    total_events: z.number(),
+    span_s: z.number(),
+    plate_variants: z.array(z.string()),
+  }),
+  meta: z.object({
+    truncated: z.boolean(),
+    total_matching: z.number(),
+  }),
+});

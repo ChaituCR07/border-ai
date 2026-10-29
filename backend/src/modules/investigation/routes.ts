@@ -8,6 +8,8 @@ import {
   FacetsResponseSchema,
   SuggestQuerySchema,
   SuggestResponseSchema,
+  JourneyQuerySchema,
+  JourneyResponseSchema,
 } from './schemas.js';
 
 export interface InvestigationRouteDeps {
@@ -51,6 +53,23 @@ export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPlugin
       },
       async (req) => {
         return service.suggest(req.query.kind, req.query.prefix, req.actor?.role);
+      }
+    );
+
+    app.get(
+      '/investigation/journey',
+      {
+        schema: {
+          tags: ['Investigation'],
+          summary: 'Get vehicle journey (chronological sightings and transitions)',
+          querystring: JourneyQuerySchema,
+          response: {
+            200: JourneyResponseSchema,
+          },
+        },
+      },
+      async (req) => {
+        return service.getJourney(req.query);
       }
     );
   };

@@ -86,19 +86,35 @@ export class InvestigationService {
     return { data: res };
   }
 
-  async getJourney(query: { plate?: string; vehicle_id?: string; from?: string; to?: string }): Promise<{ data: Journey; meta: { truncated: boolean } }> {
+  async getJourney(query: { plate?: string; vehicle_id?: string; from?: string; to?: string }): Promise<{
+    data: Journey;
+    meta: { truncated: boolean; total_matching: number };
+  }> {
     if ((!query.plate && !query.vehicle_id) || (query.plate && query.vehicle_id)) {
       throw new AppError(400, 'VALIDATION_ERROR', 'Exactly one of plate or vehicle_id must be provided');
+    }
+
+    const toStr = query.to ?? new Date().toISOString();
+    const fromStr = query.from ?? new Date(new Date(toStr).getTime() - 24 * 3600 * 1000).toISOString();
+    validateTimeRange(fromStr, toStr);
+
+    const spanMs = new Date(toStr).getTime() - new Date(fromStr).getTime();
+    const maxSpanMs = 7 * 24 * 3600 * 1000;
+    if (spanMs > maxSpanMs) {
+      throw new AppError(400, 'VALIDATION_ERROR', 'Maximum journey time span is 7 days');
     }
 
     const events = await this.repo.getJourneyEvents({
       plate: query.plate,
       vehicleId: query.vehicle_id,
-      from: query.from,
-      to: query.to,
+      from: fromStr,
+      to: toStr,
     });
 
-    const journey = buildJourney(events.map(e => ({
+    const isTruncated = events.length >= 5000;
+    const cappedEvents = events.slice(0, 5000);
+
+    const journey = buildJourney(cappedEvents.map(e => ({
       event_id: e.event_id,
       camera_id: e.camera_id,
       event_type: e.event_type,
@@ -110,7 +126,10 @@ export class InvestigationService {
 
     return {
       data: journey,
-      meta: { truncated: events.length >= 5000 },
+      meta: {
+        truncated: isTruncated,
+        total_matching: events.length,
+      },
     };
   }
 }
