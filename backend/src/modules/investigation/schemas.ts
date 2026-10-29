@@ -46,3 +46,19 @@ export const FacetsResponseSchema = z.object({
     capped: z.boolean(),
   }),
 });
+
+export const SuggestQuerySchema = z.object({
+  kind: z.enum(['plate', 'camera', 'person']),
+  prefix: z.string().min(1).max(32),
+  limit: z.coerce.number().int().min(1).max(20).default(10),
+});
+
+export const SuggestResponseSchema = z.object({
+  data: z.array(
+    z.object({
+      value: z.string(),
+      count: z.number(),
+      last_seen: z.string(),
+    })
+  ),
+});

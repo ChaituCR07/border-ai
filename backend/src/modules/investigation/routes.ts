@@ -3,7 +3,12 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { InvestigationService } from './service.js';
 import type { InvestigationRepo } from './repo.js';
-import { FacetsQuerySchema, FacetsResponseSchema } from './schemas.js';
+import {
+  FacetsQuerySchema,
+  FacetsResponseSchema,
+  SuggestQuerySchema,
+  SuggestResponseSchema,
+} from './schemas.js';
 
 export interface InvestigationRouteDeps {
   investigationRepo: InvestigationRepo;
@@ -29,6 +34,23 @@ export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPlugin
       },
       async (req) => {
         return service.getFacets(req.query);
+      }
+    );
+
+    app.get(
+      '/investigation/suggest',
+      {
+        schema: {
+          tags: ['Investigation'],
+          summary: 'Typeahead suggestion for plates, cameras, and person identifiers',
+          querystring: SuggestQuerySchema,
+          response: {
+            200: SuggestResponseSchema,
+          },
+        },
+      },
+      async (req) => {
+        return service.suggest(req.query.kind, req.query.prefix, req.actor?.role);
       }
     );
   };
