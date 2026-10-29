@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const EventIdSchema = z.string().uuid('event_id must be a valid UUID');
 
 export const SeverityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
+export const PlateMatchEnum = z.enum(['exact', 'lookalike', 'prefix', 'contains']);
+export const SortEnum = z.enum(['time', 'score']);
 
 export const EventQuerySchema = z.object({
   camera_id: z.string().optional(),
@@ -14,6 +16,15 @@ export const EventQuerySchema = z.object({
   to: z.string().datetime({ offset: true }).optional(),
   track_id: z.string().optional(),
   plate: z.string().optional(),
+  plate_match: PlateMatchEnum.default('lookalike'),
+  vehicle_id: z.string().optional(),
+  person_id: z.string().optional(),
+  purpose: z.string().optional(),
+  time_from: z.string().regex(/^\d{2}:\d{2}$/, 'time_from must be HH:MM').optional(),
+  time_to: z.string().regex(/^\d{2}:\d{2}$/, 'time_to must be HH:MM').optional(),
+  tz: z.string().optional(),
+  q: z.string().optional(),
+  sort: SortEnum.default('time'),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   cursor: z.string().optional(),
 }).strict();
@@ -30,6 +41,9 @@ export const EventItemSchema = z.object({
   has_snapshot: z.boolean(),
   snapshot_available: z.boolean(),
   plate: z.string().nullable().optional(),
+  plate_match: z.enum(['exact', 'lookalike', 'prefix', 'partial']).nullable().optional(),
+  vehicle_id: z.string().nullable().optional(),
+  person_id: z.string().nullable().optional(),
 });
 
 export const EventDetailSchema = EventItemSchema.extend({
@@ -40,4 +54,21 @@ export const EventDetailSchema = EventItemSchema.extend({
     status: z.enum(['OPEN', 'ACKNOWLEDGED', 'RESOLVED']),
     priority: SeverityEnum,
   }).nullable().optional(),
+});
+
+export const EventContextQuerySchema = z.object({
+  window_s: z.coerce.number().int().min(5).max(600).default(60),
+});
+
+export const EventContextResponseSchema = z.object({
+  data: z.object({
+    event: EventItemSchema,
+    same_camera_around: z.array(EventItemSchema),
+    same_subject_elsewhere: z.array(EventItemSchema),
+    alert: z.object({
+      alert_id: z.string(),
+      status: z.enum(['OPEN', 'ACKNOWLEDGED', 'RESOLVED']),
+      priority: SeverityEnum,
+    }).nullable().optional(),
+  }),
 });

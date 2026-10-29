@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Header } from './features/system/Header';
 import { StaleBanner } from './features/system/StaleBanner';
 import { CameraSidebar } from './features/cameras/CameraSidebar';
@@ -11,6 +12,7 @@ import { LiveAlertsProvider } from './features/alerts/LiveAlertsProvider';
 import { useUIStore } from './state/uiStore';
 import { useOpenAlerts } from './features/alerts/useOpenAlerts';
 import { useCameras } from './features/cameras/useCameras';
+import { InvestigationPage } from './features/investigation/InvestigationPage';
 
 function AppShell() {
   const toggleVideoLayout = useUIStore((s) => s.toggleVideoLayout);
@@ -105,8 +107,13 @@ function AppShell() {
 
 export default function App() {
   return (
-    <LiveAlertsProvider>
-      <AppShell />
-    </LiveAlertsProvider>
+    <BrowserRouter>
+      <LiveAlertsProvider>
+        <Routes>
+          <Route path="/" element={<AppShell />} />
+          <Route path="/investigation" element={<InvestigationPage />} />
+        </Routes>
+      </LiveAlertsProvider>
+    </BrowserRouter>
   );
 }

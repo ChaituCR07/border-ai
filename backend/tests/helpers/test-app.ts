@@ -6,6 +6,7 @@ import { InMemoryEventsRepo } from '../../src/modules/events/repo.memory.js';
 import { InMemoryAlertsRepo } from '../../src/modules/alerts/repo.memory.js';
 import { InMemoryWatchlistRepo } from '../../src/modules/watchlist/repo.memory.js';
 import { InMemoryAnalyticsRepo } from '../../src/modules/analytics/repo.memory.js';
+import { InMemoryInvestigationRepo } from '../../src/modules/investigation/repo.memory.js';
 import { InMemoryAuditRepo } from '../../src/common/audit.js';
 
 export async function createTestApp(): Promise<{
@@ -15,6 +16,7 @@ export async function createTestApp(): Promise<{
   alertsRepo: InMemoryAlertsRepo;
   watchlistRepo: InMemoryWatchlistRepo;
   analyticsRepo: InMemoryAnalyticsRepo;
+  investigationRepo: InMemoryInvestigationRepo;
   auditRepo: InMemoryAuditRepo;
 }> {
   const config = loadConfig({
@@ -30,6 +32,7 @@ export async function createTestApp(): Promise<{
   const alertsRepo = new InMemoryAlertsRepo();
   const watchlistRepo = new InMemoryWatchlistRepo();
   const analyticsRepo = new InMemoryAnalyticsRepo();
+  const investigationRepo = new InMemoryInvestigationRepo(eventsRepo);
   const auditRepo = new InMemoryAuditRepo();
 
   const app = await buildApp({
@@ -39,6 +42,7 @@ export async function createTestApp(): Promise<{
     alertsRepo,
     watchlistRepo,
     analyticsRepo,
+    investigationRepo,
     auditRepo,
     logger: false,
   });
@@ -52,6 +56,7 @@ export async function createTestApp(): Promise<{
     alertsRepo,
     watchlistRepo,
     analyticsRepo,
+    investigationRepo,
     auditRepo,
   };
 }

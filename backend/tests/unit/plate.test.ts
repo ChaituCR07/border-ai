@@ -1,24 +1,44 @@
 import { describe, it, expect } from 'vitest';
-import fs from 'node:fs';
-import path from 'node:path';
-import { normalisePlate, cleanPlateText } from '../../src/common/plate.js';
+import fs from 'fs';
+import path from 'path';
+import {
+  plateNorm,
+  plateKey,
+  escapeLike,
+  classifyPlateMatch,
+  type PlateMatch,
+} from '../../src/common/plate.js';
 
-describe('Plate Normalizer', () => {
-  it('cleans text stripping spaces, punctuation, and uppercase conversion', () => {
-    expect(cleanPlateText('ka - 01 ab 1234')).toBe('KA01AB1234');
+describe('Plate Normalisation & OCR Look-Alike (Unit & Parity)', () => {
+  it('plateNorm cleans uppercase alphanumeric characters and strips whitespace/punctuation', () => {
+    expect(plateNorm('ka 01-ab 1234')).toBe('KA01AB1234');
+    expect(plateNorm('   dl_04.gh-9999   ')).toBe('DL04GH9999');
+    expect(plateNorm('  ---  ')).toBe('');
+    expect(plateNorm('')).toBe('');
   });
 
-  it('corrects OCR letter-to-digit lookalikes for Indian registration', () => {
-    expect(normalisePlate('KAO1AB1234')).toBe('KA01AB1234');
+  it('plateKey maps confusable characters to canonical classes', () => {
+    expect(plateKey('KA0IAB1234')).toBe(plateKey('KA01AB1234'));
+    expect(plateKey('KAO1AB1234')).toBe(plateKey('KA01AB1234'));
+    expect(plateKey('KA01A81234')).toBe(plateKey('KA01AB1234'));
+    expect(plateKey('KA01AB1234')).not.toBe(plateKey('KA01AB1235'));
   });
 
-  it('passes all cross-language test fixtures identically to Python', () => {
-    const fixturePath = path.resolve(__dirname, '../fixtures/plate_normalization.json');
-    const fixtures: { input: string; expected: string }[] = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
+  it('escapeLike escapes LIKE metacharacters % and _ and backslash', () => {
+    expect(escapeLike('KA_1%')).toBe('KA\\_1\\%');
+    expect(escapeLike('test\\case%_')).toBe('test\\\\case\\%\\_');
+  });
 
-    for (const testCase of fixtures) {
-      const actual = normalisePlate(testCase.input);
-      expect(actual).toBe(testCase.expected);
+  it('conforms 100% to shared fixture plate_matching_cases.json', () => {
+    const fixturePath = path.resolve(__dirname, '../../../docs/fixtures/plate_matching_cases.json');
+    expect(fs.existsSync(fixturePath)).toBe(true);
+
+    const cases = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+
+    for (const c of cases) {
+      const mode = (c.mode ?? 'lookalike') as PlateMatch;
+      const actual = classifyPlateMatch(c.query, c.candidate, mode);
+      expect(actual, `Failed for query="${c.query}", candidate="${c.candidate}", mode="${mode}"`).toBe(c.expect);
     }
   });
 });

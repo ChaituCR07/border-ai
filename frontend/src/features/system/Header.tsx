@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useUIStore } from '../../state/uiStore';
 import { Clock } from './Clock';
 import { ConnectionBadge } from './ConnectionBadge';
@@ -75,6 +76,20 @@ export function Header() {
           <span className="text-[var(--text-muted)] font-mono">GRID:</span>
           <span className="font-bold text-[var(--sev-low)]">{videoLayout.toUpperCase()}</span>
         </button>
+
+        <Link
+          to="/investigation"
+          aria-label="Open forensic investigation workbench"
+          className="flex items-center gap-1.5 px-3 py-1 rounded text-xs border border-sky-800/60 bg-sky-950/60 hover:bg-sky-900/60 text-sky-200 transition-colors font-medium cursor-pointer"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <span>Investigation</span>
+          <kbd className="hidden sm:inline-block px-1 py-0.2 text-[10px] bg-sky-900/80 rounded border border-sky-700/60">
+            /
+          </kbd>
+        </Link>
 
         <Clock />
         <ConnectionBadge />

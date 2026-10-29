@@ -1,8 +1,9 @@
-import type { Severity, EventResource, EventDetailResource } from '../../types/domain.js';
+import type { Severity } from '../../types/domain.js';
 import type { Cursor } from '../../common/pagination.js';
 
 export interface EventFilters {
   cameraId?: string;
+  cameraIds?: string[];
   eventTypes?: string[];
   severities?: Severity[];
   minScore?: number;
@@ -11,6 +12,14 @@ export interface EventFilters {
   to?: string;
   trackId?: string;
   plate?: string;
+  plateMatch?: 'exact' | 'lookalike' | 'prefix' | 'contains';
+  vehicleId?: string;
+  personId?: string;
+  timeFrom?: string;
+  timeTo?: string;
+  tz?: string;
+  sort?: 'time' | 'score';
+  eventId?: string;
 }
 
 export interface EventRow {
@@ -23,10 +32,23 @@ export interface EventRow {
   timestamp: string;
   snapshot_path: string | null;
   plate?: string | null;
+  plate_match?: 'exact' | 'lookalike' | 'prefix' | 'partial' | null;
+  vehicle_id?: string | null;
+  person_id?: string | null;
   metadata?: Record<string, unknown>;
 }
 
 export interface EventsRepo {
   list(filters: EventFilters, limit: number, cursor?: Cursor): Promise<EventRow[]>;
   getById(id: string): Promise<{ row: EventRow; alert?: { alert_id: string; status: any; priority: any } | null } | null>;
+  getContext(
+    eventId: string,
+    windowSeconds: number,
+    allowPersonCorrelation?: boolean
+  ): Promise<{
+    event: EventRow;
+    alert?: { alert_id: string; status: any; priority: any } | null;
+    sameCameraAround: EventRow[];
+    sameSubjectElsewhere: EventRow[];
+  } | null>;
 }
