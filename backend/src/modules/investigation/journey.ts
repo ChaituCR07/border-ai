@@ -30,6 +30,7 @@ export interface Journey {
   transitions: Transition[];
   total_events: number;
   span_s: number;
+  plate_variants: string[];
 }
 
 /**
@@ -49,7 +50,7 @@ export function isoToMicros(iso: string): bigint {
  */
 export function buildJourney(events: EventLite[], opts: { mergeGapS?: number } = {}): Journey {
   if (events.length === 0) {
-    return { sightings: [], transitions: [], total_events: 0, span_s: 0 };
+    return { sightings: [], transitions: [], total_events: 0, span_s: 0, plate_variants: [] };
   }
 
   const mergeGap = BigInt(Math.round((opts.mergeGapS ?? 120) * 1_000_000));
@@ -97,10 +98,13 @@ export function buildJourney(events: EventLite[], opts: { mergeGapS?: number } =
     ? Number(isoToMicros(sightings.at(-1)!.last_seen) - isoToMicros(sightings[0]!.first_seen)) / 1_000_000
     : 0;
 
+  const plate_variants = Array.from(new Set(sightings.flatMap(s => s.plates)));
+
   return {
     sightings,
     transitions,
     total_events: events.length,
     span_s,
+    plate_variants,
   };
 }
