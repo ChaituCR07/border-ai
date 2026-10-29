@@ -1,0 +1,14 @@
+[
+  { "query": "KA01AB1234",   "candidate": "KA01AB1234",  "expect": "exact" },
+  { "query": "ka 01-ab 1234", "candidate": "KA01AB1234",  "expect": "exact" },
+  { "query": "KA01AB1234",   "candidate": "KA0IAB1234",  "expect": "lookalike" },
+  { "query": "KA01AB1234",   "candidate": "KAO1AB1234",  "expect": "lookalike" },
+  { "query": "KA01AB1234",   "candidate": "KA01A81234",  "expect": "lookalike" },
+  { "query": "KA01",         "candidate": "KA01XY9999",  "expect": "prefix", "mode": "prefix" },
+  { "query": "AB12",         "candidate": "KA01AB1234",  "expect": "partial", "mode": "contains" },
+  { "query": "KA01AB1234",   "candidate": "KA01AB1235",  "expect": "none" },
+  { "query": "KA01AB1234",   "candidate": "",            "expect": "none" },
+  { "query": "KA_1%",        "candidate": "KA01AB1234",  "expect": "none", "mode": "prefix" },
+  { "query": "DL01Q80000",   "candidate": "DL010B0000",  "expect": "lookalike" },
+  { "query": "MH02DG5555",   "candidate": "MH02065555",  "expect": "lookalike" }
+]
