@@ -102,3 +102,23 @@ export const JourneyResponseSchema = z.object({
     total_matching: z.number(),
   }),
 });
+
+export const ExportQuerySchema = z.object({
+  camera_id: z.string().optional(),
+  event_type: z.string().optional(),
+  severity: z.string().optional(),
+  min_score: z.coerce.number().min(0).max(100).optional(),
+  max_score: z.coerce.number().min(0).max(100).optional(),
+  from: z.string().datetime({ offset: true }).optional(),
+  to: z.string().datetime({ offset: true }).optional(),
+  track_id: z.string().optional(),
+  plate: z.string().optional(),
+  plate_match: PlateMatchEnum.default('lookalike'),
+  vehicle_id: z.string().optional(),
+  person_id: z.string().optional(),
+  time_from: z.string().regex(/^\d{2}:\d{2}$/, 'time_from must be HH:MM').optional(),
+  time_to: z.string().regex(/^\d{2}:\d{2}$/, 'time_to must be HH:MM').optional(),
+  tz: z.string().optional(),
+  q: z.string().optional(),
+  purpose: z.string().optional(),
+}).strict();

@@ -222,6 +222,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         await api.register(
           investigationRoutes({
             investigationRepo: deps.investigationRepo,
+            eventsRepo: deps.eventsRepo,
             auditRepo: deps.auditRepo,
           })
         );
