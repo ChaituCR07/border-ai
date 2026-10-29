@@ -121,3 +121,35 @@ export function normalisePlate(raw: string): string {
   }
   return cleaned;
 }
+
+const CONFUSABLE_FROM = 'OQDIBSZG';
+const CONFUSABLE_TO   = '00018526';
+const CONFUSABLE_MAP = new Map([...CONFUSABLE_FROM].map((c, i) => [c, CONFUSABLE_TO[i]!]));
+
+export const plateNorm = (s: string): string => cleanPlateText(s);
+export const plateKey = (s: string): string => [...plateNorm(s)].map(c => CONFUSABLE_MAP.get(c) ?? c).join('');
+export const escapeLike = (s: string): string => s.replace(/[\\%_]/g, m => `\\${m}`);
+
+export type PlateMatch = 'exact' | 'lookalike' | 'prefix' | 'contains';
+
+export function classifyPlateMatch(
+  query: string,
+  candidate: string,
+  mode: PlateMatch = 'lookalike'
+): 'exact' | 'lookalike' | 'prefix' | 'partial' | 'none' {
+  const qNorm = plateNorm(query);
+  const cNorm = plateNorm(candidate);
+  if (!qNorm || !cNorm) return 'none';
+
+  if (mode === 'prefix') {
+    return cNorm.startsWith(qNorm) ? 'prefix' : 'none';
+  }
+  if (mode === 'contains') {
+    return cNorm.includes(qNorm) ? 'partial' : 'none';
+  }
+
+  // Default / lookalike mode: exact match wins first
+  if (qNorm === cNorm) return 'exact';
+  if (plateKey(query) === plateKey(candidate)) return 'lookalike';
+  return 'none';
+}
