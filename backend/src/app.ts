@@ -224,18 +224,20 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           onAlertChanged: handleAlertChanged,
         })
       );
+      const correlationRepo =
+        deps.correlationRepo ??
+        (deps.pool ? new PgCorrelationRepo(deps.pool) : new MemoryCorrelationRepo());
+
       if (deps.investigationRepo) {
         await api.register(
           investigationRoutes({
             investigationRepo: deps.investigationRepo,
             eventsRepo: deps.eventsRepo,
             auditRepo: deps.auditRepo,
+            correlationRepo,
           })
         );
       }
-      const correlationRepo =
-        deps.correlationRepo ??
-        (deps.pool ? new PgCorrelationRepo(deps.pool) : new MemoryCorrelationRepo());
 
       await api.register(
         correlationRoutes({
