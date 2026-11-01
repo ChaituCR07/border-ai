@@ -26,6 +26,16 @@
   --offline: #6b7785;
   --offline-bg: rgba(107, 119, 133, 0.15);
 
+  /* Correlation Link Tokens (Day 19) */
+  --link-ok: #10b981;
+  --link-ok-bg: rgba(16, 185, 129, 0.15);
+  --link-warn: #f59e0b;
+  --link-warn-bg: rgba(245, 158, 11, 0.15);
+  --link-bad: #ef4444;
+  --link-bad-bg: rgba(239, 68, 68, 0.15);
+  --link-unknown: #6b7280;
+  --link-unknown-bg: rgba(107, 114, 128, 0.15);
+
   --radius: 10px;
   --radius-sm: 6px;
   --gap: 12px;
