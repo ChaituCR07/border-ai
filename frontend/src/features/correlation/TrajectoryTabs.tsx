@@ -88,3 +88,4 @@ export const TrajectoryTabs: React.FC<TrajectoryTabsProps> = ({
     </div>
   );
 };
+

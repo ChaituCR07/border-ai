@@ -45,3 +45,4 @@ In automated border surveillance, observing a vehicle at multiple camera locatio
 - Physical feasibility is strictly enforced across camera transits.
 - Explainable confidence factors eliminate black-box decision making.
 - Missing checkpoints and cloned plates are surfaced immediately as investigative leads.
+

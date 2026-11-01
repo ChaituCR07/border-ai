@@ -52,3 +52,4 @@ describe('AnomalyList component', () => {
     expect(screen.getByText(/Missed expected camera CAM-03/)).toBeInTheDocument();
   });
 });
+

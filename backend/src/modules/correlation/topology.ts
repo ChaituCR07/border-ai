@@ -97,3 +97,4 @@ export class TopologyIndex {
     return r.length ? Math.max(...r.map(x => x.max_s)) : null;
   }
 }
+

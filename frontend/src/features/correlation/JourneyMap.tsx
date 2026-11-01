@@ -260,3 +260,4 @@ export const JourneyMap: React.FC<JourneyMapProps> = ({
     </div>
   );
 };
+

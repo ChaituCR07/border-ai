@@ -94,3 +94,4 @@ export function verifySequenceHops(hops: SequenceHop[], maxHopGapS: number): boo
   }
   return true;
 }
+

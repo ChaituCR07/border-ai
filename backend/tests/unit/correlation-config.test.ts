@@ -33,3 +33,4 @@ describe('CorrelationConfig schema and loader', () => {
     expect(config.trip_break_s).toBe(21600);
   });
 });
+

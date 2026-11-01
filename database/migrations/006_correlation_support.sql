@@ -25,3 +25,4 @@ CREATE INDEX IF NOT EXISTS idx_events_cam_platekey_ts
   ON events (camera_id, plate_key, "timestamp") WHERE plate_key IS NOT NULL;
 
 COMMIT;
+

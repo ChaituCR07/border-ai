@@ -267,3 +267,4 @@ export const JourneyView: React.FC<JourneyViewProps> = ({
     </div>
   );
 };
+
