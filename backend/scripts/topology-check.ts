@@ -139,6 +139,21 @@ export function validateTopologyConfig(config: CameraTopologyConfig): TopologyVa
   };
 }
 
+export function loadTopologyConfig(filePath?: string): CameraTopologyConfig {
+  let targetPath = filePath || path.resolve(process.cwd(), 'configs/camera_topology.json');
+  if (!fs.existsSync(targetPath)) {
+    const parentPath = path.resolve(process.cwd(), '../configs/camera_topology.json');
+    if (fs.existsSync(parentPath)) {
+      targetPath = parentPath;
+    }
+  }
+  if (!fs.existsSync(targetPath)) {
+    throw new Error(`Topology config file not found: ${targetPath}`);
+  }
+  const raw = fs.readFileSync(targetPath, 'utf-8');
+  return CameraTopologyConfigSchema.parse(JSON.parse(raw));
+}
+
 export function runTopologyCheck(filePath?: string): boolean {
   let targetPath = filePath || path.resolve(process.cwd(), 'configs/camera_topology.json');
   if (!fs.existsSync(targetPath)) {

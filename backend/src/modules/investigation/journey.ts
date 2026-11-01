@@ -17,6 +17,7 @@ export interface Sighting {
   event_types: string[];
   event_ids: string[];
   plates: string[]; // plate variants seen here (OCR variants)
+  plate_quality?: 'exact' | 'lookalike' | 'unknown';
 }
 
 export interface Transition {

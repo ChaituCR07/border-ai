@@ -68,6 +68,14 @@ export const JourneyQuerySchema = z.object({
   vehicle_id: z.string().min(1).max(64).optional(),
   from: z.string().datetime({ offset: true }).optional(),
   to: z.string().datetime({ offset: true }).optional(),
+  end_at: z.string().datetime({ offset: true }).optional(),
+  correlate: z.preprocess((val) => {
+    if (typeof val === 'string') {
+      if (val.toLowerCase() === 'false' || val === '0') return false;
+      if (val.toLowerCase() === 'true' || val === '1') return true;
+    }
+    return val;
+  }, z.boolean().default(true)),
 }).strict().refine(
   data => (data.plate && !data.vehicle_id) || (!data.plate && data.vehicle_id),
   {
@@ -78,28 +86,29 @@ export const JourneyQuerySchema = z.object({
 
 export const JourneyResponseSchema = z.object({
   data: z.object({
-    sightings: z.array(z.object({
-      camera_id: z.string(),
-      first_seen: z.string(),
-      last_seen: z.string(),
-      event_count: z.number(),
-      max_score: z.number(),
-      event_types: z.array(z.string()),
-      event_ids: z.array(z.string()),
-      plates: z.array(z.string()),
-    })),
-    transitions: z.array(z.object({
-      from: z.string(),
-      to: z.string(),
-      gap_s: z.number(),
-    })),
-    total_events: z.number(),
-    span_s: z.number(),
-    plate_variants: z.array(z.string()),
+    journey: z.object({
+      sightings: z.array(z.any()),
+      transitions: z.array(z.any()),
+      total_events: z.number(),
+      span_s: z.number(),
+      plate_variants: z.array(z.string()),
+    }).optional(),
+    correlation: z.object({
+      topology_version: z.string(),
+      config_version: z.number(),
+      trips: z.array(z.any()),
+      anomalies: z.array(z.any()),
+    }).optional(),
+    sightings: z.array(z.any()).optional(),
+    transitions: z.array(z.any()).optional(),
+    total_events: z.number().optional(),
+    span_s: z.number().optional(),
+    plate_variants: z.array(z.string()).optional(),
   }),
   meta: z.object({
     truncated: z.boolean(),
     total_matching: z.number(),
+    warnings: z.array(z.string()).optional(),
   }),
 });
 

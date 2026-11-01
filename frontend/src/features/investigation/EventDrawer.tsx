@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { PlateMatchBadge } from './PlateMatchBadge.js';
+import { JourneySoFar } from '../correlation/JourneySoFar.js';
 import type { Severity, PlateMatch } from './searchSchema.js';
 
 interface ContextEvent {
@@ -230,6 +231,16 @@ export const EventDrawer: React.FC<EventDrawerProps> = ({
                 </button>
               )}
             </div>
+
+            {/* Journey So Far Compact Strip */}
+            {event.plate && (
+              <JourneySoFar
+                plate={event.plate}
+                timestamp={event.timestamp}
+                currentCameraId={event.camera_id}
+                onViewFullJourney={() => onViewJourney?.(event.plate!)}
+              />
+            )}
 
             {/* Explanation Breakdown */}
             {event.explanation?.factors && event.explanation.factors.length > 0 && (

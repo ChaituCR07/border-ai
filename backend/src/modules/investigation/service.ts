@@ -2,11 +2,26 @@ import type { InvestigationRepo, FacetResult, SuggestItem, EventContextResult } 
 import type { EventFilters } from '../events/repo.js';
 import { validateTimeRange } from '../../common/time.js';
 import { classifyOmniboxQuery } from './query-classifier.js';
-import { buildJourney, type Journey } from './journey.js';
+import { buildJourney, type Journey, isoToMicros } from './journey.js';
 import { AppError } from '../../common/errors.js';
+import type { CorrelationRepo } from '../correlation/repo.js';
+import { CorrelationConfig, loadCorrelationConfig } from '../correlation/config.js';
+import { TopologyIndex } from '../correlation/topology.js';
+import { correlate } from '../correlation/correlate.js';
+
+interface CacheEntry {
+  timestamp: number;
+  data: any;
+}
 
 export class InvestigationService {
-  constructor(private readonly repo: InvestigationRepo) {}
+  private journeyCache = new Map<string, CacheEntry>();
+
+  constructor(
+    private readonly repo: InvestigationRepo,
+    private readonly correlationRepo?: CorrelationRepo,
+    private readonly correlationConfig: CorrelationConfig = loadCorrelationConfig()
+  ) {}
 
   async getFacets(query: any): Promise<{ data: FacetResult; meta: { capped: boolean } }> {
     validateTimeRange(query.from, query.to);
@@ -86,9 +101,16 @@ export class InvestigationService {
     return { data: res };
   }
 
-  async getJourney(query: { plate?: string; vehicle_id?: string; from?: string; to?: string }): Promise<{
-    data: Journey;
-    meta: { truncated: boolean; total_matching: number };
+  async getJourney(query: {
+    plate?: string;
+    vehicle_id?: string;
+    from?: string;
+    to?: string;
+    end_at?: string;
+    correlate?: boolean;
+  }): Promise<{
+    data: any;
+    meta: { truncated: boolean; total_matching: number; warnings?: string[] };
   }> {
     if ((!query.plate && !query.vehicle_id) || (query.plate && query.vehicle_id)) {
       throw new AppError(400, 'VALIDATION_ERROR', 'Exactly one of plate or vehicle_id must be provided');
@@ -104,12 +126,29 @@ export class InvestigationService {
       throw new AppError(400, 'VALIDATION_ERROR', 'Maximum journey time span is 7 days');
     }
 
-    const events = await this.repo.getJourneyEvents({
+    let topoData: any = null;
+    if (query.correlate !== false && this.correlationRepo) {
+      topoData = await this.correlationRepo.getTopology();
+    }
+
+    const cacheKey = `${query.plate ?? query.vehicle_id}|${fromStr}|${toStr}|${query.end_at ?? ''}|${query.correlate ?? true}|${topoData?.version ?? 'none'}|${this.correlationConfig.version}`;
+    const cached = this.journeyCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 30_000) {
+      return cached.data;
+    }
+
+    const rawEvents = await this.repo.getJourneyEvents({
       plate: query.plate,
       vehicleId: query.vehicle_id,
       from: fromStr,
       to: toStr,
     });
+
+    let events = rawEvents;
+    if (query.end_at) {
+      const endMicros = isoToMicros(query.end_at);
+      events = rawEvents.filter(e => isoToMicros(e.timestamp) <= endMicros);
+    }
 
     const isTruncated = events.length >= 5000;
     const cappedEvents = events.slice(0, 5000);
@@ -124,12 +163,41 @@ export class InvestigationService {
       plate_match: e.plate_match ?? undefined,
     })));
 
-    return {
-      data: journey,
+    if (query.correlate !== false && this.correlationRepo && topoData) {
+      const topoIndex = new TopologyIndex(topoData.links);
+      const warnings: string[] = [];
+      if (topoData.links.length === 0) {
+        warnings.push('no topology configured');
+      }
+
+      const correlation = correlate(journey.sightings, topoIndex, this.correlationConfig);
+      const result = {
+        data: {
+          ...journey,
+          journey,
+          correlation,
+        },
+        meta: {
+          truncated: isTruncated,
+          total_matching: events.length,
+          warnings: warnings.length > 0 ? warnings : undefined,
+        },
+      };
+      this.journeyCache.set(cacheKey, { timestamp: Date.now(), data: result });
+      return result;
+    }
+
+    const result = {
+      data: {
+        ...journey,
+        journey,
+      },
       meta: {
         truncated: isTruncated,
         total_matching: events.length,
       },
     };
+    this.journeyCache.set(cacheKey, { timestamp: Date.now(), data: result });
+    return result;
   }
 }

@@ -6,8 +6,10 @@ import type { InvestigationRepo } from './repo.js';
 import type { EventsRepo, EventFilters } from '../events/repo.js';
 import type { AuditRepo } from '../../common/audit.js';
 import { AppError } from '../../common/errors.js';
+import { requireRole } from '../../common/auth.js';
 import { csvCell } from '../../common/csv.js';
 import { classifyOmniboxQuery } from './query-classifier.js';
+import type { CorrelationRepo } from '../correlation/repo.js';
 import {
   FacetsQuerySchema,
   FacetsResponseSchema,
@@ -22,10 +24,11 @@ export interface InvestigationRouteDeps {
   investigationRepo: InvestigationRepo;
   eventsRepo?: EventsRepo;
   auditRepo?: AuditRepo;
+  correlationRepo?: CorrelationRepo;
 }
 
 export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPluginAsync {
-  const service = new InvestigationService(deps.investigationRepo);
+  const service = new InvestigationService(deps.investigationRepo, deps.correlationRepo);
 
   return async (fastify: FastifyInstance) => {
     const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -67,6 +70,7 @@ export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPlugin
     app.get(
       '/investigation/journey',
       {
+        preHandler: requireRole('ADMIN', 'OPERATOR', 'INVESTIGATOR'),
         schema: {
           tags: ['Investigation'],
           summary: 'Get vehicle journey (chronological sightings and transitions)',
@@ -90,6 +94,8 @@ export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPlugin
             endpoint: '/api/investigation/journey',
             query_json: req.query,
             row_count: result.data.total_events,
+            correlate: req.query.correlate,
+            topology_version: result.data.correlation?.topology_version ?? null,
             ip: req.ip,
           },
         }).catch(() => {});

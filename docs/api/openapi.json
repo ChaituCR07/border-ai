@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Border-AI Video Intelligence Platform API",
-    "description": "REST API exposing cameras, events, alerts, watchlist, and analytics from PostgreSQL",
+    "description": "REST API exposing cameras, events, alerts, watchlist, analytics, and investigation workbench",
     "version": "0.3.0"
   },
   "components": {
@@ -28,6 +28,15 @@
       }
     },
     "/api/ready": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/realtime/status": {
       "get": {
         "responses": {
           "200": {
@@ -561,6 +570,92 @@
           },
           {
             "schema": {
+              "type": "string",
+              "enum": [
+                "exact",
+                "lookalike",
+                "prefix",
+                "contains"
+              ],
+              "default": "lookalike"
+            },
+            "in": "query",
+            "name": "plate_match",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "vehicle_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "person_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "purpose",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{2}:\\d{2}$"
+            },
+            "in": "query",
+            "name": "time_from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{2}:\\d{2}$"
+            },
+            "in": "query",
+            "name": "time_to",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tz",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "time",
+                "score"
+              ],
+              "default": "time"
+            },
+            "in": "query",
+            "name": "sort",
+            "required": false
+          },
+          {
+            "schema": {
               "type": "integer",
               "minimum": 1,
               "maximum": 200,
@@ -634,6 +729,24 @@
                           "plate": {
                             "type": "string",
                             "nullable": true
+                          },
+                          "plate_match": {
+                            "type": "string",
+                            "enum": [
+                              "exact",
+                              "lookalike",
+                              "prefix",
+                              "partial"
+                            ],
+                            "nullable": true
+                          },
+                          "vehicle_id": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "person_id": {
+                            "type": "string",
+                            "nullable": true
                           }
                         },
                         "required": [
@@ -676,6 +789,341 @@
                   "required": [
                     "data",
                     "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{id}/context": {
+      "get": {
+        "summary": "Get temporal camera and subject context around an event",
+        "tags": [
+          "Events",
+          "Investigation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 600,
+              "default": 60
+            },
+            "in": "query",
+            "name": "window_s",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "event_id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "camera_id": {
+                              "type": "string"
+                            },
+                            "event_type": {
+                              "type": "string"
+                            },
+                            "track_id": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "severity": {
+                              "type": "string",
+                              "enum": [
+                                "LOW",
+                                "MEDIUM",
+                                "HIGH",
+                                "CRITICAL"
+                              ]
+                            },
+                            "threat_score": {
+                              "type": "number"
+                            },
+                            "timestamp": {
+                              "type": "string"
+                            },
+                            "snapshot_url": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "has_snapshot": {
+                              "type": "boolean"
+                            },
+                            "snapshot_available": {
+                              "type": "boolean"
+                            },
+                            "plate": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "plate_match": {
+                              "type": "string",
+                              "enum": [
+                                "exact",
+                                "lookalike",
+                                "prefix",
+                                "partial"
+                              ],
+                              "nullable": true
+                            },
+                            "vehicle_id": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "person_id": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "event_id",
+                            "camera_id",
+                            "event_type",
+                            "track_id",
+                            "severity",
+                            "threat_score",
+                            "timestamp",
+                            "snapshot_url",
+                            "has_snapshot",
+                            "snapshot_available"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "same_camera_around": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "event_id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "camera_id": {
+                                "type": "string"
+                              },
+                              "event_type": {
+                                "type": "string"
+                              },
+                              "track_id": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "severity": {
+                                "type": "string",
+                                "enum": [
+                                  "LOW",
+                                  "MEDIUM",
+                                  "HIGH",
+                                  "CRITICAL"
+                                ]
+                              },
+                              "threat_score": {
+                                "type": "number"
+                              },
+                              "timestamp": {
+                                "type": "string"
+                              },
+                              "snapshot_url": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "has_snapshot": {
+                                "type": "boolean"
+                              },
+                              "snapshot_available": {
+                                "type": "boolean"
+                              },
+                              "plate": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "plate_match": {
+                                "type": "string",
+                                "enum": [
+                                  "exact",
+                                  "lookalike",
+                                  "prefix",
+                                  "partial"
+                                ],
+                                "nullable": true
+                              },
+                              "vehicle_id": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "person_id": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "event_id",
+                              "camera_id",
+                              "event_type",
+                              "track_id",
+                              "severity",
+                              "threat_score",
+                              "timestamp",
+                              "snapshot_url",
+                              "has_snapshot",
+                              "snapshot_available"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "same_subject_elsewhere": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "event_id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "camera_id": {
+                                "type": "string"
+                              },
+                              "event_type": {
+                                "type": "string"
+                              },
+                              "track_id": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "severity": {
+                                "type": "string",
+                                "enum": [
+                                  "LOW",
+                                  "MEDIUM",
+                                  "HIGH",
+                                  "CRITICAL"
+                                ]
+                              },
+                              "threat_score": {
+                                "type": "number"
+                              },
+                              "timestamp": {
+                                "type": "string"
+                              },
+                              "snapshot_url": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "has_snapshot": {
+                                "type": "boolean"
+                              },
+                              "snapshot_available": {
+                                "type": "boolean"
+                              },
+                              "plate": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "plate_match": {
+                                "type": "string",
+                                "enum": [
+                                  "exact",
+                                  "lookalike",
+                                  "prefix",
+                                  "partial"
+                                ],
+                                "nullable": true
+                              },
+                              "vehicle_id": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "person_id": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "event_id",
+                              "camera_id",
+                              "event_type",
+                              "track_id",
+                              "severity",
+                              "threat_score",
+                              "timestamp",
+                              "snapshot_url",
+                              "has_snapshot",
+                              "snapshot_available"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "alert": {
+                          "type": "object",
+                          "properties": {
+                            "alert_id": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "OPEN",
+                                "ACKNOWLEDGED",
+                                "RESOLVED"
+                              ]
+                            },
+                            "priority": {
+                              "type": "string",
+                              "enum": [
+                                "LOW",
+                                "MEDIUM",
+                                "HIGH",
+                                "CRITICAL"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "alert_id",
+                            "status",
+                            "priority"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "event",
+                        "same_camera_around",
+                        "same_subject_elsewhere"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
                   ],
                   "additionalProperties": false
                 }
@@ -753,6 +1201,24 @@
                           "type": "boolean"
                         },
                         "plate": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "plate_match": {
+                          "type": "string",
+                          "enum": [
+                            "exact",
+                            "lookalike",
+                            "prefix",
+                            "partial"
+                          ],
+                          "nullable": true
+                        },
+                        "vehicle_id": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "person_id": {
                           "type": "string",
                           "nullable": true
                         },
@@ -1157,6 +1623,1027 @@
                   },
                   "required": [
                     "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/investigation/facets": {
+      "get": {
+        "summary": "Get disjunctive facet counts for investigation filters",
+        "tags": [
+          "Investigation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "camera_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "event_type",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "severity",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "min_score",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "max_score",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "track_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "plate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "exact",
+                "lookalike",
+                "prefix",
+                "contains"
+              ],
+              "default": "lookalike"
+            },
+            "in": "query",
+            "name": "plate_match",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "vehicle_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "person_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "purpose",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{2}:\\d{2}$"
+            },
+            "in": "query",
+            "name": "time_from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{2}:\\d{2}$"
+            },
+            "in": "query",
+            "name": "time_to",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tz",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "by_camera": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "value",
+                              "count"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "by_event_type": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "value",
+                              "count"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "by_severity": {
+                          "type": "object",
+                          "properties": {
+                            "CRITICAL": {
+                              "type": "number"
+                            },
+                            "HIGH": {
+                              "type": "number"
+                            },
+                            "MEDIUM": {
+                              "type": "number"
+                            },
+                            "LOW": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "CRITICAL",
+                            "HIGH",
+                            "MEDIUM",
+                            "LOW"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "score_histogram": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "from": {
+                                "type": "number"
+                              },
+                              "to": {
+                                "type": "number"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "from",
+                              "to",
+                              "count"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "hours": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "hour": {
+                                "type": "number"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "hour",
+                              "count"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "by_camera",
+                        "by_event_type",
+                        "by_severity",
+                        "score_histogram",
+                        "hours"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "capped": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "capped"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/investigation/suggest": {
+      "get": {
+        "summary": "Typeahead suggestion for plates, cameras, and person identifiers",
+        "tags": [
+          "Investigation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "plate",
+                "camera",
+                "person"
+              ]
+            },
+            "in": "query",
+            "name": "kind",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "in": "query",
+            "name": "prefix",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 10
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "number"
+                          },
+                          "last_seen": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "count",
+                          "last_seen"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/investigation/journey": {
+      "get": {
+        "summary": "Get vehicle journey (chronological sightings and transitions)",
+        "tags": [
+          "Investigation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 16
+            },
+            "in": "query",
+            "name": "plate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "in": "query",
+            "name": "vehicle_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "end_at",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": true
+            },
+            "in": "query",
+            "name": "correlate",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "journey": {
+                          "type": "object",
+                          "properties": {
+                            "sightings": {
+                              "type": "array"
+                            },
+                            "transitions": {
+                              "type": "array"
+                            },
+                            "total_events": {
+                              "type": "number"
+                            },
+                            "span_s": {
+                              "type": "number"
+                            },
+                            "plate_variants": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "sightings",
+                            "transitions",
+                            "total_events",
+                            "span_s",
+                            "plate_variants"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "correlation": {
+                          "type": "object",
+                          "properties": {
+                            "topology_version": {
+                              "type": "string"
+                            },
+                            "config_version": {
+                              "type": "number"
+                            },
+                            "trips": {
+                              "type": "array"
+                            },
+                            "anomalies": {
+                              "type": "array"
+                            }
+                          },
+                          "required": [
+                            "topology_version",
+                            "config_version",
+                            "trips",
+                            "anomalies"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "sightings": {
+                          "type": "array"
+                        },
+                        "transitions": {
+                          "type": "array"
+                        },
+                        "total_events": {
+                          "type": "number"
+                        },
+                        "span_s": {
+                          "type": "number"
+                        },
+                        "plate_variants": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "truncated": {
+                          "type": "boolean"
+                        },
+                        "total_matching": {
+                          "type": "number"
+                        },
+                        "warnings": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "truncated",
+                        "total_matching"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/investigation/export.csv": {
+      "get": {
+        "summary": "Stream filtered events as CSV with formula injection protection",
+        "tags": [
+          "Investigation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "camera_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "event_type",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "severity",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "min_score",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "max_score",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "track_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "plate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "exact",
+                "lookalike",
+                "prefix",
+                "contains"
+              ],
+              "default": "lookalike"
+            },
+            "in": "query",
+            "name": "plate_match",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "vehicle_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "person_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{2}:\\d{2}$"
+            },
+            "in": "query",
+            "name": "time_from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{2}:\\d{2}$"
+            },
+            "in": "query",
+            "name": "time_to",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tz",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "purpose",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/topology": {
+      "get": {
+        "summary": "Get camera topology layout and link graph",
+        "tags": [
+          "Correlation"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "string"
+                    },
+                    "cameras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "camera_id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "location_label": {
+                            "type": "string"
+                          },
+                          "map_x": {
+                            "type": "number"
+                          },
+                          "map_y": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "camera_id",
+                          "name",
+                          "location_label",
+                          "map_x",
+                          "map_y"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "links": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "a": {
+                            "type": "string"
+                          },
+                          "b": {
+                            "type": "string"
+                          },
+                          "min_s": {
+                            "type": "number"
+                          },
+                          "typical_s": {
+                            "type": "number"
+                          },
+                          "max_s": {
+                            "type": "number"
+                          },
+                          "direction": {
+                            "type": "string",
+                            "enum": [
+                              "both",
+                              "a_to_b"
+                            ]
+                          },
+                          "overlap": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "a",
+                          "b",
+                          "min_s",
+                          "typical_s",
+                          "max_s"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "version",
+                    "cameras",
+                    "links"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/correlation/sequence": {
+      "get": {
+        "summary": "Search for multi-camera vehicle sequences",
+        "tags": [
+          "Correlation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "query",
+            "name": "cams",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 86400,
+              "default": 900
+            },
+            "in": "query",
+            "name": "max_hop_gap_s",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 50
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 5
+            },
+            "in": "query",
+            "name": "purpose",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "plate_key": {
+                            "type": "string"
+                          },
+                          "representative_plate": {
+                            "type": "string"
+                          },
+                          "plate_variants": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "hops": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "camera_id": {
+                                  "type": "string"
+                                },
+                                "timestamp": {
+                                  "type": "string"
+                                },
+                                "event_id": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "camera_id",
+                                "timestamp",
+                                "event_id"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "total_duration_s": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "plate_key",
+                          "representative_plate",
+                          "plate_variants",
+                          "hops",
+                          "total_duration_s"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "steps": {
+                          "type": "number"
+                        },
+                        "cameras": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "steps",
+                        "cameras",
+                        "total",
+                        "limit"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
                   ],
                   "additionalProperties": false
                 }
@@ -1884,6 +3371,10 @@
     {
       "name": "Alerts",
       "description": "Threat alert feed with idempotent, race-safe acknowledgement"
+    },
+    {
+      "name": "Investigation",
+      "description": "Forensic search, disjunctive facets, suggest, context, and journey"
     },
     {
       "name": "Watchlist",

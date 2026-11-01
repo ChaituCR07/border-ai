@@ -6,7 +6,8 @@ import { FilterPanel, type FacetsData } from './FilterPanel.js';
 import { ResultsTable, type EventItem } from './ResultsTable.js';
 import { TimelineView } from './TimelineView.js';
 import { EventDrawer } from './EventDrawer.js';
-import { JourneyStrip } from './JourneyStrip.js';
+import { JourneyView } from '../correlation/JourneyView.js';
+import { SequenceSearch } from '../correlation/SequenceSearch.js';
 import { ExportDialog } from './ExportDialog.js';
 import { formatQueryTokens } from './queryParser.js';
 import { serializeSearchParams } from './searchSchema.js';
@@ -211,10 +212,22 @@ export const InvestigationPage: React.FC = () => {
             />
           </div>
 
-          {/* Active Vehicle Journey Strip */}
+          {/* Path Pattern Search Panel (Investigator / Admin) */}
+          <div className="shrink-0">
+            <SequenceSearch
+              from={state.from}
+              to={state.to}
+              onSelectPlate={(p) => {
+                patchSearchState({ plate: p });
+                setJourneyPlate(p);
+              }}
+            />
+          </div>
+
+          {/* Active Vehicle Journey View */}
           {journeyPlate && (
             <div className="shrink-0">
-              <JourneyStrip
+              <JourneyView
                 plate={journeyPlate}
                 onClose={() => setJourneyPlate(null)}
                 onSelectSighting={(camId, from, to) => {

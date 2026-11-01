@@ -103,6 +103,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/realtime/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cameras": {
         parameters: {
             query?: never;
@@ -317,6 +350,15 @@ export interface paths {
                     to?: string;
                     track_id?: string;
                     plate?: string;
+                    plate_match?: "exact" | "lookalike" | "prefix" | "contains";
+                    vehicle_id?: string;
+                    person_id?: string;
+                    purpose?: string;
+                    time_from?: string;
+                    time_to?: string;
+                    tz?: string;
+                    q?: string;
+                    sort?: "time" | "score";
                     limit?: number;
                     cursor?: string;
                 };
@@ -347,11 +389,122 @@ export interface paths {
                                 has_snapshot: boolean;
                                 snapshot_available: boolean;
                                 plate?: string | null;
+                                /** @enum {string|null} */
+                                plate_match?: "exact" | "lookalike" | "prefix" | "partial" | null;
+                                vehicle_id?: string | null;
+                                person_id?: string | null;
                             }[];
                             meta: {
                                 limit: number;
                                 next_cursor: string | null;
                                 has_more: boolean;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get temporal camera and subject context around an event */
+        get: {
+            parameters: {
+                query?: {
+                    window_s?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                event: {
+                                    /** Format: uuid */
+                                    event_id: string;
+                                    camera_id: string;
+                                    event_type: string;
+                                    track_id: string | null;
+                                    /** @enum {string} */
+                                    severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+                                    threat_score: number;
+                                    timestamp: string;
+                                    snapshot_url: string | null;
+                                    has_snapshot: boolean;
+                                    snapshot_available: boolean;
+                                    plate?: string | null;
+                                    /** @enum {string|null} */
+                                    plate_match?: "exact" | "lookalike" | "prefix" | "partial" | null;
+                                    vehicle_id?: string | null;
+                                    person_id?: string | null;
+                                };
+                                same_camera_around: {
+                                    /** Format: uuid */
+                                    event_id: string;
+                                    camera_id: string;
+                                    event_type: string;
+                                    track_id: string | null;
+                                    /** @enum {string} */
+                                    severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+                                    threat_score: number;
+                                    timestamp: string;
+                                    snapshot_url: string | null;
+                                    has_snapshot: boolean;
+                                    snapshot_available: boolean;
+                                    plate?: string | null;
+                                    /** @enum {string|null} */
+                                    plate_match?: "exact" | "lookalike" | "prefix" | "partial" | null;
+                                    vehicle_id?: string | null;
+                                    person_id?: string | null;
+                                }[];
+                                same_subject_elsewhere: {
+                                    /** Format: uuid */
+                                    event_id: string;
+                                    camera_id: string;
+                                    event_type: string;
+                                    track_id: string | null;
+                                    /** @enum {string} */
+                                    severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+                                    threat_score: number;
+                                    timestamp: string;
+                                    snapshot_url: string | null;
+                                    has_snapshot: boolean;
+                                    snapshot_available: boolean;
+                                    plate?: string | null;
+                                    /** @enum {string|null} */
+                                    plate_match?: "exact" | "lookalike" | "prefix" | "partial" | null;
+                                    vehicle_id?: string | null;
+                                    person_id?: string | null;
+                                }[];
+                                alert?: {
+                                    alert_id: string;
+                                    /** @enum {string} */
+                                    status: "OPEN" | "ACKNOWLEDGED" | "RESOLVED";
+                                    /** @enum {string} */
+                                    priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+                                } | null;
                             };
                         };
                     };
@@ -406,6 +559,10 @@ export interface paths {
                                 has_snapshot: boolean;
                                 snapshot_available: boolean;
                                 plate?: string | null;
+                                /** @enum {string|null} */
+                                plate_match?: "exact" | "lookalike" | "prefix" | "partial" | null;
+                                vehicle_id?: string | null;
+                                person_id?: string | null;
                                 explanation?: {
                                     [key: string]: unknown;
                                 } | null;
@@ -566,6 +723,373 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/api/investigation/facets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get disjunctive facet counts for investigation filters */
+        get: {
+            parameters: {
+                query?: {
+                    camera_id?: string;
+                    event_type?: string;
+                    severity?: string;
+                    min_score?: number;
+                    max_score?: number;
+                    from?: string;
+                    to?: string;
+                    track_id?: string;
+                    plate?: string;
+                    plate_match?: "exact" | "lookalike" | "prefix" | "contains";
+                    vehicle_id?: string;
+                    person_id?: string;
+                    purpose?: string;
+                    time_from?: string;
+                    time_to?: string;
+                    tz?: string;
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                total: number;
+                                by_camera: {
+                                    value: string;
+                                    count: number;
+                                }[];
+                                by_event_type: {
+                                    value: string;
+                                    count: number;
+                                }[];
+                                by_severity: {
+                                    CRITICAL: number;
+                                    HIGH: number;
+                                    MEDIUM: number;
+                                    LOW: number;
+                                };
+                                score_histogram: {
+                                    from: number;
+                                    to: number;
+                                    count: number;
+                                }[];
+                                hours: {
+                                    hour: number;
+                                    count: number;
+                                }[];
+                            };
+                            meta: {
+                                capped: boolean;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigation/suggest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Typeahead suggestion for plates, cameras, and person identifiers */
+        get: {
+            parameters: {
+                query: {
+                    kind: "plate" | "camera" | "person";
+                    prefix: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                value: string;
+                                count: number;
+                                last_seen: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigation/journey": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get vehicle journey (chronological sightings and transitions) */
+        get: {
+            parameters: {
+                query?: {
+                    plate?: string;
+                    vehicle_id?: string;
+                    from?: string;
+                    to?: string;
+                    end_at?: string;
+                    correlate?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                journey?: {
+                                    sightings: unknown[];
+                                    transitions: unknown[];
+                                    total_events: number;
+                                    span_s: number;
+                                    plate_variants: string[];
+                                };
+                                correlation?: {
+                                    topology_version: string;
+                                    config_version: number;
+                                    trips: unknown[];
+                                    anomalies: unknown[];
+                                };
+                                sightings?: unknown[];
+                                transitions?: unknown[];
+                                total_events?: number;
+                                span_s?: number;
+                                plate_variants?: string[];
+                            };
+                            meta: {
+                                truncated: boolean;
+                                total_matching: number;
+                                warnings?: string[];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigation/export.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stream filtered events as CSV with formula injection protection */
+        get: {
+            parameters: {
+                query?: {
+                    camera_id?: string;
+                    event_type?: string;
+                    severity?: string;
+                    min_score?: number;
+                    max_score?: number;
+                    from?: string;
+                    to?: string;
+                    track_id?: string;
+                    plate?: string;
+                    plate_match?: "exact" | "lookalike" | "prefix" | "contains";
+                    vehicle_id?: string;
+                    person_id?: string;
+                    time_from?: string;
+                    time_to?: string;
+                    tz?: string;
+                    q?: string;
+                    purpose?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/topology": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get camera topology layout and link graph */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            version: string;
+                            cameras: {
+                                camera_id: string;
+                                name: string;
+                                location_label: string;
+                                map_x: number;
+                                map_y: number;
+                            }[];
+                            links: {
+                                a: string;
+                                b: string;
+                                min_s: number;
+                                typical_s: number;
+                                max_s: number;
+                                /** @enum {string} */
+                                direction?: "both" | "a_to_b";
+                                overlap?: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/correlation/sequence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search for multi-camera vehicle sequences */
+        get: {
+            parameters: {
+                query: {
+                    cams: string;
+                    from: string;
+                    to: string;
+                    max_hop_gap_s?: number;
+                    limit?: number;
+                    purpose: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                plate_key: string;
+                                representative_plate: string;
+                                plate_variants: string[];
+                                hops: {
+                                    camera_id: string;
+                                    timestamp: string;
+                                    event_id: string;
+                                }[];
+                                total_duration_s: number;
+                            }[];
+                            meta: {
+                                steps: number;
+                                cameras: string[];
+                                total: number;
+                                limit: number;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/watchlist": {
