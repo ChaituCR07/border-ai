@@ -1,0 +1,1594 @@
+{
+  "events": [
+    {
+      "event_id": "sc3-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "sc3-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:02:00.000000Z",
+      "snapshot_path": null,
+      "plate": "KA01AB1234",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "sc3-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "sc3-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:08:00.000000Z",
+      "snapshot_path": null,
+      "plate": "KA01AB1234",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "sc3-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "sc3-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:15:00.000000Z",
+      "snapshot_path": null,
+      "plate": "KA01AB1234",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "d18-1",
+      "camera_id": "CAM-03",
+      "event_type": "ANPR_MATCH",
+      "track_id": "d18-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T02:13:42.000000Z",
+      "snapshot_path": null,
+      "plate": "MH12DE3344",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "d18-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "d18-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T02:14:10.000000Z",
+      "snapshot_path": null,
+      "plate": "MH12DE3344",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "d18-3",
+      "camera_id": "CAM-05",
+      "event_type": "ANPR_MATCH",
+      "track_id": "d18-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T02:15:22.000000Z",
+      "snapshot_path": null,
+      "plate": "MH12DE3344",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-1-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-1-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:02:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP01AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-1-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-1-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:03:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP01AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-2-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-2-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:02:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP02AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-2-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-2-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:03:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP02AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-3-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-3-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:02:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP03AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-3-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-3-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:03:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP03AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-4-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-4-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:02:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP04AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-4-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-4-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:03:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP04AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-5-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-5-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:02:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP05AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "dup-5-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "dup-5-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T10:03:00.000000Z",
+      "snapshot_path": null,
+      "plate": "DUP05AA1111",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-1-1",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-1-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS01BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-1-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-1-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:02:58.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS01BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-2-1",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-2-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS02BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-2-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-2-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:02:58.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS02BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-3-1",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-3-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS03BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-3-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-3-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:02:58.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS03BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-4-1",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-4-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS04BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-4-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-4-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:02:58.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS04BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-5-1",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-5-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS05BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "mis-5-2",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "mis-5-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T11:02:58.000000Z",
+      "snapshot_path": null,
+      "plate": "MIS05BB2222",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "look-1-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "look-1-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T12:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "LOOK01AB1234",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "look-1-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "look-1-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T12:06:00.000000Z",
+      "snapshot_path": null,
+      "plate": "LOOK01ABI234",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "look-2-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "look-2-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T12:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "LOOK02AB1234",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "look-2-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "look-2-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T12:06:00.000000Z",
+      "snapshot_path": null,
+      "plate": "LOOK02ABI234",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "look-3-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "look-3-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T12:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "LOOK03AB1234",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "look-3-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "look-3-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T12:06:00.000000Z",
+      "snapshot_path": null,
+      "plate": "LOOK03ABI234",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "slow-1-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "slow-1-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T13:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "SLOW01CC3333",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "slow-1-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "slow-1-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T13:40:00.000000Z",
+      "snapshot_path": null,
+      "plate": "SLOW01CC3333",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "slow-2-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "slow-2-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T13:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "SLOW02CC3333",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "slow-2-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "slow-2-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T13:40:00.000000Z",
+      "snapshot_path": null,
+      "plate": "SLOW02CC3333",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "trip-1-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "trip-1-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T08:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "TRIP01DD4444",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "trip-1-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "trip-1-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T08:06:00.000000Z",
+      "snapshot_path": null,
+      "plate": "TRIP01DD4444",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "trip-1-3",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "trip-1-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:06:00.000000Z",
+      "snapshot_path": null,
+      "plate": "TRIP01DD4444",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "trip-1-4",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "trip-1-4",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:12:00.000000Z",
+      "snapshot_path": null,
+      "plate": "TRIP01DD4444",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "trip-2-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "trip-2-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T08:00:00.000000Z",
+      "snapshot_path": null,
+      "plate": "TRIP02DD4444",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "trip-2-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "trip-2-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T08:06:00.000000Z",
+      "snapshot_path": null,
+      "plate": "TRIP02DD4444",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "trip-2-3",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "trip-2-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:06:00.000000Z",
+      "snapshot_path": null,
+      "plate": "TRIP02DD4444",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "trip-2-4",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "trip-2-4",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:12:00.000000Z",
+      "snapshot_path": null,
+      "plate": "TRIP02DD4444",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "decoy-1",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "decoy-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T02:14:11.000000Z",
+      "snapshot_path": null,
+      "plate": "KA01AB1235",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-1-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-1-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:10:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM01EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-1-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-1-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:16:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM01EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-1-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-1-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:23:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM01EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-2-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-2-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:20:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM02EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-2-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-2-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:26:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM02EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-2-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-2-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:33:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM02EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-3-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-3-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:30:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM03EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-3-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-3-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:36:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM03EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-3-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-3-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:43:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM03EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-4-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-4-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:40:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM04EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-4-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-4-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:46:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM04EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-4-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-4-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:53:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM04EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-5-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-5-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:50:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM05EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-5-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-5-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T14:56:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM05EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-5-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-5-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:03:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM05EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-6-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-6-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:00:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM06EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-6-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-6-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:06:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM06EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-6-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-6-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:13:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM06EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-7-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-7-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:10:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM07EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-7-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-7-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:16:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM07EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-7-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-7-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:23:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM07EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-8-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-8-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:20:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM08EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-8-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-8-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:26:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM08EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-8-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-8-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:33:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM08EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-9-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-9-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:30:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM09EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-9-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-9-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:36:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM09EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-9-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-9-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:43:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM09EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-10-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-10-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:40:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM10EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-10-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-10-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:46:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM10EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-10-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-10-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:53:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM10EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-11-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-11-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:50:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM11EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-11-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-11-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T15:56:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM11EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-11-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-11-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:03:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM11EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-12-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-12-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:00:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM12EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-12-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-12-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:06:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM12EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-12-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-12-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:13:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM12EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-13-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-13-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:10:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM13EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-13-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-13-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:16:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM13EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-13-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-13-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:23:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM13EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-14-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-14-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:20:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM14EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-14-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-14-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:26:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM14EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-14-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-14-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:33:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM14EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-15-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-15-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:30:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM15EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-15-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-15-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:36:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM15EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-15-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-15-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:43:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM15EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-16-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-16-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:40:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM16EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-16-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-16-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:46:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM16EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-16-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-16-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:53:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM16EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-17-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-17-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:50:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM17EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-17-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-17-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T16:56:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM17EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-17-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-17-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:03:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM17EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-18-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-18-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:00:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM18EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-18-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-18-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:06:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM18EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-18-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-18-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:13:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM18EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-19-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-19-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:10:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM19EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-19-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-19-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:16:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM19EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-19-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-19-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:23:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM19EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-20-1",
+      "camera_id": "CAM-01",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-20-1",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:20:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM20EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-20-2",
+      "camera_id": "CAM-02",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-20-2",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:26:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM20EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    },
+    {
+      "event_id": "norm-20-3",
+      "camera_id": "CAM-04",
+      "event_type": "ANPR_MATCH",
+      "track_id": "norm-20-3",
+      "severity": "LOW",
+      "threat_score": 40,
+      "timestamp": "2026-11-01T17:33:00.000Z",
+      "snapshot_path": null,
+      "plate": "NORM20EE5555",
+      "vehicle_id": null,
+      "metadata": {
+        "synthetic": true
+      }
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-11-01T18:46:31.772Z",
+    "total_events": 105,
+    "scenario_counts": {
+      "scenario_3": 1,
+      "day_18_example": 1,
+      "impossible_travel": 5,
+      "missing_middle": 5,
+      "lookalike_variants": 3,
+      "slow_transit": 2,
+      "trip_break": 2,
+      "near_miss_decoy": 1,
+      "normal_routes": 20
+    }
+  }
+}

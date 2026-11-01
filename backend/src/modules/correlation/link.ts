@@ -60,13 +60,18 @@ export function closest(routes: Route[], gap: number): Route {
 }
 
 export function plateFactor(a: Sighting, b: Sighting, cfg: CorrelationConfig): Factor {
-  const qA = a.plate_quality ?? (a.plates.length > 1 ? 'lookalike' : 'exact');
-  const qB = b.plate_quality ?? (b.plates.length > 1 ? 'lookalike' : 'exact');
+  const exactOverlap = a.plates.some(p => b.plates.includes(p));
+  const isLookalike =
+    a.plate_quality === 'lookalike' ||
+    b.plate_quality === 'lookalike' ||
+    (!exactOverlap && a.plates.length > 0 && b.plates.length > 0) ||
+    a.plates.length > 1 ||
+    b.plates.length > 1;
 
   let quality: 'exact' | 'lookalike' | 'unknown' = 'exact';
-  if (qA === 'lookalike' || qB === 'lookalike') {
+  if (isLookalike) {
     quality = 'lookalike';
-  } else if (qA === 'unknown' || qB === 'unknown') {
+  } else if (a.plate_quality === 'unknown' || b.plate_quality === 'unknown') {
     quality = 'unknown';
   }
 

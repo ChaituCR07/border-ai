@@ -14,6 +14,7 @@
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts",
     "topology:check": "tsx scripts/topology-check.ts",
     "topology:seed": "tsx --env-file=.env scripts/topology-seed.ts",
+    "fixtures:seed": "tsx scripts/seed-correlation-fixtures.ts",
     "smoke": "bash scripts/smoke.sh",
     "demo:alert": "python3 ../scripts/emit_demo_alert.py"
   },

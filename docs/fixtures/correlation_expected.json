@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "scenarios": {
+    "scenario_3": {
+      "plate": "KA01AB1234",
+      "trips_count": 1,
+      "trajectories_count": 1,
+      "cameras": ["CAM-01", "CAM-02", "CAM-04"],
+      "links_count": 2,
+      "link_classes": ["PLAUSIBLE", "PLAUSIBLE"],
+      "confidence": 1.0,
+      "warnings_count": 0,
+      "anomalies_count": 0
+    },
+    "day_18_example": {
+      "plate": "MH12DE3344",
+      "trips_count": 1,
+      "trajectories_count": 1,
+      "cameras": ["CAM-03", "CAM-04", "CAM-05"],
+      "links_count": 2,
+      "link_classes": ["PLAUSIBLE", "PLAUSIBLE"],
+      "gaps_s": [28, 72],
+      "warnings_count": 0,
+      "anomalies_count": 0
+    },
+    "impossible_travel": {
+      "sample_plate": "DUP01AA1111",
+      "trips_count": 1,
+      "trajectories_count": 2,
+      "anomaly_types": ["IMPOSSIBLE_TRAVEL", "MULTIPLE_TRAJECTORIES"],
+      "warnings_count": 2
+    },
+    "missing_middle": {
+      "sample_plate": "MIS01BB2222",
+      "trips_count": 1,
+      "trajectories_count": 1,
+      "anomaly_types": ["MISSED_CAMERA"],
+      "missed_cameras": ["CAM-03"],
+      "warnings_count": 0
+    },
+    "lookalike_variants": {
+      "sample_plate": "LOOK01AB1234",
+      "trips_count": 1,
+      "trajectories_count": 1,
+      "link_classes": ["PLAUSIBLE"],
+      "confidence": 0.7,
+      "plate_factor": 0.7
+    },
+    "slow_transit": {
+      "sample_plate": "SLOW01CC3333",
+      "trips_count": 1,
+      "trajectories_count": 1,
+      "link_classes": ["SLOW"],
+      "anomaly_types": ["SLOW_TRANSIT"]
+    },
+    "trip_break": {
+      "sample_plate": "TRIP01DD4444",
+      "trips_count": 2
+    },
+    "near_miss_decoy": {
+      "plate": "KA01AB1235",
+      "target_plate": "KA01AB1234",
+      "correlated": false
+    },
+    "normal_routes": {
+      "plates_count": 20,
+      "warnings_count": 0
+    }
+  }
+}
