@@ -1,6 +1,9 @@
 import type pg from 'pg';
 import { CameraLink, TopologyIndex } from './topology.js';
-import { CameraTopologyNode, CorrelationRepo, TopologyData } from './repo.js';
+import { CameraTopologyNode, CorrelationRepo, TopologyData, SequenceSearchFilters } from './repo.js';
+import { SequenceMatch, SequenceHop, sequenceSql, verifySequenceHops } from './sequence.js';
+import { isoToMicros } from '../investigation/journey.js';
+import { round3 } from './link.js';
 
 export class PgCorrelationRepo implements CorrelationRepo {
   constructor(private readonly pool: pg.Pool) {}
@@ -113,5 +116,52 @@ export class PgCorrelationRepo implements CorrelationRepo {
     } finally {
       client.release();
     }
+  }
+
+  async sequenceSearch(filters: SequenceSearchFilters): Promise<SequenceMatch[]> {
+    const steps = filters.cameras.length;
+    const sql = sequenceSql(steps);
+    const params = [
+      ...filters.cameras,
+      filters.from,
+      filters.to,
+      filters.maxHopGapS,
+      filters.limit,
+    ];
+
+    const res = await this.pool.query(sql, params);
+    const matches: SequenceMatch[] = [];
+
+    for (const row of res.rows) {
+      const hops: SequenceHop[] = [];
+      for (let i = 0; i < steps; i++) {
+        const cam = filters.cameras[i]!;
+        const ts = row[`ts${i + 1}`];
+        if (ts) {
+          hops.push({
+            camera_id: cam,
+            timestamp: new Date(ts).toISOString(),
+            event_id: `seq-${cam}-${row.plate_key}`,
+          });
+        }
+      }
+
+      if (verifySequenceHops(hops, filters.maxHopGapS)) {
+        const variants: string[] = row.variants_first ?? [];
+        const totalDuration = round3(
+          Number(isoToMicros(hops.at(-1)!.timestamp) - isoToMicros(hops[0]!.timestamp)) / 1_000_000
+        );
+
+        matches.push({
+          plate_key: row.plate_key,
+          representative_plate: variants[0] ?? row.plate_key,
+          plate_variants: variants,
+          hops,
+          total_duration_s: totalDuration,
+        });
+      }
+    }
+
+    return matches;
   }
 }
