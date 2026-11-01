@@ -35,7 +35,7 @@ export function round3(n: number): number {
 
 export function fmt(seconds: number): string {
   const s = Math.round(seconds);
-  if (s < 60) return `${s} s`;
+  if (s <= 60) return `${s} s`;
   const m = Math.floor(s / 60);
   const remS = s % 60;
   if (s < 3600) {
