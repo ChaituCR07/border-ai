@@ -46,6 +46,11 @@ import { healthRoutes } from './modules/health/routes.js';
 import { investigationRoutes } from './modules/investigation/routes.js';
 import type { InvestigationRepo } from './modules/investigation/repo.js';
 
+import { correlationRoutes } from './modules/correlation/routes.js';
+import type { CorrelationRepo } from './modules/correlation/repo.js';
+import { MemoryCorrelationRepo } from './modules/correlation/repo.memory.js';
+import { PgCorrelationRepo } from './modules/correlation/repo.pg.js';
+
 export interface AppDeps {
   config: Config;
   camerasRepo: CamerasRepo;
@@ -54,6 +59,7 @@ export interface AppDeps {
   watchlistRepo: WatchlistRepo;
   analyticsRepo: AnalyticsRepo;
   investigationRepo?: InvestigationRepo;
+  correlationRepo?: CorrelationRepo;
   auditRepo?: AuditRepo;
   pool?: pg.Pool;
   logger?: boolean | Record<string, unknown>;
@@ -227,6 +233,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           })
         );
       }
+      const correlationRepo =
+        deps.correlationRepo ??
+        (deps.pool ? new PgCorrelationRepo(deps.pool) : new MemoryCorrelationRepo());
+
+      await api.register(
+        correlationRoutes({
+          correlationRepo,
+          auditRepo: deps.auditRepo,
+        })
+      );
+
       await api.register(watchlistRoutes({ watchlistRepo: deps.watchlistRepo, auditRepo: deps.auditRepo }));
       await api.register(analyticsRoutes({ analyticsRepo: deps.analyticsRepo }));
       await api.register(snapshotRoutes({ snapshotDir: deps.config.SNAPSHOT_DIR }));
