@@ -57,7 +57,13 @@ export const DEFAULT_CORRELATION_CONFIG: CorrelationConfig = {
 };
 
 export function loadCorrelationConfig(filePath?: string): CorrelationConfig {
-  const targetPath = filePath || path.resolve(process.cwd(), 'configs/correlation.json');
+  let targetPath = filePath || path.resolve(process.cwd(), 'configs/correlation.json');
+  if (!fs.existsSync(targetPath)) {
+    const parentPath = path.resolve(process.cwd(), '../configs/correlation.json');
+    if (fs.existsSync(parentPath)) {
+      targetPath = parentPath;
+    }
+  }
   try {
     if (fs.existsSync(targetPath)) {
       const raw = fs.readFileSync(targetPath, 'utf-8');
