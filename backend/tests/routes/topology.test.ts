@@ -74,3 +74,4 @@ describe('GET /api/topology', () => {
     expect(body.links[0].b).toBe('CAM-TEST-2');
   });
 });
+

@@ -77,3 +77,4 @@ Sequence search allows an Investigator or Admin to answer:
 1. **Appearance Matching:** Appearance embeddings are not yet active in this version; correlation relies on plate strings and topology.
 2. **Clock Synchronization:** All cameras are assumed to be synchronized via NTP.
 3. **Legal Lead Status:** Trajectories and anomaly alerts are investigative leads to guide human operators, not automated legal proof. Visual verification remains required.
+

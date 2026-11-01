@@ -98,3 +98,4 @@ export const JourneySoFar: React.FC<JourneySoFarProps> = ({
     </div>
   );
 };
+

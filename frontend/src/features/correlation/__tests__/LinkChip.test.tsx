@@ -57,3 +57,4 @@ describe('LinkChip component', () => {
     expect(screen.getByText(/Missed camera\(s\): CAM-03/)).toBeInTheDocument();
   });
 });
+

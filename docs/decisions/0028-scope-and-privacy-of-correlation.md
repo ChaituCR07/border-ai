@@ -36,3 +36,4 @@ Cross-camera correlation and multi-camera pattern searches can trace vehicular m
 - Dragnet mass surveillance is blocked by role gating, tight limits, and mandatory purpose declarations.
 - Complete accountability is guaranteed across every query.
 - System performance remains sub-300ms via safe in-memory caching.
+

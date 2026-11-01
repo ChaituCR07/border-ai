@@ -144,3 +144,4 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({ anomalies, className =
     </div>
   );
 };
+

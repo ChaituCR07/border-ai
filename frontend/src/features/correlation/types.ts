@@ -156,3 +156,4 @@ export interface SequenceSearchResponse {
     limit: number;
   };
 }
+

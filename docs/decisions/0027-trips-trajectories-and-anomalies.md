@@ -44,3 +44,4 @@ A vehicle may be observed dozens of times over days or weeks. Stacking all sight
 - Multi-day commuters cleanly segment into distinct trips.
 - Cloned plates and misreads separate into distinct, readable trajectories.
 - Total determinism guarantees reproducible results in court and forensic audits.
+

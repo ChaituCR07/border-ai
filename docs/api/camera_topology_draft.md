@@ -41,3 +41,4 @@ This document defines the schematic physical layout, interconnecting road links,
   - Direct road min is 300 s (too fast for direct road).
   - Route via CAM-03 has min $90 + 15 = 105$ s and max $300 + 90 = 390$ s.
   - Since 178 s is consistent only with the route via CAM-03, `missed_cameras` reports `["CAM-03"]`.
+

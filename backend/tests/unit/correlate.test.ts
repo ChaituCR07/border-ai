@@ -217,3 +217,4 @@ describe('correlate', () => {
     expect(() => correlate(arr as unknown as Sighting[], topo, cfg)).not.toThrow();
   });
 });
+

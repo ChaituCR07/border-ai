@@ -31,3 +31,4 @@ For schematic SVG visualization without external map tiles, cameras are mapped t
 ## 6. Event to Sighting Mapping
 - Events with a non-empty `plate` (`plate_number` or `metadata->>'plate'`) or `vehicle_id` qualify as sightings.
 - Consecutive events on the same camera within 120 seconds are consolidated into a single `Sighting` entry with `first_seen`, `last_seen`, `event_count`, `max_score`, and unique plate variants seen.
+
