@@ -17,6 +17,7 @@
     "fixtures:seed": "tsx scripts/seed-correlation-fixtures.ts",
     "export:openapi": "tsx scripts/export-openapi.ts",
     "smoke": "bash scripts/smoke.sh",
+    "smoke:correlation": "tsx scripts/smoke-correlation.ts",
     "demo:alert": "python3 ../scripts/emit_demo_alert.py"
   },
   "keywords": [
