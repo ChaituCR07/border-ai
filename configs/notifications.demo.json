@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "from": "Border-AI Alerts <alerts@border-ai.local>",
+  "base_url": "http://localhost:5173",
+  "display_timezone": "UTC",
+  "catchup_max_age_s": 3600,
+  "cooldown_s": 60,
+  "rate_limit": { "per_recipient_per_min": 12 },
+  "max_attempts": 6,
+  "routes": [
+    {
+      "name": "control-room-critical",
+      "match": { "priority": ["CRITICAL"] },
+      "recipients": ["control-room@example.org"],
+      "mode": "immediate",
+      "include": { "plate": true, "snapshot": true, "journey": true, "explanation": true },
+      "escalate": { "after_s": 60, "recipients": ["duty-officer@example.org"] }
+    },
+    {
+      "name": "supervisors-high",
+      "match": { "priority": ["HIGH"] },
+      "recipients": ["supervisors@example.org"],
+      "mode": "immediate",
+      "include": { "plate": true, "snapshot": false, "journey": false, "explanation": true }
+    },
+    {
+      "name": "gate3-critical",
+      "match": { "priority": ["CRITICAL"], "camera_id": ["CAM-03"] },
+      "recipients": ["gate3-lead@example.org"],
+      "mode": "immediate",
+      "include": { "plate": true, "snapshot": true, "journey": false, "explanation": true }
+    }
+  ]
+}

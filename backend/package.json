@@ -14,6 +14,7 @@
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts",
     "topology:check": "tsx scripts/topology-check.ts",
     "topology:seed": "tsx --env-file=.env scripts/topology-seed.ts",
+    "notifications:check": "tsx scripts/notifications-check.ts",
     "fixtures:seed": "tsx scripts/seed-correlation-fixtures.ts",
     "export:openapi": "tsx scripts/export-openapi.ts",
     "smoke": "bash scripts/smoke.sh",
