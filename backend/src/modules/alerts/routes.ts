@@ -4,7 +4,14 @@ import { z } from 'zod';
 import { AlertsService, type AlertChangeCallback } from './service.js';
 import type { AlertsRepo } from './repo.js';
 import type { AuditRepo } from '../../common/audit.js';
-import { AlertQuerySchema, AlertResourceSchema, AlertIdSchema, AcknowledgeBodySchema } from './schemas.js';
+import {
+  AlertQuerySchema,
+  AlertResourceSchema,
+  AlertDetailSchema,
+  AlertIdSchema,
+  AcknowledgeBodySchema,
+  ResolveBodySchema,
+} from './schemas.js';
 import { requireRole } from '../../common/auth.js';
 
 export interface AlertRouteDeps {
@@ -43,6 +50,26 @@ export function alertRoutes(deps: AlertRouteDeps): FastifyPluginAsync {
       }
     );
 
+    app.get(
+      '/alerts/:id',
+      {
+        schema: {
+          tags: ['Alerts'],
+          summary: 'Get single alert detail with notifications and explanation',
+          params: z.object({ id: AlertIdSchema }),
+          response: {
+            200: z.object({
+              data: AlertDetailSchema,
+            }),
+          },
+        },
+      },
+      async (req) => {
+        const detail = await service.getDetail(req.params.id, req.actor);
+        return { data: detail };
+      }
+    );
+
     app.patch(
       '/alerts/:id/acknowledge',
       {
@@ -61,6 +88,28 @@ export function alertRoutes(deps: AlertRouteDeps): FastifyPluginAsync {
       },
       async (req) => {
         const alert = await service.acknowledge(req.params.id, req.body?.acknowledged_by, req.actor, req.id);
+        return { data: alert };
+      }
+    );
+
+    app.patch(
+      '/alerts/:id/resolve',
+      {
+        preHandler: requireRole('ADMIN', 'OPERATOR', 'INVESTIGATOR'),
+        schema: {
+          tags: ['Alerts'],
+          summary: 'Resolve an alert with outcome classification and note',
+          params: z.object({ id: AlertIdSchema }),
+          body: ResolveBodySchema,
+          response: {
+            200: z.object({
+              data: AlertResourceSchema,
+            }),
+          },
+        },
+      },
+      async (req) => {
+        const alert = await service.resolve(req.params.id, req.body, req.actor, req.id);
         return { data: alert };
       }
     );

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useUIStore } from '../../state/uiStore';
 import { Clock } from './Clock';
 import { ConnectionBadge } from './ConnectionBadge';
+import { NotificationStatusChip } from './NotificationStatusChip';
 import { useLiveAlertsContext } from '../alerts/LiveAlertsProvider';
 
 export function Header() {
@@ -91,6 +92,7 @@ export function Header() {
           </kbd>
         </Link>
 
+        <NotificationStatusChip />
         <Clock />
         <ConnectionBadge />
       </div>

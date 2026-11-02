@@ -103,6 +103,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/config/public": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get public system configuration for dashboard and escalation timing */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                thresholds: {
+                                    name: string;
+                                    min: number;
+                                }[];
+                                escalation: {
+                                    critical_after_s: number;
+                                };
+                                realtime: {
+                                    heartbeat_ms: number;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/realtime/status": {
         parameters: {
             query?: never;
@@ -633,6 +682,10 @@ export interface paths {
                                 status: "OPEN" | "ACKNOWLEDGED" | "RESOLVED";
                                 acknowledged_by: string | null;
                                 acknowledged_at: string | null;
+                                resolved_by?: string | null;
+                                resolved_at?: string | null;
+                                /** @enum {string|null} */
+                                resolution?: "TRUE_POSITIVE" | "FALSE_POSITIVE" | "DUPLICATE" | "OTHER" | null;
                                 created_at: string;
                                 event: {
                                     camera_id: string;
@@ -646,6 +699,88 @@ export interface paths {
                                 limit: number;
                                 next_cursor: string | null;
                                 has_more: boolean;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/alerts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get single alert detail with notifications and explanation */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                alert_id: string;
+                                /** Format: uuid */
+                                event_id: string;
+                                /** @enum {string} */
+                                priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+                                /** @enum {string} */
+                                status: "OPEN" | "ACKNOWLEDGED" | "RESOLVED";
+                                acknowledged_by: string | null;
+                                acknowledged_at: string | null;
+                                resolved_by?: string | null;
+                                resolved_at?: string | null;
+                                /** @enum {string|null} */
+                                resolution?: "TRUE_POSITIVE" | "FALSE_POSITIVE" | "DUPLICATE" | "OTHER" | null;
+                                created_at: string;
+                                event: {
+                                    camera_id: string;
+                                    event_type: string;
+                                    threat_score: number;
+                                    plate?: string | null;
+                                    snapshot_url: string | null;
+                                };
+                                explanation?: {
+                                    name: string;
+                                    points: number;
+                                    detail?: string;
+                                }[];
+                                notifications: {
+                                    sent: number;
+                                    pending: number;
+                                    skipped: number;
+                                    failed: number;
+                                    items?: {
+                                        /** Format: uuid */
+                                        notification_id: string;
+                                        kind: string;
+                                        recipient: string;
+                                        status: string;
+                                        sent_at?: string | null;
+                                    }[];
+                                };
                             };
                         };
                     };
@@ -709,6 +844,81 @@ export interface paths {
                                 status: "OPEN" | "ACKNOWLEDGED" | "RESOLVED";
                                 acknowledged_by: string | null;
                                 acknowledged_at: string | null;
+                                resolved_by?: string | null;
+                                resolved_at?: string | null;
+                                /** @enum {string|null} */
+                                resolution?: "TRUE_POSITIVE" | "FALSE_POSITIVE" | "DUPLICATE" | "OTHER" | null;
+                                created_at: string;
+                                event: {
+                                    camera_id: string;
+                                    event_type: string;
+                                    threat_score: number;
+                                    plate?: string | null;
+                                    snapshot_url: string | null;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/alerts/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Resolve an alert with outcome classification and note */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        resolution: "TRUE_POSITIVE" | "FALSE_POSITIVE" | "DUPLICATE" | "OTHER";
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                alert_id: string;
+                                /** Format: uuid */
+                                event_id: string;
+                                /** @enum {string} */
+                                priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+                                /** @enum {string} */
+                                status: "OPEN" | "ACKNOWLEDGED" | "RESOLVED";
+                                acknowledged_by: string | null;
+                                acknowledged_at: string | null;
+                                resolved_by?: string | null;
+                                resolved_at?: string | null;
+                                /** @enum {string|null} */
+                                resolution?: "TRUE_POSITIVE" | "FALSE_POSITIVE" | "DUPLICATE" | "OTHER" | null;
                                 created_at: string;
                                 event: {
                                     camera_id: string;
@@ -1436,6 +1646,224 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get notifications delivery log with keyset pagination (Admin only) */
+        get: {
+            parameters: {
+                query?: {
+                    alert_id?: string;
+                    status?: string;
+                    kind?: string;
+                    limit?: number;
+                    cursor?: string;
+                    reveal?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                notification_id: string;
+                                alert_id: string;
+                                kind: string;
+                                channel: string;
+                                route_name: string;
+                                recipient: string;
+                                priority: string;
+                                status: string;
+                                skip_reason: string | null;
+                                attempts: number;
+                                last_error: string | null;
+                                message_id: string | null;
+                                sent_at: string | null;
+                                created_at: string;
+                            }[];
+                            meta: {
+                                limit: number;
+                                next_cursor: string | null;
+                                has_more: boolean;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get notification system queue, planner, and SMTP status (Admin only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                enabled: boolean;
+                                dry_run: boolean;
+                                smtp: {
+                                    ok: boolean;
+                                    last_error_class: string | null;
+                                };
+                                queue: {
+                                    pending: number;
+                                    sending: number;
+                                    failed: number;
+                                    sent_24h: number;
+                                    skipped_24h: number;
+                                };
+                                oldest_pending_age_s: number | null;
+                                planner: {
+                                    active: boolean;
+                                    is_standby: boolean;
+                                };
+                                stale_alerts_24h: number;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a test email notification to an allow-listed recipient (Admin only) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: email */
+                        recipient: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                notification_id: string;
+                                recipient: string;
+                                status: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/retry/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry a failed notification (Admin only) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                retried: boolean;
+                                /** Format: uuid */
+                                notification_id: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;

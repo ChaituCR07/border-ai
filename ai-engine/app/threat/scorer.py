@@ -51,6 +51,7 @@ class EntityState:
     kept: List[Contribution] = field(default_factory=list)
     alerted_level: Optional[str] = None
     last_alert_ts: Optional[float] = None
+    last_alert_id: Optional[str] = None
     below_since: Optional[float] = None
 
 
@@ -287,9 +288,18 @@ class ThreatScorer:
         if res.bonus:
             parts.append(f"multiple suspicious events +{res.bonus}")
         summary = f"{st.level} ({st.score}/{self.cfg.max_score}): " + ", ".join(parts)
+        alert_id = str(uuid.uuid4())
+        engine_alert_at = to_iso_utc(now)
+        factors = [{"name": c.label, "points": c.points, "kind": c.kind, "detail": ": ".join(c.reasons)} for c in counted]
+        supersedes_id = st.last_alert_id if previous is not None else None
+        st.last_alert_id = alert_id
+
         details = {
-            "alert_id": str(uuid.uuid4()), "threat_score": st.score, "severity": st.level, "priority": st.level,
+            "alert_id": alert_id, "threat_score": st.score, "severity": st.level, "priority": st.level,
             "level": st.level, "previous_level": previous, "escalation": previous is not None,
+            "supersedes_alert_id": supersedes_id,
+            "engine_alert_at": engine_alert_at,
+            "explanation": {"factors": factors},
             "summary": summary, "capped": res.capped, "window_s": self.cfg.window_s,
             "entity": _entity_name(st.key), "contributions": [c.to_dict() for c in counted],
             "excluded": res.excluded,

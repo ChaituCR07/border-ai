@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Header } from './features/system/Header';
 import { StaleBanner } from './features/system/StaleBanner';
+import { DeepLinkBanner } from './features/alerts/DeepLinkBanner';
+import { useAlertDeepLink } from './features/alerts/useAlertDeepLink';
 import { CameraSidebar } from './features/cameras/CameraSidebar';
 import { VideoGrid } from './features/video/VideoGrid';
 import { SeverityCounters } from './features/threats/SeverityCounters';
@@ -18,8 +20,24 @@ function AppShell() {
   const toggleVideoLayout = useUIStore((s) => s.toggleVideoLayout);
   const toggleTzMode = useUIStore((s) => s.toggleTzMode);
   const setSelectedCamera = useUIStore((s) => s.setSelectedCamera);
+  const openSnapshotDrawer = useUIStore((s) => s.openSnapshotDrawer);
   const { data: cameras } = useCameras();
   const { counts } = useOpenAlerts();
+
+  const { alertId, alert, loading, error, clearAlertParam } = useAlertDeepLink((loadedAlert) => {
+    openSnapshotDrawer({
+      alertId: loadedAlert.alert_id,
+      eventId: loadedAlert.event_id,
+      title: loadedAlert.event?.event_type?.replace(/_/g, ' ') || 'Alert Detail',
+      cameraName: loadedAlert.event?.camera_id,
+      timestamp: loadedAlert.created_at,
+      snapshotUrl: loadedAlert.event?.snapshot_url,
+      snapshotAvailable: Boolean(loadedAlert.event?.snapshot_url),
+      threatScore: loadedAlert.event?.threat_score,
+      severity: loadedAlert.priority,
+      explanation: loadedAlert.explanation,
+    });
+  });
 
   // Dynamic document title with critical alerts badge
   useEffect(() => {
@@ -62,6 +80,30 @@ function AppShell() {
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[var(--bg-app)] text-[var(--text)] select-none">
       <Header />
       <StaleBanner />
+      <DeepLinkBanner
+        alertId={alertId}
+        alert={alert}
+        loading={loading}
+        error={error}
+        onDismiss={clearAlertParam}
+        onOpenSnapshot={
+          alert
+            ? () =>
+                openSnapshotDrawer({
+                  alertId: alert.alert_id,
+                  eventId: alert.event_id,
+                  title: alert.event?.event_type?.replace(/_/g, ' ') || 'Alert Detail',
+                  cameraName: alert.event?.camera_id,
+                  timestamp: alert.created_at,
+                  snapshotUrl: alert.event?.snapshot_url,
+                  snapshotAvailable: Boolean(alert.event?.snapshot_url),
+                  threatScore: alert.event?.threat_score,
+                  severity: alert.priority,
+                  explanation: alert.explanation,
+                })
+            : undefined
+        }
+      />
 
       <div className="flex-1 flex overflow-hidden">
         {/* Camera Navigation Sidebar */}

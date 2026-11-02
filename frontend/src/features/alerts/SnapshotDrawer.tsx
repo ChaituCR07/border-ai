@@ -1,27 +1,73 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { AlertResource } from '../../api/types';
 import { getSeverityMeta } from '../../lib/severity';
 import { formatTime, relativeTime } from '../../lib/time';
 import { formatPlate } from '../../lib/plate';
 import { useUIStore } from '../../state/uiStore';
+import { ResolveDialog, type ResolutionChoice } from './ResolveDialog';
+
+interface AlertDetailExtended extends AlertResource {
+  notifications?: {
+    total: number;
+    sent: number;
+    pending: number;
+    failed: number;
+    cancelled: number;
+  };
+  explanation?: { factors?: Array<{ name: string; points: number }> } | null;
+  resolution_note?: string | null;
+}
 
 interface SnapshotDrawerProps {
   alert: AlertResource;
   onClose: () => void;
 }
 
-export function SnapshotDrawer({ alert, onClose }: SnapshotDrawerProps) {
+export function SnapshotDrawer({ alert: initialAlert, onClose }: SnapshotDrawerProps) {
+  const [alert, setAlert] = useState<AlertDetailExtended>(initialAlert);
+  const [isResolveOpen, setIsResolveOpen] = useState(false);
   const meta = getSeverityMeta(alert.priority);
   const tzMode = useUIStore((s) => s.tzMode);
+
+  // Fetch full detail with notifications & explanation
+  useEffect(() => {
+    let active = true;
+    fetch(`/api/alerts/${encodeURIComponent(initialAlert.alert_id)}`, {
+      headers: { Accept: 'application/json' },
+    })
+      .then(async (res) => {
+        if (!active) return;
+        if (res.ok) {
+          const json = await res.json();
+          setAlert((prev) => ({ ...prev, ...json.data }));
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [initialAlert.alert_id]);
 
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !isResolveOpen) onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [onClose, isResolveOpen]);
+
+  const handleResolved = (resolution: ResolutionChoice, note?: string) => {
+    setAlert((prev) => ({
+      ...prev,
+      status: 'RESOLVED',
+      resolution,
+      resolution_note: note || null,
+      resolved_at: new Date().toISOString(),
+      resolved_by: 'current-user',
+    }));
+  };
 
   return (
     <div
@@ -118,17 +164,119 @@ export function SnapshotDrawer({ alert, onClose }: SnapshotDrawerProps) {
               </span>
             </div>
 
-            <div className="flex justify-between py-1">
+            <div className="flex justify-between py-1 border-b border-[var(--border-muted)]">
               <span className="text-[var(--text-dim)]">Status</span>
-              <span className="font-semibold text-[var(--warn)] uppercase">{alert.status}</span>
+              <span
+                className={`font-semibold uppercase ${
+                  alert.status === 'RESOLVED'
+                    ? 'text-[var(--ok)]'
+                    : alert.status === 'ACKNOWLEDGED'
+                    ? 'text-cyan-400'
+                    : 'text-[var(--warn)]'
+                }`}
+              >
+                {alert.status}
+              </span>
             </div>
+
+            {alert.status === 'RESOLVED' && (
+              <div className="py-2 border-b border-[var(--border-muted)] space-y-1">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-[var(--text-dim)]">Resolution</span>
+                  <span className="font-semibold text-emerald-300">{alert.resolution}</span>
+                </div>
+                {alert.resolved_by && (
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-[var(--text-dim)]">Resolved By</span>
+                    <span className="font-mono text-[var(--text)]">{alert.resolved_by}</span>
+                  </div>
+                )}
+                {alert.resolved_at && (
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-[var(--text-dim)]">Resolved At</span>
+                    <span className="font-mono text-[var(--text)]">
+                      {formatTime(alert.resolved_at, tzMode)}
+                    </span>
+                  </div>
+                )}
+                {alert.resolution_note && (
+                  <div className="mt-1 p-2 rounded bg-[var(--bg-app)] border border-[var(--border-muted)] text-[11px] text-[var(--text-muted)] italic">
+                    "{alert.resolution_note}"
+                  </div>
+                )}
+              </div>
+            )}
+
+            {alert.explanation?.factors && alert.explanation.factors.length > 0 && (
+              <div className="py-2 border-b border-[var(--border-muted)] space-y-1.5">
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                  Threat Factor Breakdown
+                </span>
+                <div className="space-y-1">
+                  {alert.explanation.factors.map((f, i) => (
+                    <div key={i} className="flex justify-between text-[11px]">
+                      <span className="text-[var(--text)]">{f.name.replace(/_/g, ' ')}</span>
+                      <span className="font-mono text-[var(--warn)]">+{f.points} pts</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {alert.notifications && alert.notifications.total > 0 && (
+              <div className="py-2 border-b border-[var(--border-muted)] space-y-1">
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                  Email Dispatch Outbox
+                </span>
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 text-[10px] font-mono">
+                    Sent: {alert.notifications.sent}
+                  </span>
+                  {alert.notifications.pending > 0 && (
+                    <span className="px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800 text-[10px] font-mono">
+                      Pending: {alert.notifications.pending}
+                    </span>
+                  )}
+                  {alert.notifications.failed > 0 && (
+                    <span className="px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800 text-[10px] font-mono">
+                      Failed: {alert.notifications.failed}
+                    </span>
+                  )}
+                  {alert.notifications.cancelled > 0 && (
+                    <span className="px-2 py-0.5 rounded bg-gray-900 text-gray-400 border border-gray-700 text-[10px] font-mono">
+                      Cancelled: {alert.notifications.cancelled}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
+
+          {alert.status !== 'RESOLVED' && (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setIsResolveOpen(true)}
+                className="w-full py-2 px-3 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs cursor-pointer transition-colors shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <span>✓</span>
+                <span>Resolve Alert...</span>
+              </button>
+            </div>
+          )}
         </div>
 
         <footer className="mt-4 pt-3 border-t border-[var(--border)] text-[11px] text-[var(--text-dim)] text-center leading-relaxed">
           Contains personal data / license plate evidence. Access logged and audited per Border Intelligence security policy.
         </footer>
       </div>
+
+      <ResolveDialog
+        alertId={alert.alert_id}
+        isOpen={isResolveOpen}
+        onClose={() => setIsResolveOpen(false)}
+        onResolved={handleResolved}
+      />
     </div>
   );
 }

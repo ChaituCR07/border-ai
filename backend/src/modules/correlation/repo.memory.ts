@@ -95,11 +95,10 @@ export class MemoryCorrelationRepo implements CorrelationRepo {
   async sequenceSearch(filters: SequenceSearchFilters): Promise<SequenceMatch[]> {
     let allEvents: EventRow[] = [];
     if (this.eventsRepo) {
-      const res = await this.eventsRepo.query({
+      allEvents = await this.eventsRepo.list({
         from: filters.from,
         to: filters.to,
-      });
-      allEvents = res.events;
+      }, 10000);
     } else {
       allEvents = [...this.localEvents];
     }

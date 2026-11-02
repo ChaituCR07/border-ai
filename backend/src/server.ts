@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import { loadConfig } from './config/env.js';
 import { createPool } from './db/pool.js';
 import { PgCamerasRepo } from './modules/cameras/repo.pg.js';
@@ -12,6 +12,10 @@ import { Hub } from './realtime/hub.js';
 import { AlertHydrator } from './realtime/hydrator.js';
 import { AlertStreamConsumer } from './realtime/alert-stream-consumer.js';
 import { parseAlertEnvelope } from './realtime/envelope.js';
+import { loadNotificationConfig } from './modules/notifications/config.js';
+import { NotificationPlanner } from './modules/notifications/planner.js';
+import { NotificationWorker } from './modules/notifications/worker.js';
+import { NotificationsRepo } from './modules/notifications/repo.js';
 import { buildApp } from './app.js';
 
 async function bootstrap() {
@@ -24,7 +28,7 @@ async function bootstrap() {
   const pool = createPool(config.DATABASE_URL);
   const redis = new Redis(config.REDIS_URL, {
     maxRetriesPerRequest: null,
-    retryStrategy: (times) => Math.min(times * 100, 3000),
+    retryStrategy: (times: number) => Math.min(times * 100, 3000),
   });
 
   const camerasRepo = new PgCamerasRepo(pool, config.MJPEG_BASE_URL);
@@ -34,6 +38,27 @@ async function bootstrap() {
   const analyticsRepo = new PgAnalyticsRepo(pool);
   const investigationRepo = new PgInvestigationRepo(pool);
   const auditRepo = new PgAuditRepo(pool);
+  const notificationsRepo = new NotificationsRepo(pool);
+
+  let planner: NotificationPlanner | undefined;
+  let worker: NotificationWorker | undefined;
+
+  try {
+    const notifConfig = loadNotificationConfig(config.NOTIFICATIONS_CONFIG);
+    const allowedDomains = ['example.org', 'border-ai.local'];
+    planner = new NotificationPlanner(pool, notifConfig, {
+      allowedDomains,
+      dryRun: config.NOTIFICATIONS_DRY_RUN,
+      enabled: config.NOTIFICATIONS_ENABLED,
+    });
+    worker = new NotificationWorker(pool, notifConfig, {
+      allowedDomains,
+      dryRun: config.NOTIFICATIONS_DRY_RUN,
+      enabled: config.NOTIFICATIONS_ENABLED,
+    });
+  } catch (err) {
+    console.warn('[notifications] Failed to load notification config:', err);
+  }
 
   const hub = new Hub({
     maxClients: 200,
@@ -60,6 +85,7 @@ async function bootstrap() {
         type: 'alert.created',
         data: { alert },
       });
+      planner?.kick();
     },
     {
       stream: 'surveillance.alerts',
@@ -83,6 +109,9 @@ async function bootstrap() {
     watchlistRepo,
     analyticsRepo,
     investigationRepo,
+    notificationsRepo,
+    planner,
+    worker,
     auditRepo,
     pool,
     hub,
@@ -97,8 +126,21 @@ async function bootstrap() {
     app.log.error(err, 'Alert stream consumer fatal failure');
   });
 
+  if (planner) {
+    planner.start().catch((err) => {
+      app.log.error(err, 'Notification planner start failure');
+    });
+  }
+  if (worker) {
+    worker.start().catch((err) => {
+      app.log.error(err, 'Notification worker start failure');
+    });
+  }
+
   const stop = async () => {
     app.log.info('Shutting down server...');
+    await planner?.stop();
+    await worker?.stop();
     consumer.stop();
     hub.stop();
     await app.close();

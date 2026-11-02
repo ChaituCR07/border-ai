@@ -1,7 +1,7 @@
 import type { InvestigationRepo, FacetResult, SuggestItem, EventContextResult } from './repo.js';
 import type { EventFilters } from '../events/repo.js';
 import { validateTimeRange } from '../../common/time.js';
-import { classifyOmniboxQuery } from './query-classifier.js';
+import { classifyOmniboxQuery, type OmniboxClassification } from './query-classifier.js';
 import { buildJourney, type Journey, isoToMicros } from './journey.js';
 import { AppError } from '../../common/errors.js';
 import type { CorrelationRepo } from '../correlation/repo.js';
@@ -26,7 +26,7 @@ export class InvestigationService {
   async getFacets(query: any): Promise<{ data: FacetResult; meta: { capped: boolean } }> {
     validateTimeRange(query.from, query.to);
 
-    let omniboxParsed: Record<string, string> = {};
+    let omniboxParsed: OmniboxClassification = {};
     if (query.q) {
       omniboxParsed = classifyOmniboxQuery(query.q);
     }

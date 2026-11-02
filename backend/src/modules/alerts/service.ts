@@ -49,6 +49,23 @@ export class AlertsService {
     };
   }
 
+  async getDetail(id: string, actor: Actor): Promise<any> {
+    const alert = await this.repo.getById(id);
+    if (!alert) {
+      throw notFound(`Alert '${id}'`);
+    }
+
+    const isAdmin = actor.role === 'ADMIN';
+    const notifications = await this.repo.getNotificationSummary(id, isAdmin);
+    const explanation = await this.repo.getExplanation(alert.event_id);
+
+    return {
+      ...alert,
+      explanation: explanation || undefined,
+      notifications,
+    };
+  }
+
   async acknowledge(
     id: string,
     acknowledgedBy: string | undefined,
@@ -71,6 +88,47 @@ export class AlertsService {
           entity_id: id,
           request_id: requestId,
           detail: { priority: result.alert.priority, event_id: result.alert.event_id },
+        });
+      }
+
+      if (this.onAlertChanged) {
+        this.onAlertChanged(result.alert);
+      }
+    }
+
+    return result.alert;
+  }
+
+  async resolve(
+    id: string,
+    body: { resolution: 'TRUE_POSITIVE' | 'FALSE_POSITIVE' | 'DUPLICATE' | 'OTHER'; note?: string },
+    actor: Actor,
+    requestId?: string
+  ): Promise<AlertResource> {
+    const operator = actor.id;
+    const result = await this.repo.resolve(id, {
+      resolvedBy: operator,
+      resolution: body.resolution,
+      note: body.note,
+    });
+    if (!result) {
+      throw notFound(`Alert '${id}'`);
+    }
+
+    if (result.updated) {
+      if (this.audit) {
+        await this.audit.record({
+          actor: operator,
+          action: 'ALERT_RESOLVE',
+          entity_type: 'ALERT',
+          entity_id: id,
+          request_id: requestId,
+          detail: {
+            resolution: body.resolution,
+            note: body.note,
+            priority: result.alert.priority,
+            event_id: result.alert.event_id,
+          },
         });
       }
 

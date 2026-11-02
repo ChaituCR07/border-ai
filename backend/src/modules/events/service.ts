@@ -5,12 +5,14 @@ import type { EventResource, EventDetailResource, Severity } from '../../types/d
 import { clampLimit, decodeCursor, encodeCursor, type Cursor, type PaginatedResponse } from '../../common/pagination.js';
 import { notFound, AppError } from '../../common/errors.js';
 import { validateTimeRange } from '../../common/time.js';
-import { classifyOmniboxQuery } from '../investigation/query-classifier.js';
+import type { InvestigationRepo } from '../investigation/repo.js';
+import { classifyOmniboxQuery, type OmniboxClassification } from '../investigation/query-classifier.js';
 
 export class EventsService {
   constructor(
     private readonly repo: EventsRepo,
-    private readonly snapshotDir: string
+    private readonly snapshotDir: string,
+    private readonly investigationRepo?: InvestigationRepo
   ) {}
 
   private checkSnapshotAvailability(snapshotPath: string | null): boolean {
@@ -88,7 +90,7 @@ export class EventsService {
     }
 
     // Omnibox free text query fallback
-    let omniboxParsed: Record<string, string> = {};
+    let omniboxParsed: OmniboxClassification = {};
     if (query.q) {
       omniboxParsed = classifyOmniboxQuery(query.q);
     }

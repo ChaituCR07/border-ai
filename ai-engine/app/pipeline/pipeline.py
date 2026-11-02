@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from app import config
+from app.alerts.snapshot_store import save_snapshot_atomic
 from app.analytics.engine import RuleEngine
 from app.pipeline.metrics import StageTimer
 from app.pipeline.queues import put_blocking, put_drop_oldest
@@ -367,15 +368,25 @@ class Pipeline:
         """Evidence frame for each new alert. Contains people and plates: stays under outputs/, never in Git."""
         if not self.save_snapshots:
             return
-        folder = self.run_dir / "snapshots"
-        folder.mkdir(exist_ok=True)
+        root = str(self.run_dir)
         for a in alerts:
-            path = folder / f"{a.details['alert_id']}.jpg"
-            try:
-                cv2.imwrite(str(path), image, [cv2.IMWRITE_JPEG_QUALITY, 85])
-                a.details["snapshot_path"] = f"snapshots/{path.name}"
-            except Exception:
-                log.exception("Could not save the evidence snapshot for %s", a.details['alert_id'])
+            alert_id = a.details.get("alert_id")
+            rel_path = f"snapshots/{alert_id}.jpg"
+            saved = False
+            for attempt in range(2):
+                try:
+                    save_snapshot_atomic(image, rel_path, root, quality=85)
+                    a.details["snapshot_path"] = rel_path
+                    a.details["snapshot_error"] = False
+                    saved = True
+                    break
+                except Exception:
+                    if attempt == 0:
+                        continue
+                    log.exception("Could not save the evidence snapshot for %s", alert_id)
+            if not saved:
+                a.details["snapshot_path"] = None
+                a.details["snapshot_error"] = True
 
     def _enqueue(self, cid: str, res: FrameResult) -> None:
         q = self._out_queues[cid]

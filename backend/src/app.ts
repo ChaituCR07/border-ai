@@ -51,6 +51,12 @@ import type { CorrelationRepo } from './modules/correlation/repo.js';
 import { MemoryCorrelationRepo } from './modules/correlation/repo.memory.js';
 import { PgCorrelationRepo } from './modules/correlation/repo.pg.js';
 
+import { configRoutes } from './modules/config/routes.js';
+import { notificationRoutes } from './modules/notifications/routes.js';
+import { NotificationsRepo } from './modules/notifications/repo.js';
+import type { NotificationPlanner } from './modules/notifications/planner.js';
+import type { NotificationWorker } from './modules/notifications/worker.js';
+
 export interface AppDeps {
   config: Config;
   camerasRepo: CamerasRepo;
@@ -60,6 +66,9 @@ export interface AppDeps {
   analyticsRepo: AnalyticsRepo;
   investigationRepo?: InvestigationRepo;
   correlationRepo?: CorrelationRepo;
+  notificationsRepo?: NotificationsRepo;
+  planner?: NotificationPlanner;
+  worker?: NotificationWorker;
   auditRepo?: AuditRepo;
   pool?: pg.Pool;
   logger?: boolean | Record<string, unknown>;
@@ -95,6 +104,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   hub.start();
 
   app.addHook('onClose', async () => {
+    deps.planner?.stop();
+    deps.worker?.stop();
     hub.stop();
   });
 
@@ -171,6 +182,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   // Health routes
   await app.register(healthRoutes({ pool: deps.pool }), { prefix: '/api' });
 
+  // Public system configuration routes (/api/config/public)
+  await app.register(configRoutes(), { prefix: '/api' });
+
   // WebSocket & Realtime Status Routes (/api/ws, /api/realtime/status)
   await app.register(wsRoutes({ hub, config: deps.config, consumer: deps.consumer }), { prefix: '/api' });
 
@@ -201,8 +215,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         },
       },
     });
+    deps.planner?.kick();
     deps.onAlertChanged?.(alert);
   };
+
+  const notificationsRepo =
+    deps.notificationsRepo ??
+    (deps.pool ? new NotificationsRepo(deps.pool) : new NotificationsRepo({} as any));
 
   // Main API namespace with authentication seam
   await app.register(
@@ -249,6 +268,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       await api.register(watchlistRoutes({ watchlistRepo: deps.watchlistRepo, auditRepo: deps.auditRepo }));
       await api.register(analyticsRoutes({ analyticsRepo: deps.analyticsRepo }));
       await api.register(snapshotRoutes({ snapshotDir: deps.config.SNAPSHOT_DIR }));
+      await api.register(
+        notificationRoutes({
+          repo: notificationsRepo,
+          planner: deps.planner,
+          worker: deps.worker,
+          auditRepo: deps.auditRepo,
+          enabled: deps.config.NOTIFICATIONS_ENABLED,
+          dryRun: deps.config.NOTIFICATIONS_DRY_RUN,
+        })
+      );
     },
     { prefix: '/api' }
   );

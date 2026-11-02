@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "tiers": [
+    { "name": "LOW", "min": 0 },
+    { "name": "MEDIUM", "min": 30 },
+    { "name": "HIGH", "min": 60 },
+    { "name": "CRITICAL", "min": 80 }
+  ]
+}
