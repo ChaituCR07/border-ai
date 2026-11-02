@@ -1,0 +1,10 @@
+[
+  { "score": 0, "tier": "LOW" },
+  { "score": 29, "tier": "LOW" },
+  { "score": 30, "tier": "MEDIUM" },
+  { "score": 59, "tier": "MEDIUM" },
+  { "score": 60, "tier": "HIGH" },
+  { "score": 79, "tier": "HIGH" },
+  { "score": 80, "tier": "CRITICAL" },
+  { "score": 100, "tier": "CRITICAL" }
+]

@@ -55,6 +55,24 @@ class ScoringConfig:
         raise ValueError(f"unknown scoring source {source_id!r}")
 
 
+def load_threat_thresholds_file(file_path: Optional[str] = None) -> List[Tuple[str, int]]:
+    paths = [
+        file_path,
+        "configs/threat_thresholds.json",
+        "../configs/threat_thresholds.json",
+        str(Path(__file__).resolve().parent.parent.parent.parent / "configs" / "threat_thresholds.json"),
+    ]
+    for p in paths:
+        if p and Path(p).exists():
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    return [(t["name"], int(t["min"])) for t in data["tiers"]]
+            except Exception:
+                pass
+    return [("LOW", 0), ("MEDIUM", 30), ("HIGH", 60), ("CRITICAL", 80)]
+
+
 # ----------------------------------------------------------------------------- matching
 def get_field(event, path: str):
     """An event attribute (`rule_type`) or a details entry (`details.entity_type`); None if absent."""
