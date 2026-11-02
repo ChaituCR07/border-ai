@@ -60,6 +60,13 @@ def emit_alert(r: redis.Redis, args, idx: int) -> str:
             "event_type": args.event_type,
             "snapshot_path": f"{args.camera}/snap_{alert_id[:8]}.jpg",
             "plate": args.plate,
+            "engine_alert_at": now_iso,
+            "explanation": {
+                "factors": [
+                    {"name": args.summary, "points": min(40, args.score), "kind": "rule_event"},
+                    {"name": "Watchlist vehicle", "points": max(0, args.score - 40), "kind": "watchlist_vehicle"} if args.score > 40 else None,
+                ],
+            },
         },
     }
 
