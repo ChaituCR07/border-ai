@@ -367,8 +367,6 @@ class Pipeline:
     def _save_snapshots(self, alerts, image) -> None:
         """Evidence frame for each new alert. Contains people and plates: stays under outputs/, never in Git."""
         if not self.save_snapshots:
-            for a in alerts:
-                a.details["snapshot_path"] = None
             return
         root = str(self.run_dir)
         for a in alerts:
