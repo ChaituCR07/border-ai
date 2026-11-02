@@ -61,7 +61,7 @@ export async function buildJourneySummary(
 
     // Pick trajectory with highest confidence
     const sortedTrajs = [...latestTrip.trajectories].sort(
-      (a, b) => b.summary.mean_confidence - a.summary.mean_confidence
+      (a, b) => b.mean_confidence - a.mean_confidence
     );
     const bestTraj = sortedTrajs[0]!;
 
@@ -83,7 +83,8 @@ export async function buildJourneySummary(
       if (anom.type === 'IMPOSSIBLE_TRAVEL') {
         warnings.push('Possible duplicate plate or misread: seen at locations that cannot be reached in the elapsed time.');
       } else if (anom.type === 'MISSED_CAMERA') {
-        warnings.push(`Expected intermediate camera detection missed: ${anom.details.missed_cameras?.join(', ') || 'route checkpoint'}.`);
+        const missed = (anom.evidence as any)?.missed_cameras;
+        warnings.push(`Expected intermediate camera detection missed: ${Array.isArray(missed) ? missed.join(', ') : 'route checkpoint'}.`);
       } else if (anom.type === 'MULTIPLE_TRAJECTORIES') {
         warnings.push('Simultaneous or diverging trajectories detected for this license plate.');
       }

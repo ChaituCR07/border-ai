@@ -22,6 +22,11 @@ export interface HubOptions {
   now?: () => Date;
 }
 
+export type StateBroadcastMessage =
+  | Omit<Extract<ServerMessage, { type: 'alert.created' }>, 'seq'>
+  | Omit<Extract<ServerMessage, { type: 'alert.updated' }>, 'seq'>
+  | Omit<Extract<ServerMessage, { type: 'resync_required' }>, 'seq'>;
+
 export class Hub {
   readonly epoch = randomUUID();
   private seq = 0;
@@ -124,10 +129,7 @@ export class Hub {
    * Monotonically increments seq by 1.
    */
   broadcastState(
-    message: Omit<
-      Extract<ServerMessage, { type: 'alert.created' | 'alert.updated' | 'resync_required' }>,
-      'seq'
-    >
+    message: StateBroadcastMessage
   ): void {
     this.seq += 1;
     const fullMessage = { ...message, seq: this.seq } as ServerMessage;

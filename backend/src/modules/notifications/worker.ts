@@ -1,5 +1,5 @@
 import pg from 'pg';
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 import { type NotificationConfig, type Priority } from './config.js';
 import {
   type EmailModel,
@@ -37,7 +37,7 @@ export interface WorkerDeps {
   allowedDomains: string[];
   dryRun: boolean;
   enabled: boolean;
-  smtpTransport?: nodemailer.Transporter;
+  smtpTransport?: Transporter;
   journeyDeps?: JourneyDeps;
 }
 
@@ -73,7 +73,7 @@ export class NotificationWorker {
   private running = false;
   private timer: NodeJS.Timeout | null = null;
   private inFlight = new Set<string>();
-  private transport: nodemailer.Transporter;
+  private transport: Transporter;
   private rateLimiter: SlidingWindowRateLimiter;
   public metrics: WorkerMetrics = {
     sentTotal: 0,

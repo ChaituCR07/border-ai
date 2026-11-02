@@ -8,7 +8,7 @@ import type { AuditRepo } from '../../common/audit.js';
 import { AppError } from '../../common/errors.js';
 import { requireRole } from '../../common/auth.js';
 import { csvCell } from '../../common/csv.js';
-import { classifyOmniboxQuery } from './query-classifier.js';
+import { classifyOmniboxQuery, type OmniboxClassification } from './query-classifier.js';
 import type { CorrelationRepo } from '../correlation/repo.js';
 import {
   FacetsQuerySchema,
@@ -124,7 +124,7 @@ export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPlugin
           throw new AppError(422, 'PURPOSE_REQUIRED', 'Export requires an explicit purpose (>= 5 characters)');
         }
 
-        let omniboxParsed: Record<string, string> = {};
+        let omniboxParsed: OmniboxClassification = {};
         if (query.q) {
           omniboxParsed = classifyOmniboxQuery(query.q);
         }
