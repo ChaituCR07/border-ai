@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export type ResolutionChoice = 'FALSE_POSITIVE' | 'VERIFIED_THREAT' | 'RESOLVED_OTHER';
+export type ResolutionChoice = 'TRUE_POSITIVE' | 'FALSE_POSITIVE' | 'DUPLICATE' | 'OTHER';
 
 interface ResolveDialogProps {
   alertId: string;
@@ -36,7 +36,7 @@ export const ResolveDialog: React.FC<ResolveDialogProps> = ({
         },
         body: JSON.stringify({
           resolution,
-          resolution_note: note.trim() ? note.trim() : undefined,
+          note: note.trim() ? note.trim() : undefined,
         }),
       });
 
@@ -108,14 +108,14 @@ export const ResolveDialog: React.FC<ResolveDialogProps> = ({
                 <input
                   type="radio"
                   name="resolution"
-                  value="VERIFIED_THREAT"
-                  checked={resolution === 'VERIFIED_THREAT'}
-                  onChange={() => setResolution('VERIFIED_THREAT')}
+                  value="TRUE_POSITIVE"
+                  checked={resolution === 'TRUE_POSITIVE'}
+                  onChange={() => setResolution('TRUE_POSITIVE')}
                   className="accent-[var(--warn)]"
                 />
                 <div>
-                  <div className="font-semibold text-[var(--text)]">Verified Threat</div>
-                  <div className="text-[10px] text-[var(--text-dim)]">Confirmed security threat handled by personnel</div>
+                  <div className="font-semibold text-[var(--text)]">True Positive</div>
+                  <div className="text-[10px] text-[var(--text-dim)]">Confirmed security threat verified by personnel</div>
                 </div>
               </label>
 
@@ -123,14 +123,29 @@ export const ResolveDialog: React.FC<ResolveDialogProps> = ({
                 <input
                   type="radio"
                   name="resolution"
-                  value="RESOLVED_OTHER"
-                  checked={resolution === 'RESOLVED_OTHER'}
-                  onChange={() => setResolution('RESOLVED_OTHER')}
+                  value="DUPLICATE"
+                  checked={resolution === 'DUPLICATE'}
+                  onChange={() => setResolution('DUPLICATE')}
+                  className="accent-[var(--border-focus)]"
+                />
+                <div>
+                  <div className="font-semibold text-[var(--text)]">Duplicate Alert</div>
+                  <div className="text-[10px] text-[var(--text-dim)]">Redundant alert for an already handled incident</div>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-2.5 p-2 rounded border border-[var(--border)] bg-[var(--bg-panel-2)] hover:border-[var(--border-focus)] cursor-pointer">
+                <input
+                  type="radio"
+                  name="resolution"
+                  value="OTHER"
+                  checked={resolution === 'OTHER'}
+                  onChange={() => setResolution('OTHER')}
                   className="accent-[var(--border-focus)]"
                 />
                 <div>
                   <div className="font-semibold text-[var(--text)]">Other Resolution</div>
-                  <div className="text-[10px] text-[var(--text-dim)]">Routine patrol verification or external handoff</div>
+                  <div className="text-[10px] text-[var(--text-dim)]">Routine patrol clearance or administrative handoff</div>
                 </div>
               </label>
             </div>

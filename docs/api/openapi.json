@@ -36,6 +36,86 @@
         }
       }
     },
+    "/api/config/public": {
+      "get": {
+        "summary": "Get public system configuration for dashboard and escalation timing",
+        "tags": [
+          "Config"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "thresholds": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "min": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "min"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "escalation": {
+                          "type": "object",
+                          "properties": {
+                            "critical_after_s": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "critical_after_s"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "realtime": {
+                          "type": "object",
+                          "properties": {
+                            "heartbeat_ms": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "heartbeat_ms"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "thresholds",
+                        "escalation",
+                        "realtime"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/realtime/status": {
       "get": {
         "responses": {
@@ -1417,6 +1497,24 @@
                             "type": "string",
                             "nullable": true
                           },
+                          "resolved_by": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "resolved_at": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "resolution": {
+                            "type": "string",
+                            "enum": [
+                              "TRUE_POSITIVE",
+                              "FALSE_POSITIVE",
+                              "DUPLICATE",
+                              "OTHER"
+                            ],
+                            "nullable": true
+                          },
                           "created_at": {
                             "type": "string"
                           },
@@ -1488,6 +1586,225 @@
                   "required": [
                     "data",
                     "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/alerts/{id}": {
+      "get": {
+        "summary": "Get single alert detail with notifications and explanation",
+        "tags": [
+          "Alerts"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "alert_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "event_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "priority": {
+                          "type": "string",
+                          "enum": [
+                            "LOW",
+                            "MEDIUM",
+                            "HIGH",
+                            "CRITICAL"
+                          ]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OPEN",
+                            "ACKNOWLEDGED",
+                            "RESOLVED"
+                          ]
+                        },
+                        "acknowledged_by": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "acknowledged_at": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "resolved_by": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "resolved_at": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "resolution": {
+                          "type": "string",
+                          "enum": [
+                            "TRUE_POSITIVE",
+                            "FALSE_POSITIVE",
+                            "DUPLICATE",
+                            "OTHER"
+                          ],
+                          "nullable": true
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "camera_id": {
+                              "type": "string"
+                            },
+                            "event_type": {
+                              "type": "string"
+                            },
+                            "threat_score": {
+                              "type": "number"
+                            },
+                            "plate": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "snapshot_url": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "camera_id",
+                            "event_type",
+                            "threat_score",
+                            "snapshot_url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "explanation": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "points": {
+                                "type": "number"
+                              },
+                              "detail": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "points"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "notifications": {
+                          "type": "object",
+                          "properties": {
+                            "sent": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "pending": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "skipped": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "failed": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "items": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "notification_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "recipient": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "sent_at": {
+                                    "type": "string",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "notification_id",
+                                  "kind",
+                                  "recipient",
+                                  "status"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "sent",
+                            "pending",
+                            "skipped",
+                            "failed"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "alert_id",
+                        "event_id",
+                        "priority",
+                        "status",
+                        "acknowledged_by",
+                        "acknowledged_at",
+                        "created_at",
+                        "event",
+                        "notifications"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
                   ],
                   "additionalProperties": false
                 }
@@ -1573,6 +1890,189 @@
                         },
                         "acknowledged_at": {
                           "type": "string",
+                          "nullable": true
+                        },
+                        "resolved_by": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "resolved_at": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "resolution": {
+                          "type": "string",
+                          "enum": [
+                            "TRUE_POSITIVE",
+                            "FALSE_POSITIVE",
+                            "DUPLICATE",
+                            "OTHER"
+                          ],
+                          "nullable": true
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "camera_id": {
+                              "type": "string"
+                            },
+                            "event_type": {
+                              "type": "string"
+                            },
+                            "threat_score": {
+                              "type": "number"
+                            },
+                            "plate": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "snapshot_url": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "camera_id",
+                            "event_type",
+                            "threat_score",
+                            "snapshot_url"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "alert_id",
+                        "event_id",
+                        "priority",
+                        "status",
+                        "acknowledged_by",
+                        "acknowledged_at",
+                        "created_at",
+                        "event"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/alerts/{id}/resolve": {
+      "patch": {
+        "summary": "Resolve an alert with outcome classification and note",
+        "tags": [
+          "Alerts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resolution": {
+                    "type": "string",
+                    "enum": [
+                      "TRUE_POSITIVE",
+                      "FALSE_POSITIVE",
+                      "DUPLICATE",
+                      "OTHER"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "resolution"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "alert_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "event_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "priority": {
+                          "type": "string",
+                          "enum": [
+                            "LOW",
+                            "MEDIUM",
+                            "HIGH",
+                            "CRITICAL"
+                          ]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OPEN",
+                            "ACKNOWLEDGED",
+                            "RESOLVED"
+                          ]
+                        },
+                        "acknowledged_by": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "acknowledged_at": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "resolved_by": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "resolved_at": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "resolution": {
+                          "type": "string",
+                          "enum": [
+                            "TRUE_POSITIVE",
+                            "FALSE_POSITIVE",
+                            "DUPLICATE",
+                            "OTHER"
+                          ],
                           "nullable": true
                         },
                         "created_at": {
@@ -3348,6 +3848,416 @@
         "responses": {
           "200": {
             "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "summary": "Get notifications delivery log with keyset pagination (Admin only)",
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "alert_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "kind",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "cursor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "in": "query",
+            "name": "reveal",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "notification_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "alert_id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string"
+                          },
+                          "channel": {
+                            "type": "string"
+                          },
+                          "route_name": {
+                            "type": "string"
+                          },
+                          "recipient": {
+                            "type": "string"
+                          },
+                          "priority": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "skip_reason": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "attempts": {
+                            "type": "number"
+                          },
+                          "last_error": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "message_id": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "sent_at": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "notification_id",
+                          "alert_id",
+                          "kind",
+                          "channel",
+                          "route_name",
+                          "recipient",
+                          "priority",
+                          "status",
+                          "skip_reason",
+                          "attempts",
+                          "last_error",
+                          "message_id",
+                          "sent_at",
+                          "created_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "limit": {
+                          "type": "number"
+                        },
+                        "next_cursor": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "has_more": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "limit",
+                        "next_cursor",
+                        "has_more"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/status": {
+      "get": {
+        "summary": "Get notification system queue, planner, and SMTP status (Admin only)",
+        "tags": [
+          "Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "dry_run": {
+                          "type": "boolean"
+                        },
+                        "smtp": {
+                          "type": "object",
+                          "properties": {
+                            "ok": {
+                              "type": "boolean"
+                            },
+                            "last_error_class": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "ok",
+                            "last_error_class"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "queue": {
+                          "type": "object",
+                          "properties": {
+                            "pending": {
+                              "type": "number"
+                            },
+                            "sending": {
+                              "type": "number"
+                            },
+                            "failed": {
+                              "type": "number"
+                            },
+                            "sent_24h": {
+                              "type": "number"
+                            },
+                            "skipped_24h": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "pending",
+                            "sending",
+                            "failed",
+                            "sent_24h",
+                            "skipped_24h"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "oldest_pending_age_s": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "planner": {
+                          "type": "object",
+                          "properties": {
+                            "active": {
+                              "type": "boolean"
+                            },
+                            "is_standby": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "active",
+                            "is_standby"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "stale_alerts_24h": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "dry_run",
+                        "smtp",
+                        "queue",
+                        "oldest_pending_age_s",
+                        "planner",
+                        "stale_alerts_24h"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/test": {
+      "post": {
+        "summary": "Send a test email notification to an allow-listed recipient (Admin only)",
+        "tags": [
+          "Notifications"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recipient": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "required": [
+                  "recipient"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "notification_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "recipient": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "notification_id",
+                        "recipient",
+                        "status"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/retry/{id}": {
+      "post": {
+        "summary": "Retry a failed notification (Admin only)",
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "retried": {
+                          "type": "boolean"
+                        },
+                        "notification_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "retried",
+                        "notification_id"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }

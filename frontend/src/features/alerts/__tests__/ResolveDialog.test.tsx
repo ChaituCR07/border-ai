@@ -33,7 +33,8 @@ describe('ResolveDialog Component', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Resolve Threat Alert')).toBeInTheDocument();
     expect(screen.getByLabelText(/false positive/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/verified threat/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/true positive/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/duplicate/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/other resolution/i)).toBeInTheDocument();
   });
 
@@ -45,7 +46,7 @@ describe('ResolveDialog Component', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
       ok: true,
       status: 200,
-      json: async () => ({ data: { status: 'RESOLVED', resolution: 'VERIFIED_THREAT' } }),
+      json: async () => ({ data: { status: 'RESOLVED', resolution: 'TRUE_POSITIVE' } }),
     } as any);
 
     render(
@@ -57,8 +58,8 @@ describe('ResolveDialog Component', () => {
       />
     );
 
-    // Select Verified Threat radio
-    const verifiedRadio = screen.getByLabelText(/verified threat/i);
+    // Select True Positive radio
+    const verifiedRadio = screen.getByLabelText(/true positive/i);
     await user.click(verifiedRadio);
 
     // Type optional note
@@ -75,13 +76,13 @@ describe('ResolveDialog Component', () => {
         expect.objectContaining({
           method: 'PATCH',
           body: JSON.stringify({
-            resolution: 'VERIFIED_THREAT',
-            resolution_note: 'Patrol intercepted suspicious vehicle at checkpoint.',
+            resolution: 'TRUE_POSITIVE',
+            note: 'Patrol intercepted suspicious vehicle at checkpoint.',
           }),
         })
       );
       expect(onResolved).toHaveBeenCalledWith(
-        'VERIFIED_THREAT',
+        'TRUE_POSITIVE',
         'Patrol intercepted suspicious vehicle at checkpoint.'
       );
       expect(onClose).toHaveBeenCalled();

@@ -15,9 +15,6 @@ interface AlertDetailExtended extends AlertResource {
     cancelled: number;
   };
   explanation?: { factors?: Array<{ name: string; points: number }> } | null;
-  resolved_at?: string | null;
-  resolved_by?: string | null;
-  resolution?: string | null;
   resolution_note?: string | null;
 }
 

@@ -12,10 +12,6 @@ export interface AlertDetailData extends AlertResource {
     cancelled: number;
   };
   explanation?: Record<string, unknown> | null;
-  resolved_at?: string | null;
-  resolved_by?: string | null;
-  resolution?: string | null;
-  resolution_note?: string | null;
 }
 
 export function useAlertDeepLink(onAlertLoaded?: (alert: AlertDetailData) => void) {
