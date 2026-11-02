@@ -93,23 +93,41 @@ export class PgAlertsRepo implements AlertsRepo {
   }
 
   async acknowledge(alertId: string, acknowledgedBy: string): Promise<{ alert: AlertResource; updated: boolean } | null> {
-    // Atomic race-safe UPDATE matching NEW or OPEN
-    const updateSql = `
-      UPDATE alerts
-      SET status = 'ACKNOWLEDGED', acknowledged_by = $2, acknowledged_at = now(), updated_at = now()
-      WHERE alert_id = $1::text AND status IN ('NEW', 'OPEN')
-      RETURNING alert_id
-    `;
-    const updateRes = await this.pool.query(updateSql, [alertId, acknowledgedBy]);
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      // Atomic race-safe UPDATE matching NEW or OPEN
+      const updateSql = `
+        UPDATE alerts
+        SET status = 'ACKNOWLEDGED', acknowledged_by = $2, acknowledged_at = now(), updated_at = now()
+        WHERE alert_id = $1::text AND status IN ('NEW', 'OPEN')
+        RETURNING alert_id
+      `;
+      const updateRes = await client.query(updateSql, [alertId, acknowledgedBy]);
 
-    if (updateRes.rowCount && updateRes.rowCount > 0) {
-      const full = await this.getById(alertId);
-      return full ? { alert: full, updated: true } : null;
+      if (updateRes.rowCount && updateRes.rowCount > 0) {
+        // Cancel pending escalation in the same transaction (Invariant I5)
+        await client.query(
+          `UPDATE notifications
+              SET status = 'CANCELLED', skip_reason = 'acknowledged', locked_until = NULL
+            WHERE alert_id = $1 AND kind = 'ESCALATION' AND status = 'PENDING'`,
+          [alertId]
+        );
+        await client.query('COMMIT');
+        const full = await this.getById(alertId);
+        return full ? { alert: full, updated: true } : null;
+      }
+
+      await client.query('COMMIT');
+      // If 0 rows updated, check if it exists (idempotent 200 or 404)
+      const existing = await this.getById(alertId);
+      if (!existing) return null;
+      return { alert: existing, updated: false };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
-
-    // If 0 rows updated, check if it exists (idempotent 200 or 404)
-    const existing = await this.getById(alertId);
-    if (!existing) return null;
-    return { alert: existing, updated: false };
   }
 }
