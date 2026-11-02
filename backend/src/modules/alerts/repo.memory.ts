@@ -1,4 +1,4 @@
-import type { AlertsRepo, AlertFilters } from './repo.js';
+import type { AlertsRepo, AlertFilters, ResolveParams } from './repo.js';
 import type { AlertResource } from '../../types/domain.js';
 import type { Cursor } from '../../common/pagination.js';
 
@@ -58,6 +58,28 @@ export class InMemoryAlertsRepo implements AlertsRepo {
       existing.status = 'ACKNOWLEDGED';
       existing.acknowledged_by = acknowledgedBy;
       existing.acknowledged_at = new Date().toISOString();
+      return { alert: existing, updated: true };
+    }
+
+    return { alert: existing, updated: false };
+  }
+
+  async resolve(
+    alertId: string,
+    params: ResolveParams
+  ): Promise<{ alert: AlertResource; updated: boolean } | null> {
+    const existing = this.alerts.find(a => a.alert_id === alertId);
+    if (!existing) return null;
+
+    if (existing.status !== 'RESOLVED') {
+      existing.status = 'RESOLVED';
+      existing.resolved_by = params.resolvedBy;
+      existing.resolved_at = new Date().toISOString();
+      existing.resolution = params.resolution;
+      if (!existing.acknowledged_by) {
+        existing.acknowledged_by = params.resolvedBy;
+        existing.acknowledged_at = existing.resolved_at;
+      }
       return { alert: existing, updated: true };
     }
 

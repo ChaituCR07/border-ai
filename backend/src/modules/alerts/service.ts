@@ -81,4 +81,45 @@ export class AlertsService {
 
     return result.alert;
   }
+
+  async resolve(
+    id: string,
+    body: { resolution: 'TRUE_POSITIVE' | 'FALSE_POSITIVE' | 'DUPLICATE' | 'OTHER'; note?: string },
+    actor: Actor,
+    requestId?: string
+  ): Promise<AlertResource> {
+    const operator = actor.id;
+    const result = await this.repo.resolve(id, {
+      resolvedBy: operator,
+      resolution: body.resolution,
+      note: body.note,
+    });
+    if (!result) {
+      throw notFound(`Alert '${id}'`);
+    }
+
+    if (result.updated) {
+      if (this.audit) {
+        await this.audit.record({
+          actor: operator,
+          action: 'ALERT_RESOLVE',
+          entity_type: 'ALERT',
+          entity_id: id,
+          request_id: requestId,
+          detail: {
+            resolution: body.resolution,
+            note: body.note,
+            priority: result.alert.priority,
+            event_id: result.alert.event_id,
+          },
+        });
+      }
+
+      if (this.onAlertChanged) {
+        this.onAlertChanged(result.alert);
+      }
+    }
+
+    return result.alert;
+  }
 }

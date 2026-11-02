@@ -1,5 +1,5 @@
 import type pg from 'pg';
-import type { AlertsRepo, AlertFilters } from './repo.js';
+import type { AlertsRepo, AlertFilters, ResolveParams } from './repo.js';
 import type { AlertResource } from '../../types/domain.js';
 import type { Cursor } from '../../common/pagination.js';
 import { pgTsToIso } from '../../common/time.js';
@@ -15,6 +15,9 @@ export class PgAlertsRepo implements AlertsRepo {
       status: r.status === 'NEW' ? 'OPEN' : r.status,
       acknowledged_by: r.acknowledged_by ?? null,
       acknowledged_at: pgTsToIso(r.acknowledged_at),
+      resolved_by: r.resolved_by ?? null,
+      resolved_at: pgTsToIso(r.resolved_at),
+      resolution: r.resolution ?? null,
       created_at: pgTsToIso(r.created_at) ?? r.created_at,
       event: {
         camera_id: r.camera_id,
@@ -62,7 +65,8 @@ export class PgAlertsRepo implements AlertsRepo {
 
     const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
     const sql = `
-      SELECT a.alert_id, a.event_id, a.camera_id, a.priority, a.status, a.acknowledged_by, a.acknowledged_at, a.created_at,
+      SELECT a.alert_id, a.event_id, a.camera_id, a.priority, a.status, a.acknowledged_by, a.acknowledged_at,
+             a.resolved_by, a.resolved_at, a.resolution, a.created_at,
              e.event_type, e.threat_score, e.snapshot_path,
              COALESCE(e.plate_number, e.metadata->>'plate', v.plate_number) AS plate
       FROM alerts a
@@ -80,7 +84,8 @@ export class PgAlertsRepo implements AlertsRepo {
 
   async getById(alertId: string): Promise<AlertResource | null> {
     const sql = `
-      SELECT a.alert_id, a.event_id, a.camera_id, a.priority, a.status, a.acknowledged_by, a.acknowledged_at, a.created_at,
+      SELECT a.alert_id, a.event_id, a.camera_id, a.priority, a.status, a.acknowledged_by, a.acknowledged_at,
+             a.resolved_by, a.resolved_at, a.resolution, a.created_at,
              e.event_type, e.threat_score, e.snapshot_path,
              COALESCE(e.plate_number, e.metadata->>'plate', v.plate_number) AS plate
       FROM alerts a
@@ -120,6 +125,58 @@ export class PgAlertsRepo implements AlertsRepo {
 
       await client.query('COMMIT');
       // If 0 rows updated, check if it exists (idempotent 200 or 404)
+      const existing = await this.getById(alertId);
+      if (!existing) return null;
+      return { alert: existing, updated: false };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  async resolve(
+    alertId: string,
+    params: ResolveParams
+  ): Promise<{ alert: AlertResource; updated: boolean } | null> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const updateSql = `
+        UPDATE alerts
+        SET status = 'RESOLVED',
+            resolved_by = $2,
+            resolved_at = now(),
+            resolution = $3,
+            resolution_note = $4,
+            acknowledged_by = COALESCE(acknowledged_by, $2),
+            acknowledged_at = COALESCE(acknowledged_at, now()),
+            updated_at = now()
+        WHERE alert_id = $1::text AND status IN ('NEW', 'OPEN', 'ACKNOWLEDGED')
+        RETURNING alert_id
+      `;
+      const updateRes = await client.query(updateSql, [
+        alertId,
+        params.resolvedBy,
+        params.resolution,
+        params.note || null,
+      ]);
+
+      if (updateRes.rowCount && updateRes.rowCount > 0) {
+        // Cancel pending escalation in the same transaction (Invariant I5)
+        await client.query(
+          `UPDATE notifications
+              SET status = 'CANCELLED', skip_reason = 'acknowledged', locked_until = NULL
+            WHERE alert_id = $1 AND kind = 'ESCALATION' AND status = 'PENDING'`,
+          [alertId]
+        );
+        await client.query('COMMIT');
+        const full = await this.getById(alertId);
+        return full ? { alert: full, updated: true } : null;
+      }
+
+      await client.query('COMMIT');
       const existing = await this.getById(alertId);
       if (!existing) return null;
       return { alert: existing, updated: false };

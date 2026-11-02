@@ -50,6 +50,8 @@ export interface EventDetailResource extends EventResource {
   } | null;
 }
 
+export type ResolutionType = 'TRUE_POSITIVE' | 'FALSE_POSITIVE' | 'DUPLICATE' | 'OTHER';
+
 export interface AlertResource {
   alert_id: string;
   event_id: string;
@@ -57,6 +59,9 @@ export interface AlertResource {
   status: AlertStatus;
   acknowledged_by: string | null;
   acknowledged_at: string | null;
+  resolved_by?: string | null;
+  resolved_at?: string | null;
+  resolution?: ResolutionType | null;
   created_at: string;
   event: {
     camera_id: string;

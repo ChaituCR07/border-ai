@@ -3,6 +3,7 @@ import { SeverityEnum } from '../events/schemas.js';
 
 export const AlertIdSchema = z.string().uuid('alert_id must be a valid UUID');
 export const AlertStatusEnum = z.enum(['OPEN', 'ACKNOWLEDGED', 'RESOLVED']);
+export const ResolutionEnum = z.enum(['TRUE_POSITIVE', 'FALSE_POSITIVE', 'DUPLICATE', 'OTHER']);
 
 export const AlertQuerySchema = z.object({
   status: AlertStatusEnum.optional(),
@@ -18,6 +19,11 @@ export const AcknowledgeBodySchema = z.object({
   acknowledged_by: z.string().max(64).optional(),
 }).strict();
 
+export const ResolveBodySchema = z.object({
+  resolution: ResolutionEnum,
+  note: z.string().max(500, 'Resolution note must be at most 500 characters').optional(),
+}).strict();
+
 export const AlertResourceSchema = z.object({
   alert_id: z.string().uuid(),
   event_id: z.string().uuid(),
@@ -25,6 +31,9 @@ export const AlertResourceSchema = z.object({
   status: AlertStatusEnum,
   acknowledged_by: z.string().nullable(),
   acknowledged_at: z.string().nullable(),
+  resolved_by: z.string().nullable().optional(),
+  resolved_at: z.string().nullable().optional(),
+  resolution: ResolutionEnum.nullable().optional(),
   created_at: z.string(),
   event: z.object({
     camera_id: z.string(),
