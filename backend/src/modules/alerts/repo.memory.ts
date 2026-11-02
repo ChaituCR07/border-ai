@@ -1,4 +1,4 @@
-import type { AlertsRepo, AlertFilters, ResolveParams } from './repo.js';
+import type { AlertsRepo, AlertFilters, ResolveParams, NotificationSummary } from './repo.js';
 import type { AlertResource } from '../../types/domain.js';
 import type { Cursor } from '../../common/pagination.js';
 
@@ -84,5 +84,13 @@ export class InMemoryAlertsRepo implements AlertsRepo {
     }
 
     return { alert: existing, updated: false };
+  }
+
+  async getNotificationSummary(_alertId: string, _isAdmin: boolean): Promise<NotificationSummary> {
+    return { sent: 0, pending: 0, skipped: 0, failed: 0 };
+  }
+
+  async getExplanation(_eventId: string): Promise<Array<{ name: string; points: number; detail?: string }> | null> {
+    return null;
   }
 }

@@ -1,5 +1,5 @@
 import type pg from 'pg';
-import type { AlertsRepo, AlertFilters, ResolveParams } from './repo.js';
+import type { AlertsRepo, AlertFilters, ResolveParams, NotificationSummary } from './repo.js';
 import type { AlertResource } from '../../types/domain.js';
 import type { Cursor } from '../../common/pagination.js';
 import { pgTsToIso } from '../../common/time.js';
@@ -185,6 +185,70 @@ export class PgAlertsRepo implements AlertsRepo {
       throw err;
     } finally {
       client.release();
+    }
+  }
+
+  async getNotificationSummary(alertId: string, isAdmin: boolean): Promise<NotificationSummary> {
+    try {
+      const { rows } = await this.pool.query(
+        `SELECT notification_id, kind, recipient, status, sent_at
+           FROM notifications
+          WHERE alert_id = $1
+          ORDER BY created_at ASC`,
+        [alertId]
+      );
+
+      const counts = { sent: 0, pending: 0, skipped: 0, failed: 0 };
+      for (const r of rows) {
+        if (r.status === 'SENT') counts.sent++;
+        else if (r.status === 'PENDING' || r.status === 'SENDING') counts.pending++;
+        else if (r.status === 'SKIPPED' || r.status === 'CANCELLED') counts.skipped++;
+        else if (r.status === 'FAILED') counts.failed++;
+      }
+
+      if (!isAdmin) {
+        return counts;
+      }
+
+      const items = rows.map((r: any) => {
+        const parts = String(r.recipient).split('@');
+        const user = parts[0] || '';
+        const domain = parts[1] || '';
+        const masked = user.length > 2 ? `${user[0]}***@${domain}` : `***@${domain}`;
+        return {
+          notification_id: r.notification_id,
+          kind: r.kind,
+          recipient: masked,
+          status: r.status,
+          sent_at: r.sent_at ? new Date(r.sent_at).toISOString() : null,
+        };
+      });
+
+      return {
+        ...counts,
+        items,
+      };
+    } catch {
+      return { sent: 0, pending: 0, skipped: 0, failed: 0 };
+    }
+  }
+
+  async getExplanation(eventId: string): Promise<Array<{ name: string; points: number; detail?: string }> | null> {
+    try {
+      const { rows } = await this.pool.query(
+        `SELECT metadata FROM events WHERE event_id = $1`,
+        [eventId]
+      );
+      if (rows.length === 0) return null;
+      const meta = typeof rows[0].metadata === 'string' ? JSON.parse(rows[0].metadata) : rows[0].metadata || {};
+      const factors = meta.explanation?.factors || meta.contributions || [];
+      return factors.map((f: any) => ({
+        name: f.name || f.label || 'Detection factor',
+        points: Number(f.points) || 0,
+        detail: f.detail || (Array.isArray(f.reasons) ? f.reasons.join(', ') : undefined),
+      }));
+    } catch {
+      return null;
     }
   }
 }

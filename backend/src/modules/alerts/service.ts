@@ -49,6 +49,23 @@ export class AlertsService {
     };
   }
 
+  async getDetail(id: string, actor: Actor): Promise<any> {
+    const alert = await this.repo.getById(id);
+    if (!alert) {
+      throw notFound(`Alert '${id}'`);
+    }
+
+    const isAdmin = actor.role === 'ADMIN';
+    const notifications = await this.repo.getNotificationSummary(id, isAdmin);
+    const explanation = await this.repo.getExplanation(alert.event_id);
+
+    return {
+      ...alert,
+      explanation: explanation || undefined,
+      notifications,
+    };
+  }
+
   async acknowledge(
     id: string,
     acknowledgedBy: string | undefined,

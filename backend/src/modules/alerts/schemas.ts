@@ -43,3 +43,27 @@ export const AlertResourceSchema = z.object({
     snapshot_url: z.string().nullable(),
   }),
 });
+
+export const NotificationItemSchema = z.object({
+  notification_id: z.string().uuid(),
+  kind: z.string(),
+  recipient: z.string(),
+  status: z.string(),
+  sent_at: z.string().nullable().optional(),
+});
+
+export const AlertDetailSchema = AlertResourceSchema.extend({
+  explanation: z.array(z.object({
+    name: z.string(),
+    points: z.number(),
+    detail: z.string().optional(),
+  })).optional(),
+  notifications: z.object({
+    sent: z.number().int().nonnegative(),
+    pending: z.number().int().nonnegative(),
+    skipped: z.number().int().nonnegative(),
+    failed: z.number().int().nonnegative(),
+    items: z.array(NotificationItemSchema).optional(),
+  }),
+});
+
