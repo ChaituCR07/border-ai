@@ -5,6 +5,7 @@ import { formatTime, relativeTime } from '../../lib/time';
 import { formatPlate } from '../../lib/plate';
 import { useUIStore } from '../../state/uiStore';
 import { useAcknowledge } from './useAcknowledge';
+import { UnackedTimer } from './UnackedTimer';
 
 interface AlertCardProps {
   alert: AlertResource;
@@ -68,9 +69,9 @@ export function AlertCard({ alert, onViewSnapshot }: AlertCardProps) {
           </span>
         </div>
 
-        <div className="text-[11px] text-[var(--text-dim)] font-mono text-right">
+        <div className="text-[11px] text-[var(--text-dim)] font-mono text-right flex flex-col items-end gap-0.5">
           <div>{formatTime(alert.created_at, tzMode)}</div>
-          <div>{relativeTime(alert.created_at)}</div>
+          <UnackedTimer createdAt={alert.created_at} status={alert.status} />
         </div>
       </div>
 
