@@ -1,0 +1,31 @@
+# MediaMTX Configuration for Border-AI Integration
+# TCP transport forced for low-latency, deterministic CCTV replay
+
+protocols: [tcp]
+rtspTransports: [tcp]
+
+# Authentication configuration
+authMethod: internal
+authInternalUsers:
+  - user: rtsp_pub_user
+    pass: zq9canaryRtspPub
+    permissions:
+      - action: publish
+        path: ""
+  - user: rtsp_read_user
+    pass: zq9canaryRtspRead
+    permissions:
+      - action: read
+        path: ""
+
+paths:
+  cam01:
+    source: record
+  cam02:
+    source: record
+  cam03:
+    source: record
+  cam04:
+    source: record
+  all:
+    source: record

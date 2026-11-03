@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: borderai-infra-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: border_ai_integration
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_ADMIN_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d border_ai_integration"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - pgdata_infra:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: borderai-infra-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - redisdata_infra:/data
+
+  mediamtx:
+    image: bluenviron/mediamtx:v1.9.0
+    container_name: borderai-infra-mediamtx
+    restart: unless-stopped
+    ports:
+      - "8554:8554"
+      - "8888:8888"
+      - "8889:8889"
+    volumes:
+      - ./configs/mediamtx.yml:/mediamtx.yml:ro
+
+  mailpit:
+    image: axllent/mailpit:v1.20
+    container_name: borderai-infra-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_MAX_MESSAGES: 1000
+
+volumes:
+  pgdata_infra: {}
+  redisdata_infra: {}
