@@ -208,16 +208,18 @@ export function SnapshotDrawer({ alert: initialAlert, onClose }: SnapshotDrawerP
             )}
 
             {alert.explanation?.factors && alert.explanation.factors.length > 0 && (
-              <div className="py-2 border-b border-[var(--border-muted)] space-y-1.5">
+              <div className="py-2 border-b border-[var(--border-muted)] space-y-2">
                 <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                  Threat Factor Breakdown
+                  Event Checklist
                 </span>
-                <div className="space-y-1">
+                <div className="flex flex-wrap gap-1.5">
                   {alert.explanation.factors.map((f, i) => (
-                    <div key={i} className="flex justify-between text-[11px]">
-                      <span className="text-[var(--text)]">{f.name.replace(/_/g, ' ')}</span>
-                      <span className="font-mono text-[var(--warn)]">+{f.points} pts</span>
-                    </div>
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-mono text-[11px]"
+                    >
+                      ✓ {f.name.replace(/_/g, ' ')} <span className="text-amber-400">+{f.points}</span>
+                    </span>
                   ))}
                 </div>
               </div>
