@@ -1,0 +1,6 @@
+# Allowed benign log patterns during startup and graceful reconnects
+ioredis.*Unhandled error event
+Waiting for backend
+Connection refused.*retrying
+Reconnecting in.*seconds
+stale marker
