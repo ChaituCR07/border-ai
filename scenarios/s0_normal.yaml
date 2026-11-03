@@ -1,0 +1,15 @@
+id: s0-normal-traffic
+name: Normal Traffic (Negative Control)
+mode: file_offline
+clock:
+  simulated: true
+  start: "2026-10-30T14:00:00+05:30"
+cameras:
+  - id: CAM-01
+    clip: footage/camera_01/normal.mp4
+expect:
+  events: []
+  alerts: []
+forbidden:
+  - alert_priority_at_least: MEDIUM
+reconcile: true

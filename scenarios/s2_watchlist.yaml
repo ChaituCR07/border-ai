@@ -1,0 +1,43 @@
+id: s2-watchlist-vehicle
+name: Watchlisted Vehicle Intrusion
+mode: file_offline
+clock:
+  simulated: true
+  start: "2026-10-30T23:45:00+05:30"
+cameras:
+  - id: CAM-02
+    clip: footage/camera_02/watchlist.mp4
+setup:
+  watchlist:
+    - entity_type: VEHICLE
+      identifier: KA01AB1234
+      risk_level: HIGH
+  notifications_profile: configs/notifications.demo.json
+expect:
+  events:
+    - type: WATCHLIST_MATCH
+      camera: CAM-02
+      plate: KA01AB1234
+      within_s: [1, 60]
+    - type: RESTRICTED_ZONE_ENTRY
+      camera: CAM-02
+      within_s: [1, 60]
+  alerts:
+    - priority: CRITICAL
+      score: 80
+      count: 1
+      plate: KA01AB1234
+      factors:
+        - watchlist_vehicle
+        - restricted_zone
+        - after_hours
+      within_s: [1, 65]
+forbidden:
+  - type: WATCHLIST_MATCH
+    plate_not: KA01AB1234
+  - alert_priority_at_least: HIGH
+    plate_not: KA01AB1234
+reconcile: true
+budgets:
+  alert_visible_s: 5
+  email_s: 15

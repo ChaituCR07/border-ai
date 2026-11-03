@@ -1,0 +1,29 @@
+id: s1-restricted-zone
+name: Restricted Zone Intrusion at Night
+mode: file_offline
+clock:
+  simulated: true
+  start: "2026-10-30T23:30:00+05:30"
+cameras:
+  - id: CAM-01
+    clip: footage/camera_01/restricted_zone.mp4
+expect:
+  events:
+    - type: LINE_CROSSING
+      camera: CAM-01
+      within_s: [1, 60]
+    - type: RESTRICTED_ZONE_ENTRY
+      camera: CAM-01
+      within_s: [1, 60]
+  alerts:
+    - priority: HIGH
+      score: 60
+      count: 1
+      factors:
+        - line_crossing
+        - restricted_zone
+        - after_hours
+      within_s: [1, 65]
+forbidden:
+  - alert_priority_at_least: CRITICAL
+reconcile: true
