@@ -19,6 +19,7 @@ export class PgAlertsRepo implements AlertsRepo {
       resolved_at: pgTsToIso(r.resolved_at),
       resolution: r.resolution ?? null,
       created_at: pgTsToIso(r.created_at) ?? r.created_at,
+      received_at: r.received_at ? (pgTsToIso(r.received_at) ?? r.received_at) : undefined,
       event: {
         camera_id: r.camera_id,
         event_type: r.event_type,
@@ -66,7 +67,7 @@ export class PgAlertsRepo implements AlertsRepo {
     const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
     const sql = `
       SELECT a.alert_id, a.event_id, a.camera_id, a.priority, a.status, a.acknowledged_by, a.acknowledged_at,
-             a.resolved_by, a.resolved_at, a.resolution, a.created_at,
+             a.resolved_by, a.resolved_at, a.resolution, a.created_at, a.received_at,
              e.event_type, e.threat_score, e.snapshot_path,
              COALESCE(e.plate_number, e.metadata->>'plate', v.plate_number) AS plate
       FROM alerts a
@@ -85,7 +86,7 @@ export class PgAlertsRepo implements AlertsRepo {
   async getById(alertId: string): Promise<AlertResource | null> {
     const sql = `
       SELECT a.alert_id, a.event_id, a.camera_id, a.priority, a.status, a.acknowledged_by, a.acknowledged_at,
-             a.resolved_by, a.resolved_at, a.resolution, a.created_at,
+             a.resolved_by, a.resolved_at, a.resolution, a.created_at, a.received_at,
              e.event_type, e.threat_score, e.snapshot_path,
              COALESCE(e.plate_number, e.metadata->>'plate', v.plate_number) AS plate
       FROM alerts a

@@ -35,6 +35,7 @@ export const AlertResourceSchema = z.object({
   resolved_at: z.string().nullable().optional(),
   resolution: ResolutionEnum.nullable().optional(),
   created_at: z.string(),
+  received_at: z.string().optional(),
   event: z.object({
     camera_id: z.string(),
     event_type: z.string(),

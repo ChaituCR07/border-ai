@@ -201,7 +201,7 @@ export async function markStale(db: pg.Pool, cfg: NotificationConfig): Promise<n
      SELECT a.alert_id, 'STALE', 0
        FROM alerts a
       WHERE NOT EXISTS (SELECT 1 FROM notification_planned p WHERE p.alert_id = a.alert_id)
-        AND a.created_at < now() - make_interval(secs => $1)
+        AND COALESCE(a.received_at, a.created_at) < now() - make_interval(secs => $1)
       ON CONFLICT DO NOTHING`,
     [cfg.catchup_max_age_s]
   );
@@ -215,14 +215,14 @@ export async function planBatch(
   limit = 100
 ): Promise<{ planned: number; totalAlerts: number }> {
   const { rows } = await db.query(
-    `SELECT a.alert_id, a.priority, a.created_at, a.status,
+    `SELECT a.alert_id, a.priority, a.created_at, COALESCE(a.received_at, a.created_at) AS received_at, a.status,
             e.camera_id, e.event_type, e.plate_norm AS plate, e.metadata, e.object_class
        FROM alerts a
        JOIN events e ON e.event_id = a.event_id
       WHERE NOT EXISTS (SELECT 1 FROM notification_planned p WHERE p.alert_id = a.alert_id)
-        AND a.created_at >= now() - make_interval(secs => $1)
+        AND COALESCE(a.received_at, a.created_at) >= now() - make_interval(secs => $1)
         AND a.status = 'OPEN'
-      ORDER BY a.created_at, a.alert_id
+      ORDER BY COALESCE(a.received_at, a.created_at), a.alert_id
       LIMIT $2`,
     [cfg.catchup_max_age_s, limit]
   );
