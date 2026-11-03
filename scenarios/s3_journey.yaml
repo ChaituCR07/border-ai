@@ -1,0 +1,30 @@
+id: s3-cross-camera-journey
+name: Cross-Camera Journey Correlation
+mode: file_offline
+clock:
+  simulated: true
+  start: "2026-10-30T10:00:00+05:30"
+cameras:
+  - id: CAM-01
+    clip: footage/camera_01/normal.mp4
+  - id: CAM-02
+    clip: footage/camera_02/watchlist.mp4
+  - id: CAM-04
+    clip: footage/camera_04/journey_cam04.mp4
+expect:
+  events:
+    - type: WATCHLIST_MATCH
+      camera: CAM-01
+      plate: KA01AB1234
+      within_s: [100, 140]
+    - type: WATCHLIST_MATCH
+      camera: CAM-02
+      plate: KA01AB1234
+      within_s: [460, 500]
+    - type: WATCHLIST_MATCH
+      camera: CAM-04
+      plate: KA01AB1234
+      within_s: [880, 920]
+  alerts: []
+forbidden: []
+reconcile: true

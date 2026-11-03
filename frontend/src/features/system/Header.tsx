@@ -3,6 +3,7 @@ import { useUIStore } from '../../state/uiStore';
 import { Clock } from './Clock';
 import { ConnectionBadge } from './ConnectionBadge';
 import { NotificationStatusChip } from './NotificationStatusChip';
+import { SystemStatusChip } from './SystemStatusChip';
 import { useLiveAlertsContext } from '../alerts/LiveAlertsProvider';
 
 export function Header() {
@@ -92,6 +93,7 @@ export function Header() {
           </kbd>
         </Link>
 
+        <SystemStatusChip />
         <NotificationStatusChip />
         <Clock />
         <ConnectionBadge />

@@ -48,6 +48,7 @@ Thumbs.db
 project -plans/
 project-plans/
 runs/
+artifacts/
 datasets/plates/
 
 # Biometric and identity data (Day 10)

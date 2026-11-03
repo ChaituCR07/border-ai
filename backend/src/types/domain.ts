@@ -63,6 +63,7 @@ export interface AlertResource {
   resolved_at?: string | null;
   resolution?: ResolutionType | null;
   created_at: string;
+  received_at?: string;
   event: {
     camera_id: string;
     event_type: string;

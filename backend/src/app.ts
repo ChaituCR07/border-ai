@@ -13,6 +13,7 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import type pg from 'pg';
+import type { Redis } from 'ioredis';
 
 import type { Config } from './config/env.js';
 import { errorHandler } from './common/errors.js';
@@ -56,6 +57,7 @@ import { notificationRoutes } from './modules/notifications/routes.js';
 import { NotificationsRepo } from './modules/notifications/repo.js';
 import type { NotificationPlanner } from './modules/notifications/planner.js';
 import type { NotificationWorker } from './modules/notifications/worker.js';
+import { systemRoutes } from './modules/system/routes.js';
 
 export interface AppDeps {
   config: Config;
@@ -71,6 +73,7 @@ export interface AppDeps {
   worker?: NotificationWorker;
   auditRepo?: AuditRepo;
   pool?: pg.Pool;
+  redis?: Redis;
   logger?: boolean | Record<string, unknown>;
   onAlertChanged?: AlertChangeCallback;
   hub?: Hub;
@@ -276,6 +279,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           auditRepo: deps.auditRepo,
           enabled: deps.config.NOTIFICATIONS_ENABLED,
           dryRun: deps.config.NOTIFICATIONS_DRY_RUN,
+        })
+      );
+      await api.register(
+        systemRoutes({
+          pool: deps.pool,
+          redis: deps.redis,
+          hub,
+          camerasRepo: deps.camerasRepo,
         })
       );
     },

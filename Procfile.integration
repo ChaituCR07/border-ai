@@ -1,0 +1,5 @@
+sink:     python3 -m app.db.events_consumer
+engine:   python3 -m app.main --config configs/integration/engine.json
+backend:  npm --prefix backend run dev
+frontend: npm --prefix frontend run dev -- --host
+sim:      python3 scripts/sim/cctv_sim.py --scenario ${SCENARIO:-s1}

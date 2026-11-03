@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "cameras": {
+    "CAM-01": { "map_x": 10, "map_y": 55 },
+    "CAM-02": { "map_x": 32, "map_y": 55 },
+    "CAM-03": { "map_x": 52, "map_y": 25 },
+    "CAM-04": { "map_x": 68, "map_y": 50 },
+    "CAM-05": { "map_x": 90, "map_y": 40 }
+  },
+  "links": [
+    { "a": "CAM-01", "b": "CAM-02", "min_s": 24, "typical_s": 36, "max_s": 60, "direction": "both", "overlap": false },
+    { "a": "CAM-02", "b": "CAM-03", "min_s": 9,  "typical_s": 15, "max_s": 30, "direction": "both", "overlap": false },
+    { "a": "CAM-03", "b": "CAM-04", "min_s": 2,  "typical_s": 3,  "max_s": 9,  "direction": "both", "overlap": false },
+    { "a": "CAM-02", "b": "CAM-04", "min_s": 30, "typical_s": 42, "max_s": 72, "direction": "both", "overlap": false },
+    { "a": "CAM-04", "b": "CAM-05", "min_s": 4,  "typical_s": 7,  "max_s": 18, "direction": "both", "overlap": false }
+  ]
+}
