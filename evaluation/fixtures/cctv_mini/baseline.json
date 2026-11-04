@@ -1,0 +1,24 @@
+{
+  "model_version": "yolov8n_bytetrack_baseline",
+  "evaluated_at": "2026-11-04T00:00:00Z",
+  "detection_baselines": {
+    "person": {
+      "precision": 0.85,
+      "recall": 0.80,
+      "f1": 0.82,
+      "ap50": 0.80
+    },
+    "car": {
+      "precision": 0.85,
+      "recall": 0.80,
+      "f1": 0.82,
+      "ap50": 0.80
+    }
+  },
+  "tracking_baselines": {
+    "mota": 0.70,
+    "idf1": 0.70,
+    "hota": 0.60,
+    "max_idsw": 2
+  }
+}
