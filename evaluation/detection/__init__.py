@@ -10,6 +10,13 @@ from evaluation.detection.metrics import (
     get_size_bucket,
     greedy_match_image,
 )
+from evaluation.detection.predict import EvaluationDetector
+from evaluation.detection.slices import (
+    SliceMetricResult,
+    evaluate_attribute_slice,
+    evaluate_size_slices,
+)
+from evaluation.detection.sweep import SweepPoint, SweepResult, sweep_confidence_thresholds
 
 __all__ = [
     "compute_iou",
@@ -22,4 +29,11 @@ __all__ = [
     "evaluate_detection_class",
     "ErrorType",
     "categorize_detections",
+    "EvaluationDetector",
+    "SweepPoint",
+    "SweepResult",
+    "sweep_confidence_thresholds",
+    "SliceMetricResult",
+    "evaluate_attribute_slice",
+    "evaluate_size_slices",
 ]
