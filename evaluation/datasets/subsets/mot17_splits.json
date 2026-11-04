@@ -1,0 +1,21 @@
+{
+  "train_static": [
+    "MOT17-02-FRCNN",
+    "MOT17-04-FRCNN"
+  ],
+  "val_static": [
+    "MOT17-09-FRCNN"
+  ],
+  "train_moving": [
+    "MOT17-05-FRCNN",
+    "MOT17-10-FRCNN"
+  ],
+  "val_moving": [
+    "MOT17-11-FRCNN",
+    "MOT17-13-FRCNN"
+  ],
+  "dev_tuning": [
+    "MOT17-02-FRCNN",
+    "MOT17-05-FRCNN"
+  ]
+}

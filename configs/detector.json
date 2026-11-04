@@ -1,0 +1,23 @@
+{
+  "model_name": "yolov8n.pt",
+  "confidence": 0.30,
+  "iou": 0.5,
+  "image_size": 640,
+  "max_det": 300,
+  "classes": [
+    "person",
+    "car",
+    "motorcycle",
+    "bus",
+    "truck"
+  ],
+  "class_thresholds": {
+    "person": 0.35,
+    "car": 0.30,
+    "truck": 0.35,
+    "bus": 0.35,
+    "motorcycle": 0.30
+  },
+  "device": "auto",
+  "half": false
+}

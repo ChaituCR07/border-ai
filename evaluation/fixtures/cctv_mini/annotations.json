@@ -1,0 +1,85 @@
+{
+  "dataset": "cctv_mini_regression",
+  "version": "1.0",
+  "description": "Border surveillance CCTV mini-fixture for automated CI regression gating",
+  "images": [
+    {
+      "id": "cctv_frame_001",
+      "file_name": "cctv_frame_001.jpg",
+      "camera_id": "cctv_north_gate",
+      "width": 1920,
+      "height": 1080,
+      "environment": {
+        "time_of_day": "daytime",
+        "weather": "clear",
+        "infrared": false
+      },
+      "annotations": [
+        {
+          "category": "person",
+          "bbox": [150.0, 300.0, 60.0, 140.0],
+          "track_id": 1,
+          "ignore": false
+        },
+        {
+          "category": "car",
+          "bbox": [600.0, 450.0, 220.0, 130.0],
+          "track_id": 2,
+          "ignore": false
+        }
+      ]
+    },
+    {
+      "id": "cctv_frame_002",
+      "file_name": "cctv_frame_002.jpg",
+      "camera_id": "cctv_north_gate",
+      "width": 1920,
+      "height": 1080,
+      "environment": {
+        "time_of_day": "daytime",
+        "weather": "clear",
+        "infrared": false
+      },
+      "annotations": [
+        {
+          "category": "person",
+          "bbox": [155.0, 305.0, 60.0, 140.0],
+          "track_id": 1,
+          "ignore": false
+        },
+        {
+          "category": "car",
+          "bbox": [610.0, 452.0, 220.0, 130.0],
+          "track_id": 2,
+          "ignore": false
+        }
+      ]
+    },
+    {
+      "id": "cctv_frame_003",
+      "file_name": "cctv_frame_003.jpg",
+      "camera_id": "cctv_north_gate",
+      "width": 1920,
+      "height": 1080,
+      "environment": {
+        "time_of_day": "daytime",
+        "weather": "clear",
+        "infrared": false
+      },
+      "annotations": [
+        {
+          "category": "person",
+          "bbox": [160.0, 310.0, 60.0, 140.0],
+          "track_id": 1,
+          "ignore": false
+        },
+        {
+          "category": "truck",
+          "bbox": [900.0, 400.0, 350.0, 220.0],
+          "track_id": 3,
+          "ignore": false
+        }
+      ]
+    }
+  ]
+}

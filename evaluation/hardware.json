@@ -1,0 +1,9 @@
+{
+  "os": "macOS (Darwin 25.6.0)",
+  "arch": "arm64",
+  "chip": "Apple Silicon (MPS acceleration support)",
+  "python": "3.13.1",
+  "ram_gb": 16,
+  "inference_backend": "mps",
+  "fallback_backend": "cpu"
+}
