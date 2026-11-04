@@ -2,10 +2,10 @@
 
 Real-time video analytics for existing CCTV/IP-camera infrastructure: detection, tracking, restricted-zone and line-crossing events, Automated Number Plate Recognition (ANPR), PostgreSQL-backed operational watchlists, facial biometric recognition, cross-camera person appearance Re-ID, declarative behaviour rules, composite threat scoring with explainable escalation alerts, and an investigation dashboard.
 
-| **Week 1 Demo: Vision Pipeline & Spatial Tripwires** | **Week 2 Demo: Automated Number Plate Recognition (ANPR)** |
-|:---:|:---:|
-| ![Week 1 Demo](docs/images/week1_demo.gif) | ![Week 2 Demo](docs/images/week2_demo.gif) |
-| *Real-time YOLOv8 detection, ByteTrack tracking, virtual tripwires & multi-zone boundaries.* | *License plate localization, PaddleOCR PP-OCRv6, character consensus voting & watchlist visual tagging.* |
+| **Week 1 Demo: Vision Pipeline & Spatial Tripwires** | **Week 2 Demo: Automated Number Plate Recognition (ANPR)** | **Week 3 Demo: Live Command Dashboard & Alerts** |
+|:---:|:---:|:---:|
+| ![Week 1 Demo](docs/images/week1_demo.gif) | ![Week 2 Demo](docs/images/week2_demo.gif) | ![Week 3 Demo](docs/images/week3_demo.gif) |
+| *Real-time YOLOv8 detection, ByteTrack tracking, virtual tripwires & multi-zone boundaries.* | *License plate localization, PaddleOCR PP-OCRv6, character consensus voting & watchlist visual tagging.* | *Multi-camera MJPEG video grid, sub-second WebSocket alerts, forensic search & vehicle journey correlation.* |
 
 ---
 
@@ -379,10 +379,54 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
   - **Alert Generation Pipeline & Outbox Notifications:** Config-driven single-source-of-truth threat thresholds, DB-driven advisory lock planner, atomic filesystem snapshot rename, transactional outbox email worker with retry backoff, and alert resolution lifecycle ([ADRs 0029–0031](docs/decisions/), [docs/guides/notifications.md](docs/guides/notifications.md), [docs/runbooks/notifications.md](docs/runbooks/notifications.md)).
   - **Full-System Integration & Verification Suite:** One-command stack orchestration (`scripts/stack_up.sh`), live RTSP MediaMTX streaming with CCTV simulator, automated acceptance test runner (Scenarios S0–S3 verified 3/3), reconciliation oracle (Invariants R01–R12), and chaos injection harness ([ADRs 0032–0034](docs/decisions/), [docs/guides/integration_testing.md](docs/guides/integration_testing.md)).
 - [ ] **Week 4 (Days 22–28) Hardening, Models, Benchmarks & Final Delivery:**
-  - [x] **Day 22 — Model Testing I: Detection & Tracking Evaluation:** Scientific offline evaluation harness conforming to ADRs 0035–0037. Run manifests with git SHA, 1,000-resample bootstrap 95% CIs, frozen deterministic subsets (COCO-1000, BDD100K-500 dev/test, MOT17 static/moving splits), dual-mode evaluation (benchmark mAP at `conf=0.001` vs deployed operating points), foot-point pixel error for perimeter tripwires, error taxonomy diagnostics, MOT challenge I/O round-trip, ByteTrack dev-split grid search with holdout overfitting check, ID switch root-cause classification (occlusion vs dropout vs velocity jump), downstream security event impact simulator (event recall, double-counting, dwell resets), CCTV mini regression fixture and automated CI baseline gating (`tests/test_model_regression.py`), and comprehensive evaluation documentation ([docs/model_eval/README.md](docs/model_eval/README.md)).
-  - [ ] **Day 23 — Model Testing II: ANPR & Recognition:** ANPR character accuracy benchmarks on Indian plate layouts, look-alike confusion matrix, multi-frame consensus latency, and low-light/distortion boundaries.
-  - [ ] **Day 24 — High-Density Performance Benchmarks:** Multi-camera RTSP soak tests, FPS and frame-drop profiling, GPU VRAM steady state.
-  - [ ] **Day 25 — False-Positive Matrix & Edge Cases:** Systematic evaluation of standard non-intrusion false-positive scenarios.
-  - [ ] **Day 26 — Security & JWT Authentication Hardening:** Role-based access control (RBAC), signed WebSocket tickets, audit logging.
-  - [ ] **Day 27 — Unified Docker Compose Deployment:** Complete production containerization with Nginx reverse proxy.
-  - [ ] **Day 28 — Final Polish & Delivery Showcase:** Final rehearsal, showcase materials, and release tag freeze.
+  - [x] **Day 22 — Model Testing I: Detection & Tracking Evaluation:**
+    - [x] Scientific evaluation framework with immutable run manifests, git commit SHA, hardware specs, and 1,000-resample bootstrap 95% confidence intervals ([ADR 0035](docs/decisions/0035-evaluation-methodology-reproducibility-statistics.md)).
+    - [x] Dual-mode evaluation protocol (benchmark mAP at `conf=0.001` vs deployed operating points) and versioned class mapping schemas (`coco_to_project.json`, `bdd_to_project.json`) ([ADR 0036](docs/decisions/0036-detector-class-mapping-protocol-and-operating-points.md)).
+    - [x] Spatial foot-point pixel error metric for perimeter tripwire alignment and error taxonomy diagnostic classification.
+    - [x] Deterministic frozen evaluation subsets (`coco_val_1000.txt`, `bdd_val_500_dev.txt`, `bdd_val_500_test.txt`, `mot17_splits.json`).
+    - [x] MOT17 static CCTV headline benchmark (HOTA 64.6%, MOTA 71.4%, IDF1 75.7%, 38 IDSW, 1.4 false tracks/1,000f, 92.2% continuity) and moving camera stress tests ([ADR 0037](docs/decisions/0037-tracking-evaluation-protocol-and-tuning-policy.md)).
+    - [x] ByteTrack hyperparameter grid search on dev split with holdout validation overfitting gate ($\Delta \text{HOTA} \le 0.006 \le 0.02$).
+    - [x] Root-cause classification of identity switches (occlusion proximity 52%, detection dropout 26%, velocity jumps 14%, aspect flicker 8%).
+    - [x] Downstream security event impact engine (96.2% breach alert recall, 94.8% alert precision, 2.8% double-counted alerts, 0.42s dwell error).
+    - [x] CCTV mini regression fixture and automated CI baseline gating suite (`tests/test_model_regression.py`).
+    - [x] Comprehensive evaluation documentation and annotation guidelines ([docs/model_eval/README.md](docs/model_eval/README.md)).
+  - [ ] **Day 23 — Model Testing II: ANPR Accuracy & OCR Robustness:**
+    - [ ] Benchmark character-level and plate-level accuracy (Levenshtein distance, exact match rate) on Indian plate layout splits.
+    - [ ] Character-level substitution confusion matrix for look-alike characters (`B/8`, `O/0`, `1/I`, `S/5`, `Z/2`).
+    - [ ] Measure multi-frame consensus convergence latency (frames required to reach stable plate candidate).
+    - [ ] Quantify environmental degradation boundaries: low-light, angle-distortion (>30° skew), and motion-blur boundaries.
+  - [ ] **Day 24 — High-Density Performance Benchmarks & Scaling:**
+    - [ ] Multi-camera RTSP ingestion and inference soak testing (1, 2, 4, and 8 concurrent camera streams).
+    - [ ] Systematic profiling of FPS, processing latency (ms), GPU utilization, CPU utilization, system RAM, and GPU VRAM steady state.
+    - [ ] Throughput vs latency trade-off curves under batching and frame-dropping backpressure policies.
+  - [ ] **Day 25 — False-Positive Matrix & Edge Cases:**
+    - [ ] Controlled evaluation of standard non-intrusion false-positive scenarios:
+      - Test 1: Person outside restricted zone $\rightarrow$ `NO ALERT`.
+      - Test 2: Person enters restricted zone $\rightarrow$ `ZONE ALERT`.
+      - Test 3: Vehicle with normal plate $\rightarrow$ `NO WATCHLIST ALERT`.
+      - Test 4: Watchlisted plate detected $\rightarrow$ `WATCHLIST ALERT`.
+      - Test 5: Vehicle crosses line in permitted direction $\rightarrow$ `NO VIOLATION`.
+      - Test 6: Vehicle crosses line in wrong direction $\rightarrow$ `DIRECTION VIOLATION`.
+    - [ ] Perimeter environmental noise rejection tests (shadows, windblown vegetation, domestic animals, headlight glare).
+  - [ ] **Day 26 — Security & JWT Authentication Hardening:**
+    - [ ] JSON Web Token (JWT) authentication with secret rotation and password hashing (Argon2 / bcrypt).
+    - [ ] Role-Based Access Control (RBAC) enforcement across REST endpoints and WebSocket channels:
+      - `ADMIN`: Full access to live view, alerts, watchlist curation, and system configuration.
+      - `OPERATOR`: Live camera view, alert triage, and state transitions (acknowledge/resolve).
+      - `INVESTIGATOR`: Live view, alerts, watchlist lookup, forensic journey search, and audit trails.
+      - `VIEWER`: Read-only access to live streams and active alerts.
+    - [ ] Signed one-time WebSocket connection tickets to secure `/api/ws` streaming.
+    - [ ] Immutable audit logging for security-sensitive operations in `api_audit_log`.
+  - [ ] **Day 27 — Unified Docker Compose Deployment:**
+    - [ ] Multi-container production deployment orchestrated via single `docker compose up`:
+      - `frontend`: High-performance Nginx web server hosting production Vite React application.
+      - `backend`: Node.js Fastify REST API and WebSocket gateway.
+      - `ai-engine`: Python video ingestion, YOLOv8 detection, ByteTrack, and ANPR pipeline.
+      - `postgres`: PostgreSQL 16 database with auto-applied migrations and seed data.
+      - `redis`: Redis 7 Streams message broker.
+      - `nginx`: Edge reverse proxy with TLS termination, WebSocket upgrading, and rate-limiting.
+    - [ ] Container health checks, graceful restart policies, and environment variable configuration templates (`.env.example`).
+  - [ ] **Day 28 — Final Polish, Documentation Freeze & Delivery Showcase:**
+    - [ ] Production documentation freeze: updated architecture diagrams (`architecture.png`, `system-flow.png`), API reference, and deployment runbooks.
+    - [ ] Recorded portfolio demonstration video (`demo-video.mp4`) walking through live operator detection, ANPR watchlist alerts, and forensic journey reconstruction.
+    - [ ] Final end-to-end rehearsal, release tag freeze (`v1.0-final`), and milestone completion report.
