@@ -1,0 +1,31 @@
+{
+  "name": "tracking_mot17_tuned",
+  "version": "1.0.0",
+  "methodology": "ByteTrack parameter grid search on MOT17 static camera dev sequence",
+  "parameters": {
+    "detection_conf": 0.25,
+    "track_high_thresh": 0.6,
+    "track_low_thresh": 0.1,
+    "new_track_thresh": 0.6,
+    "match_thresh": 0.8,
+    "track_buffer": 30,
+    "fuse_score": true
+  },
+  "metrics": {
+    "dev_split": {
+      "sequences": ["MOT17-02-FRCNN", "MOT17-04-FRCNN"],
+      "hota": 0.624,
+      "mota": 0.689,
+      "idf1": 0.732,
+      "idsw": 14
+    },
+    "val_split": {
+      "sequences": ["MOT17-09-FRCNN"],
+      "hota": 0.618,
+      "mota": 0.675,
+      "idf1": 0.725,
+      "idsw": 8
+    },
+    "overfitting_delta_hota": 0.006
+  }
+}
