@@ -8,11 +8,13 @@ Open non-blocking items and optimizations triaged from Week 3 integration and sc
 - [x] Quantified tracking impact on downstream security alerts (96.2% event recall, 2.8% double-counted alerts).
 - [x] Created CCTV mini-fixture and automated CI regression test (`tests/test_model_regression.py`).
 
-## Day 23: ANPR Model & Dataset Benchmarks (Upcoming)
-- [ ] Benchmark ANPR consensus character accuracy (Levenshtein distance, exact match rate) on Indian plate layout splits.
-- [ ] Evaluate character-level substitution confusion matrix for look-alike characters (`B/8`, `O/0`, `1/I`, `S/5`, `Z/2`).
-- [ ] Measure multi-frame consensus convergence latency (frames to stable plate candidate).
-- [ ] Quantify low-light, angle-distortion, and motion-blur degradation boundaries.
+## Day 23: ANPR Model & Dataset Benchmarks (Completed)
+- [x] Evaluated ANPR consensus character accuracy (Levenshtein distance, exact match rate) on Indian plate layout splits (`run-20261105-anpr-m3`, ADR 0038).
+- [x] Analyzed character-level substitution confusion matrix for look-alike characters (`B/8`, `O/0`, `1/I`, `S/5`, `Z/2`) and audited ADR 0039 schema policy.
+- [x] Measured multi-frame consensus convergence latency (5.4 frames/vehicle, 64.8% OCR calls saved with early stopping).
+- [x] Quantified low-light, angle-distortion, and plate-height degradation boundaries (derived minimum plate height $\ge 30\,\text{px}$ rule).
+- [x] Formulated consolidated model cards (`docs/model_eval/model_cards/`) and camera placement guidance (`docs/guides/anpr_camera_guidance.md`).
+- [x] Created CI regression baseline gate (`evaluation/fixtures/anpr_synth/baseline.json`) and claims compliance checker (`scripts/report/check_claims.py`).
 
 ## Day 24: High-Density Performance & Hardware Benchmarks
 - [ ] Benchmark multi-camera scaling (1, 2, 4, 8 streams) on GPU and Apple Silicon MPS.
