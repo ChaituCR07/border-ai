@@ -6,6 +6,12 @@ from evaluation.anpr.calibration import (
     rule_of_three_upper_bound,
     wilson_score_interval,
 )
+from evaluation.anpr.funnel import (
+    FunnelReport,
+    FunnelStage,
+    VehicleFunnelInput,
+    build_pipeline_funnel,
+)
 from evaluation.anpr.metrics import (
     align,
     confusion,
@@ -43,4 +49,8 @@ __all__ = [
     "apply_position_aware_correction",
     "box_iou",
     "validate_plate",
+    "VehicleFunnelInput",
+    "FunnelStage",
+    "FunnelReport",
+    "build_pipeline_funnel",
 ]
