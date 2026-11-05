@@ -106,4 +106,8 @@ def wilson_score_interval(
 
     lo = max(0.0, center - margin)
     hi = min(1.0, center + margin)
+    if successes == 0:
+        lo = 0.0
+    if successes == total:
+        hi = 1.0
     return lo, hi
