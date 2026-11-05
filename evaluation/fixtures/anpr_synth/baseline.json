@@ -1,0 +1,21 @@
+{
+  "run_id": "run-20261105-anpr-baseline",
+  "dataset": "BorderVision-ANPR-Synthetic-Fixtures",
+  "split": "fixture-gate",
+  "date": "2026-11-05",
+  "sample_count": 60,
+  "metrics": {
+    "char_accuracy": 0.9643,
+    "plate_exact": 0.9000,
+    "near_miss": 0.0000,
+    "lookalike_equiv": 0.9500,
+    "read_rate": 1.0000,
+    "accuracy_among_emitted": 0.9000
+  },
+  "gate_thresholds": {
+    "min_char_accuracy": 0.9500,
+    "min_plate_exact": 0.8800,
+    "min_read_rate": 0.9200,
+    "min_lookalike_equiv": 0.9000
+  }
+}
