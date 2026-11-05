@@ -14,6 +14,15 @@ from evaluation.anpr.metrics import (
     plate_norm,
     score_pair,
 )
+from evaluation.anpr.predict import (
+    INDIAN_STATE_CODES,
+    OcrPipelineConfig,
+    PipelineEvaluator,
+    PredictionResult,
+    apply_position_aware_correction,
+    box_iou,
+    validate_plate,
+)
 
 __all__ = [
     "plate_norm",
@@ -27,4 +36,11 @@ __all__ = [
     "confidently_wrong",
     "rule_of_three_upper_bound",
     "wilson_score_interval",
+    "INDIAN_STATE_CODES",
+    "OcrPipelineConfig",
+    "PipelineEvaluator",
+    "PredictionResult",
+    "apply_position_aware_correction",
+    "box_iou",
+    "validate_plate",
 ]

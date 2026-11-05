@@ -65,7 +65,12 @@ class IndiaAnprDataset:
         with open(self.annotations_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        raw_items = data.get("samples", data if isinstance(data, list) else [])
+        if isinstance(data, dict):
+            raw_items = data.get("samples", [])
+        elif isinstance(data, list):
+            raw_items = data
+        else:
+            raw_items = []
 
         for item in raw_items:
             v_id = str(item.get("vehicle_id", item.get("session_id", "v_unknown")))
