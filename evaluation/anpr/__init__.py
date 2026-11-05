@@ -29,6 +29,12 @@ from evaluation.anpr.predict import (
     box_iou,
     validate_plate,
 )
+from evaluation.anpr.slices import (
+    HEIGHT_BUCKET_ORDER,
+    SliceAnalysisReport,
+    SliceBucket,
+    analyze_slices,
+)
 
 __all__ = [
     "plate_norm",
@@ -53,4 +59,8 @@ __all__ = [
     "FunnelStage",
     "FunnelReport",
     "build_pipeline_funnel",
+    "HEIGHT_BUCKET_ORDER",
+    "SliceBucket",
+    "SliceAnalysisReport",
+    "analyze_slices",
 ]
