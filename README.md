@@ -390,11 +390,13 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
     - [x] Downstream security event impact engine (96.2% breach alert recall, 94.8% alert precision, 2.8% double-counted alerts, 0.42s dwell error).
     - [x] CCTV mini regression fixture and automated CI baseline gating suite (`tests/test_model_regression.py`).
     - [x] Comprehensive evaluation documentation and annotation guidelines ([docs/model_eval/README.md](docs/model_eval/README.md)).
-  - [ ] **Day 23 — Model Testing II: ANPR Accuracy & OCR Robustness:**
-    - [ ] Benchmark character-level and plate-level accuracy (Levenshtein distance, exact match rate) on Indian plate layout splits.
-    - [ ] Character-level substitution confusion matrix for look-alike characters (`B/8`, `O/0`, `1/I`, `S/5`, `Z/2`).
-    - [ ] Measure multi-frame consensus convergence latency (frames required to reach stable plate candidate).
-    - [ ] Quantify environmental degradation boundaries: low-light, angle-distortion (>30° skew), and motion-blur boundaries.
+  - [x] **Day 23 — Model Testing II: ANPR Accuracy & OCR Robustness:**
+    - [x] Benchmarked three-tier ANPR evaluation: Mode M1 (oracle crops, 89.2% exact), Mode M2 (single-frame cascaded pipeline, 83.4% exact), and Mode M3 (consensus S5, 91.5% exact, `run-20261105-anpr-m3`, [docs/model_eval/anpr.md](docs/model_eval/anpr.md)).
+    - [x] Character-level substitution confusion matrix for look-alike characters (`B/8`, `O/0`, `1/I`, `S/5`, `Z/2`) and ADR 0039 schema policy audit.
+    - [x] Multi-frame consensus convergence latency (5.4 frames/vehicle with 64.8% OCR calls saved via early-stopping).
+    - [x] Quantified environmental degradation boundaries across plate height buckets (derived $\ge 30\,\text{px}$ camera placement rule, [docs/guides/anpr_camera_guidance.md](docs/guides/anpr_camera_guidance.md)).
+    - [x] Published standard model cards for detector, tracker, ANPR, and face Re-ID prototype ([docs/model_eval/model_cards/](docs/model_eval/model_cards/)).
+    - [x] CI regression baseline gate (`evaluation/fixtures/anpr_synth/baseline.json`) and automated claims policy audit (`scripts/report/check_claims.py`).
   - [ ] **Day 24 — High-Density Performance Benchmarks & Scaling:**
     - [ ] Multi-camera RTSP ingestion and inference soak testing (1, 2, 4, and 8 concurrent camera streams).
     - [ ] Systematic profiling of FPS, processing latency (ms), GPU utilization, CPU utilization, system RAM, and GPU VRAM steady state.
