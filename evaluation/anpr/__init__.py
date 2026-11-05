@@ -56,6 +56,13 @@ from evaluation.anpr.slices import (
     SliceBucket,
     analyze_slices,
 )
+from evaluation.anpr.watchlist_eval import (
+    TRAFFIC_TIERS,
+    WatchlistSimulationReport,
+    WatchlistTierMetrics,
+    generate_synthetic_plate_pool,
+    simulate_watchlist_collisions,
+)
 
 __all__ = [
     "plate_norm",
@@ -101,4 +108,9 @@ __all__ = [
     "ConfusionAnalysisReport",
     "is_pair_in_plate_key",
     "analyze_character_confusion",
+    "TRAFFIC_TIERS",
+    "WatchlistTierMetrics",
+    "WatchlistSimulationReport",
+    "generate_synthetic_plate_pool",
+    "simulate_watchlist_collisions",
 ]
