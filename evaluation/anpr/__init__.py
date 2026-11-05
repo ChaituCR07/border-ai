@@ -6,6 +6,12 @@ from evaluation.anpr.calibration import (
     rule_of_three_upper_bound,
     wilson_score_interval,
 )
+from evaluation.anpr.confusion_analysis import (
+    ConfusionAnalysisReport,
+    LookalikeEvidence,
+    analyze_character_confusion,
+    is_pair_in_plate_key,
+)
 from evaluation.anpr.consensus import (
     ConsensusDecision,
     EarlyStopConfig,
@@ -91,4 +97,8 @@ __all__ = [
     "replay_track",
     "benchmark_strategies",
     "evaluate_accuracy_vs_frames",
+    "LookalikeEvidence",
+    "ConfusionAnalysisReport",
+    "is_pair_in_plate_key",
+    "analyze_character_confusion",
 ]
