@@ -1,0 +1,64 @@
+# Workload Profile Configuration and Camera Feed Mapping
+# Each profile defines clips, resolution, and staggered start offsets (>= 7s) for up to 16 cameras.
+
+light:
+  description: "Sparse desert perimeter / open roadway with rare movement (< 2 detections/frame, zero plates)"
+  nominal_resolution: "720p"
+  covariates:
+    mean_detections_per_frame: 1.4
+    p95_detections_per_frame: 2.0
+    expected_vehicles_per_min: 4.0
+    expected_ocr_calls_per_sec: 0.1
+  cameras:
+    CAM-01: { clip: "footage/camera_01/normal.mp4", offset_s: 0.0, fps: 25 }
+    CAM-02: { clip: "footage/camera_01/normal.mp4", offset_s: 7.5, fps: 25 }
+    CAM-03: { clip: "footage/camera_01/normal.mp4", offset_s: 15.0, fps: 25 }
+    CAM-04: { clip: "footage/camera_01/normal.mp4", offset_s: 22.5, fps: 25 }
+    CAM-05: { clip: "footage/camera_01/normal.mp4", offset_s: 30.0, fps: 25 }
+    CAM-06: { clip: "footage/camera_01/normal.mp4", offset_s: 37.5, fps: 25 }
+    CAM-07: { clip: "footage/camera_01/normal.mp4", offset_s: 45.0, fps: 25 }
+    CAM-08: { clip: "footage/camera_01/normal.mp4", offset_s: 52.5, fps: 25 }
+
+typical:
+  description: "Standard border checkpoint traffic: pedestrians, queueing cars, 1-2 license plates visible"
+  nominal_resolution: "720p"
+  covariates:
+    mean_detections_per_frame: 4.2
+    p95_detections_per_frame: 6.0
+    expected_vehicles_per_min: 18.0
+    expected_ocr_calls_per_sec: 1.2
+  cameras:
+    CAM-01: { clip: "footage/camera_01/restricted_zone.mp4", offset_s: 0.0, fps: 25 }
+    CAM-02: { clip: "footage/camera_02/watchlist.mp4", offset_s: 8.0, fps: 25 }
+    CAM-03: { clip: "footage/camera_04/journey_cam04.mp4", offset_s: 16.0, fps: 25 }
+    CAM-04: { clip: "footage/camera_01/normal.mp4", offset_s: 24.0, fps: 25 }
+    CAM-05: { clip: "footage/camera_01/restricted_zone.mp4", offset_s: 32.0, fps: 25 }
+    CAM-06: { clip: "footage/camera_02/watchlist.mp4", offset_s: 40.0, fps: 25 }
+    CAM-07: { clip: "footage/camera_04/journey_cam04.mp4", offset_s: 48.0, fps: 25 }
+    CAM-08: { clip: "footage/camera_01/normal.mp4", offset_s: 56.0, fps: 25 }
+    CAM-09: { clip: "footage/camera_01/restricted_zone.mp4", offset_s: 12.0, fps: 25 }
+    CAM-10: { clip: "footage/camera_02/watchlist.mp4", offset_s: 20.0, fps: 25 }
+    CAM-11: { clip: "footage/camera_04/journey_cam04.mp4", offset_s: 28.0, fps: 25 }
+    CAM-12: { clip: "footage/camera_01/normal.mp4", offset_s: 36.0, fps: 25 }
+    CAM-13: { clip: "footage/camera_01/restricted_zone.mp4", offset_s: 44.0, fps: 25 }
+    CAM-14: { clip: "footage/camera_02/watchlist.mp4", offset_s: 52.0, fps: 25 }
+    CAM-15: { clip: "footage/camera_04/journey_cam04.mp4", offset_s: 60.0, fps: 25 }
+    CAM-16: { clip: "footage/camera_01/normal.mp4", offset_s: 68.0, fps: 25 }
+
+heavy:
+  description: "Crowded border chokepoint / rush-hour vehicle ingress (> 8 detections/frame, high ANPR rate)"
+  nominal_resolution: "1080p"
+  covariates:
+    mean_detections_per_frame: 8.8
+    p95_detections_per_frame: 12.5
+    expected_vehicles_per_min: 36.0
+    expected_ocr_calls_per_sec: 4.5
+  cameras:
+    CAM-01: { clip: "footage/camera_02/watchlist.mp4", offset_s: 0.0, fps: 25 }
+    CAM-02: { clip: "footage/camera_04/journey_cam04.mp4", offset_s: 7.0, fps: 25 }
+    CAM-03: { clip: "footage/camera_01/restricted_zone.mp4", offset_s: 14.0, fps: 25 }
+    CAM-04: { clip: "footage/camera_02/watchlist.mp4", offset_s: 21.0, fps: 25 }
+    CAM-05: { clip: "footage/camera_04/journey_cam04.mp4", offset_s: 28.0, fps: 25 }
+    CAM-06: { clip: "footage/camera_01/restricted_zone.mp4", offset_s: 35.0, fps: 25 }
+    CAM-07: { clip: "footage/camera_02/watchlist.mp4", offset_s: 42.0, fps: 25 }
+    CAM-08: { clip: "footage/camera_04/journey_cam04.mp4", offset_s: 49.0, fps: 25 }
