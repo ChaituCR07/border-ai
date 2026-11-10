@@ -131,6 +131,17 @@ Empirical evaluation results conducted per **ADR 0035** (Evaluation Methodology 
 - **Double-Counted Alerts:** **2.8%** (caused by ID switches occurring directly on tripwire boundaries).
 - **Mean Loiter Dwell Error:** **0.42 seconds** delay before dwell timer trigger due to transient detector dropouts.
 
+### 3. Pipeline Performance & Multi-Camera Scaling (ADR 0041, ADR 0043)
+
+Measured across simulated RTSP camera feeds from recorded border surveillance footage (Run ID: `run-20261110-primary-scaling`, Apple M1 8-core, 8 GB Unified Memory, macOS 26.6.2, [docs/perf/performance_report.md](docs/perf/performance_report.md)):
+
+- **Average Inference Latency:** `8.0 ms/frame` [p50] (YOLOv8s detection stage, Apple Silicon MPS)
+- **Average Analytics FPS:** `10.0 FPS/camera` (at N=4 deployed configuration, workload `typical`)
+- **Alert Latency ($p95$):** `0.05 s` (trigger frame capture $\to$ WebSocket delivery)
+- **Tested Cameras:** `1 / 2 / 4 / 8` simultaneous streams (`78.4 FPS` aggregate throughput at N=8)
+- **Sustained Channel Capacity ($N^*$):** **8 cameras** sustained within target SLAs (<250ms processing latency, <1% drops)
+- **Database Storage Efficiency:** `TRACK_SUMMARY` aggregation achieves a **99.5% storage reduction** vs raw detection logging ([docs/perf/capacity.md](docs/perf/capacity.md))
+
 ### 4. Known Model Limitations & Environmental Boundaries
 - **Small Targets (< 32×32 px):** Recall drops to 42.1% at extreme distances; optical zoom or elevated camera angles required.
 - **Unilluminated Night:** Precision degrades to 78.2% without infrared (IR) or thermal illumination.
@@ -397,10 +408,13 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
     - [x] Quantified environmental degradation boundaries across plate height buckets (derived $\ge 30\,\text{px}$ camera placement rule, [docs/guides/anpr_camera_guidance.md](docs/guides/anpr_camera_guidance.md)).
     - [x] Published standard model cards for detector, tracker, ANPR, and face Re-ID prototype ([docs/model_eval/model_cards/](docs/model_eval/model_cards/)).
     - [x] CI regression baseline gate (`evaluation/fixtures/anpr_synth/baseline.json`) and automated claims policy audit (`scripts/report/check_claims.py`).
-  - [ ] **Day 24 — High-Density Performance Benchmarks & Scaling:**
-    - [ ] Multi-camera RTSP ingestion and inference soak testing (1, 2, 4, and 8 concurrent camera streams).
-    - [ ] Systematic profiling of FPS, processing latency (ms), GPU utilization, CPU utilization, system RAM, and GPU VRAM steady state.
-    - [ ] Throughput vs latency trade-off curves under batching and frame-dropping backpressure policies.
+  - [x] **Day 24 — High-Density Performance Benchmarks & Scaling:**
+    - [x] Multi-camera RTSP ingestion and inference profiling across 1, 2, 4, and 8 concurrent streams (`run-20261110-primary-scaling`, [docs/perf/performance_report.md](docs/perf/performance_report.md)).
+    - [x] Systematic profiling of FPS, processing latency (ms), GPU utilization, CPU utilization, and memory steady state with ADR 0041 methodology.
+    - [x] Throughput vs latency trade-off curves under batching, client-gated live view, and ADR 0042 overload shedding with a 5.0 FPS rule-correctness safety floor.
+    - [x] Profiling-driven pipeline optimizations (FP16, on-demand live view, ANPR budgeting) verified with passing accuracy guards ([docs/perf/optimizations.md](docs/perf/optimizations.md)).
+    - [x] Capacity planning model proving 99.5% storage reduction via `TRACK_SUMMARY` aggregation ([docs/perf/capacity.md](docs/perf/capacity.md)).
+    - [x] Adopted frozen production deployment configuration (`configs/performance_deployed.json`).
   - [ ] **Day 25 — False-Positive Matrix & Edge Cases:**
     - [ ] Controlled evaluation of standard non-intrusion false-positive scenarios:
       - Test 1: Person outside restricted zone $\rightarrow$ `NO ALERT`.

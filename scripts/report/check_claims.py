@@ -89,6 +89,11 @@ def main() -> int:
         repo_root / "docs/model_eval/model_cards/detector.md",
         repo_root / "docs/model_eval/model_cards/tracker.md",
         repo_root / "docs/model_eval/model_cards/face_reid_prototype.md",
+        repo_root / "docs/perf/performance_report.md",
+        repo_root / "docs/perf/optimizations.md",
+        repo_root / "docs/perf/overload.md",
+        repo_root / "docs/perf/bottlenecks.md",
+        repo_root / "docs/perf/capacity.md",
     ]
 
     total_violations = 0

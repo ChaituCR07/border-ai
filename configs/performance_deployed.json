@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "name": "BorderVision Frozen Production Deployed Performance Configuration",
+  "status": "FROZEN_DAY_24",
+  "detector": {
+    "model": "yolov8s.pt",
+    "imgsz": 640,
+    "device": "auto",
+    "half_precision": true,
+    "conf_threshold": 0.35,
+    "iou_threshold": 0.45
+  },
+  "pipeline": {
+    "analytics_fps": 10.0,
+    "analytics_fps_min_safety_floor": 5.0,
+    "batch_size": 4,
+    "batch_max_wait_ms": 10,
+    "live_drop_policy": "latest_frame",
+    "max_queue_depth": 30
+  },
+  "tracker": {
+    "algorithm": "bytetrack",
+    "track_high_thresh": 0.50,
+    "track_low_thresh": 0.15,
+    "match_thresh": 0.75,
+    "track_buffer": 30
+  },
+  "anpr": {
+    "enabled": true,
+    "min_plate_height_px": 20.0,
+    "consensus_strategy": "S5",
+    "early_stop_enabled": true,
+    "early_stop_min_reads": 3,
+    "early_stop_confidence_thresh": 0.85
+  },
+  "live_view": {
+    "client_gated_encoding": true,
+    "default_jpeg_quality": 75
+  },
+  "degradation": {
+    "freshness_headroom_ms": 250.0,
+    "freshness_critical_ms": 450.0,
+    "critical_cameras": [
+      "CAM-01"
+    ]
+  }
+}
