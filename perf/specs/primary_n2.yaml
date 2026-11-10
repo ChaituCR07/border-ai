@@ -1,0 +1,25 @@
+id: perf-primary-n2
+stack:
+  mode: rtsp_live
+  model: yolov8s
+  imgsz: 640
+  device: auto
+  half: false
+  batch: 2
+  batch_max_wait_ms: 10
+  analytics_fps: 10
+  anpr: true
+  anpr_early_stop: true
+  face: false
+  live_view: true
+cameras: 2
+workload: typical
+warmup_s: 60
+measure_s: 300
+cooldown_s: 30
+repeat: 3
+budgets:
+  drop_rate_max: 0.01
+  freshness_p95_ms: 500
+  processing_p95_ms: 250
+  alert_p95_s: 3.0

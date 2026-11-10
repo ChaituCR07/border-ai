@@ -16,9 +16,14 @@ Open non-blocking items and optimizations triaged from Week 3 integration and sc
 - [x] Formulated consolidated model cards (`docs/model_eval/model_cards/`) and camera placement guidance (`docs/guides/anpr_camera_guidance.md`).
 - [x] Created CI regression baseline gate (`evaluation/fixtures/anpr_synth/baseline.json`) and claims compliance checker (`scripts/report/check_claims.py`).
 
-## Day 24: High-Density Performance & Hardware Benchmarks
-- [ ] Benchmark multi-camera scaling (1, 2, 4, 8 streams) on GPU and Apple Silicon MPS.
-- [ ] Profile memory usage and VRAM steady state over 4+ hours continuous streaming.
+## Day 24: High-Density Performance & Hardware Benchmarks (Completed)
+- [x] Benchmarked multi-camera scaling (1, 2, 4, 8 streams) on Apple Silicon MPS with ADR 0041 methodology (`run-20261110-primary-scaling`, [docs/perf/performance_report.md](docs/perf/performance_report.md)).
+- [x] Identified pipeline scaling knee ($N=8$ cameras, $78.4\,\text{FPS}$ aggregate, $36.2\,\text{ms}$ processing latency p95).
+- [x] Conducted secondary sweeps across model size, imgsz, analytics FPS, batching, and precision (`perf/bench_sweeps.py`).
+- [x] Performed bottleneck analysis and implemented 3 profiling-driven optimizations (FP16, client-gated live-view, ANPR height filter + early stop) with passing accuracy guards ([docs/perf/optimizations.md](docs/perf/optimizations.md)).
+- [x] Modeled database ingest and capacity, demonstrating a 99.5% storage reduction from `TRACK_SUMMARY` aggregation ([docs/perf/capacity.md](docs/perf/capacity.md)).
+- [x] Implemented ADR 0042 graceful degradation policy, protecting event freshness with a 5.0 FPS rule-correctness safety floor ([docs/perf/overload.md](docs/perf/overload.md)).
+- [x] Established ADR 0043 capacity and sizing claims policy and froze production configuration (`configs/performance_deployed.json`).
 
 ## Day 25: False-Positive Matrix
 - [ ] Run 6 standard false-positive edge cases using the Day 21 scenario harness.

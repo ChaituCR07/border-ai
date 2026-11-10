@@ -1,0 +1,129 @@
+id: perf-sweep-model
+stack:
+  mode: rtsp_live
+  model: yolov8n
+  imgsz: 640
+  device: auto
+  analytics_fps: 10
+  anpr: true
+  live_view: true
+cameras: 4
+workload: typical
+warmup_s: 30
+measure_s: 90
+cooldown_s: 15
+repeat: 1
+---
+id: perf-sweep-imgsz
+stack:
+  mode: rtsp_live
+  model: yolov8s
+  imgsz: 480
+  device: auto
+  analytics_fps: 10
+  anpr: true
+  live_view: true
+cameras: 4
+workload: typical
+warmup_s: 30
+measure_s: 90
+cooldown_s: 15
+repeat: 1
+---
+id: perf-sweep-analytics-fps
+stack:
+  mode: rtsp_live
+  model: yolov8s
+  imgsz: 640
+  device: auto
+  analytics_fps: 15
+  anpr: true
+  live_view: true
+cameras: 4
+workload: typical
+warmup_s: 30
+measure_s: 90
+cooldown_s: 15
+repeat: 1
+---
+id: perf-sweep-batch
+stack:
+  mode: rtsp_live
+  model: yolov8s
+  imgsz: 640
+  device: auto
+  batch: 8
+  batch_max_wait_ms: 20
+  analytics_fps: 10
+  anpr: true
+  live_view: true
+cameras: 4
+workload: typical
+warmup_s: 30
+measure_s: 90
+cooldown_s: 15
+repeat: 1
+---
+id: perf-sweep-anpr
+stack:
+  mode: rtsp_live
+  model: yolov8s
+  imgsz: 640
+  device: auto
+  analytics_fps: 10
+  anpr: false
+  live_view: true
+cameras: 4
+workload: typical
+warmup_s: 30
+measure_s: 90
+cooldown_s: 15
+repeat: 1
+---
+id: perf-sweep-liveview
+stack:
+  mode: rtsp_live
+  model: yolov8s
+  imgsz: 640
+  device: auto
+  analytics_fps: 10
+  anpr: true
+  live_view: false
+cameras: 4
+workload: typical
+warmup_s: 30
+measure_s: 90
+cooldown_s: 15
+repeat: 1
+---
+id: perf-overload-n12
+stack:
+  mode: rtsp_live
+  model: yolov8s
+  imgsz: 640
+  device: auto
+  analytics_fps: 10
+  anpr: true
+  live_view: true
+cameras: 12
+workload: heavy
+warmup_s: 30
+measure_s: 90
+cooldown_s: 15
+repeat: 1
+---
+id: perf-cpu-only-n1
+stack:
+  mode: rtsp_live
+  model: yolov8s
+  imgsz: 640
+  device: cpu
+  analytics_fps: 10
+  anpr: true
+  live_view: true
+cameras: 1
+workload: typical
+warmup_s: 30
+measure_s: 90
+cooldown_s: 15
+repeat: 1
