@@ -78,7 +78,7 @@ All recordings and video sources are partitioned into disjoint sets prior to any
 | **BorderVision Own Static** | Perimeter & Gate | `cam01_dev_01..03.mp4`, `cam02_dev_01..02.mp4` | `cam01_eval_01..06.mp4`, `cam02_eval_01..05.mp4` | 3.50 h | Proprietary / Internal |
 | **MOT17 Static Sequences** | Pedestrian Walkway | `MOT17-02-FRCNN` | `MOT17-04-FRCNN`, `MOT17-09-FRCNN` | 0.25 h | CC BY-NC-SA 4.0 |
 | **Traffic Flow Benchmark** | Vehicle Line Crossing | Sequences 01..10 | Sequences 11..25 | 2.25 h | Research / Academic |
-| **Total Exposure** | Multi-Scene | **2.00 h** | **4.00 h** | **6.00 h** | Verified Unique |
+| **Total Exposure** | Multi-Scene | **2.00 h** | **4.25 h** | **6.25 h** | Verified Unique |
 
 ---
 
