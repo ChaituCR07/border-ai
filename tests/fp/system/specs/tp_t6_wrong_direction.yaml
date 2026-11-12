@@ -1,0 +1,29 @@
+id: tp_t6_wrong_direction
+title: "Plan Test 6: Vehicle Crosses in Wrong Direction"
+description: "Evaluates detection and alerting when vehicle drives against permitted flow"
+negative: false
+cameras:
+  - id: CAM-02
+    line: "LINE-01"
+variants:
+  - id: TP-6.1
+    name: "direct_wrong_way"
+    direction: -1
+    within_s: 0.5
+  - id: TP-6.2
+    name: "oblique_reverse"
+    direction: -1
+    angle_deg: 40.0
+    within_s: 0.6
+  - id: TP-6.3
+    name: "dense_traffic_isolated_reversal"
+    direction: -1
+    within_s: 0.8
+expect:
+  alerts:
+    - type: LINE_CROSSING_WRONG_DIRECTION
+      tier: HIGH
+      min_count: 1
+      max_count: 1
+forbidden: []
+reconcile: true

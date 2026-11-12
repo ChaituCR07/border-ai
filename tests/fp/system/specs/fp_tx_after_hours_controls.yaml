@@ -1,0 +1,27 @@
+id: fp_tx_after_hours_controls
+title: "Control Test: Negative Activity with After-Hours Clock"
+description: "Verifies after-hours clock modifier (+10) alone or with normal events never reaches MEDIUM tier"
+negative: true
+clock:
+  simulated: true
+  start: "2026-11-12T23:30:00+05:30"
+variants:
+  - id: FP-X.1
+    name: "empty_scene_soak"
+    duration_s: 600.0
+    expected_alerts: 0
+  - id: FP-X.2
+    name: "after_hours_clock_only"
+    max_tier: LOW
+  - id: FP-X.3
+    name: "permitted_crossing_plus_after_hours"
+    factors: ["after_hours", "permitted_line_crossing"]
+    max_tier: LOW
+expect:
+  alerts: []
+  max_tier: LOW
+forbidden:
+  - type: ALERT_MEDIUM
+  - type: ALERT_HIGH
+  - type: ALERT_CRITICAL
+reconcile: true
