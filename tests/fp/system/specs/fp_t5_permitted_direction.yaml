@@ -1,0 +1,30 @@
+id: fp_t5_permitted_direction
+title: "Plan Test 5: Vehicle Crosses in Permitted Direction"
+description: "Evaluates counting lines for legal direction vehicle crossings"
+negative: true
+cameras:
+  - id: CAM-02
+    line: "LINE-01"
+variants:
+  - id: FP-5.1
+    name: "permitted_stream"
+    direction: 1
+    expected_violations: 0
+  - id: FP-5.2
+    name: "stop_and_go_on_line"
+    pause_s: 3.0
+    expected_violations: 0
+  - id: FP-5.3
+    name: "oblique_permitted"
+    angle_deg: 45.0
+    expected_violations: 0
+  - id: FP-5.4
+    name: "pedestrian_crosses_vehicle_line"
+    cls: "person"
+    expected_violations: 0
+expect:
+  alerts: []
+  max_tier: LOW
+forbidden:
+  - type: LINE_CROSSING_WRONG_DIRECTION
+reconcile: true

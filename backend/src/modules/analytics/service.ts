@@ -93,4 +93,16 @@ export class AnalyticsService {
     const data = await this.repo.getThreatStats(from, to, query.camera_id);
     return { data };
   }
+
+  async getResolutions(query: any) {
+    let from: string | undefined;
+    let to: string | undefined;
+    if (query.from || query.to) {
+      const range = this.resolveRange(query.from, query.to);
+      from = range.from;
+      to = range.to;
+    }
+    const data = await this.repo.getResolutionStats(from, to);
+    return { data };
+  }
 }

@@ -28,6 +28,21 @@ export interface ThreatSummaryStats {
   top_plates: { plate: string; events: number; max_score: number }[];
 }
 
+export interface ResolutionBreakdown {
+  resolution: string;
+  count: number;
+}
+
+export interface ResolutionAnalytics {
+  total_resolved: number;
+  false_positive_count: number;
+  false_positive_rate: number;
+  by_resolution: ResolutionBreakdown[];
+  by_camera: { camera_id: string; total: number; false_positives: number }[];
+  by_rule: { rule_type: string; total: number; false_positives: number }[];
+  by_tier: { tier: string; total: number; false_positives: number }[];
+}
+
 export interface AnalyticsRepo {
   getEventTimeseries(
     from: string,
@@ -39,4 +54,6 @@ export interface AnalyticsRepo {
   getCameraStats(from?: string, to?: string): Promise<CameraActivityStats[]>;
 
   getThreatStats(from: string, to: string, cameraId?: string): Promise<ThreatSummaryStats>;
+
+  getResolutionStats(from?: string, to?: string): Promise<ResolutionAnalytics>;
 }

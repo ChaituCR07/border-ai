@@ -1,5 +1,12 @@
 import type pg from 'pg';
-import type { AnalyticsRepo, EventTimeSeriesBucket, EventTypeCount, CameraActivityStats, ThreatSummaryStats } from './repo.js';
+import type {
+  AnalyticsRepo,
+  EventTimeSeriesBucket,
+  EventTypeCount,
+  CameraActivityStats,
+  ThreatSummaryStats,
+  ResolutionAnalytics,
+} from './repo.js';
 import { pgTsToIso } from '../../common/time.js';
 
 export class PgAnalyticsRepo implements AnalyticsRepo {
@@ -184,6 +191,99 @@ export class PgAnalyticsRepo implements AnalyticsRepo {
       score_histogram,
       top_event_types,
       top_plates,
+    };
+  }
+
+  async getResolutionStats(from?: string, to?: string): Promise<ResolutionAnalytics> {
+    const where: string[] = ["(a.status = 'RESOLVED' OR a.resolution IS NOT NULL)"];
+    const args: any[] = [];
+    let idx = 1;
+
+    if (from) {
+      where.push(`COALESCE(a.resolved_at, a.created_at) >= $${idx++}`);
+      args.push(from);
+    }
+    if (to) {
+      where.push(`COALESCE(a.resolved_at, a.created_at) < $${idx++}`);
+      args.push(to);
+    }
+
+    const whereClause = where.join(' AND ');
+
+    // 1. By resolution
+    const resSql = `
+      SELECT COALESCE(a.resolution, 'RESOLVED') AS resolution, count(*)::int AS count
+      FROM alerts a
+      WHERE ${whereClause}
+      GROUP BY 1
+    `;
+    const resResult = await this.pool.query(resSql, args);
+    const by_resolution = resResult.rows.map(r => ({ resolution: r.resolution, count: Number(r.count) }));
+
+    let totalResolved = 0;
+    let falsePositives = 0;
+    for (const r of by_resolution) {
+      totalResolved += r.count;
+      if (r.resolution === 'FALSE_POSITIVE') falsePositives += r.count;
+    }
+
+    // 2. By camera
+    const camSql = `
+      SELECT e.camera_id, count(*)::int AS total,
+             count(*) FILTER (WHERE a.resolution = 'FALSE_POSITIVE')::int AS false_positives
+      FROM alerts a
+      LEFT JOIN events e ON a.event_id = e.event_id
+      WHERE ${whereClause}
+      GROUP BY 1
+    `;
+    const camResult = await this.pool.query(camSql, args);
+    const by_camera = camResult.rows.map(r => ({
+      camera_id: r.camera_id ?? 'UNKNOWN',
+      total: Number(r.total),
+      false_positives: Number(r.false_positives),
+    }));
+
+    // 3. By rule
+    const ruleSql = `
+      SELECT e.event_type AS rule_type, count(*)::int AS total,
+             count(*) FILTER (WHERE a.resolution = 'FALSE_POSITIVE')::int AS false_positives
+      FROM alerts a
+      LEFT JOIN events e ON a.event_id = e.event_id
+      WHERE ${whereClause}
+      GROUP BY 1
+    `;
+    const ruleResult = await this.pool.query(ruleSql, args);
+    const by_rule = ruleResult.rows.map(r => ({
+      rule_type: r.rule_type ?? 'UNKNOWN',
+      total: Number(r.total),
+      false_positives: Number(r.false_positives),
+    }));
+
+    // 4. By tier
+    const tierSql = `
+      SELECT a.priority AS tier, count(*)::int AS total,
+             count(*) FILTER (WHERE a.resolution = 'FALSE_POSITIVE')::int AS false_positives
+      FROM alerts a
+      WHERE ${whereClause}
+      GROUP BY 1
+    `;
+    const tierResult = await this.pool.query(tierSql, args);
+    const by_tier = tierResult.rows.map(r => ({
+      tier: r.tier,
+      total: Number(r.total),
+      false_positives: Number(r.false_positives),
+    }));
+
+    const fpRate = totalResolved > 0 ? falsePositives / totalResolved : 0.0;
+
+    return {
+      total_resolved: totalResolved,
+      false_positive_count: falsePositives,
+      false_positive_rate: Number(fpRate.toFixed(4)),
+      by_resolution,
+      by_camera,
+      by_rule,
+      by_tier,
     };
   }
 }

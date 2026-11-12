@@ -1,0 +1,28 @@
+id: tp_t2_zone_entry
+title: "Plan Test 2: Person Enters Restricted Zone"
+description: "Evaluates detection and alerting when person traverses zone boundary"
+negative: false
+cameras:
+  - id: CAM-01
+    zone: "ZONE-01"
+variants:
+  - id: TP-2.1
+    name: "direct_perpendicular_entry"
+    depth_px: 120.0
+    within_s: 0.6
+  - id: TP-2.2
+    name: "oblique_entry"
+    angle_deg: 35.0
+    within_s: 0.8
+  - id: TP-2.3
+    name: "fast_sprint_entry"
+    speed_px_s: 260.0
+    within_s: 0.5
+expect:
+  alerts:
+    - type: RESTRICTED_ZONE_ENTRY
+      tier: HIGH
+      min_count: 1
+      max_count: 1
+forbidden: []
+reconcile: true

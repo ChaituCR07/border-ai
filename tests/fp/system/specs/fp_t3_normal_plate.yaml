@@ -1,0 +1,27 @@
+id: fp_t3_normal_plate
+title: "Plan Test 3: Vehicle with Normal License Plate"
+description: "Evaluates unlisted vehicle reads against 100-entry watchlist"
+negative: true
+cameras:
+  - id: CAM-02
+    anpr: true
+variants:
+  - id: FP-3.1
+    name: "unlisted_plate_standard"
+    plate: "DL01AB1234"
+    expected_matches: 0
+  - id: FP-3.2
+    name: "near_miss_lookalike"
+    plate: "KA04MC1111"
+    lookalike_test: true
+    expected_matches: 0
+  - id: FP-3.3
+    name: "partial_low_confidence_read"
+    conf: 0.55
+    expected_matches: 0
+expect:
+  alerts: []
+  max_tier: LOW
+forbidden:
+  - type: WATCHLIST_HIT
+reconcile: true

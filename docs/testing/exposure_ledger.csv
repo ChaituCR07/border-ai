@@ -1,0 +1,18 @@
+source,clip_id,scene/camera,unique_duration_s,loops,conditions,licence,split,used_for
+BorderVision-Static,cam01_dev_01,CAM-01,1800,1,daylight,Proprietary,dev,perimeter_zone
+BorderVision-Static,cam01_dev_02,CAM-01,1800,1,twilight,Proprietary,dev,perimeter_zone
+BorderVision-Static,cam02_dev_01,CAM-02,1800,1,daylight,Proprietary,dev,access_line
+TrafficFlow-Bench,traffic_seq_dev_01,CAM-02,900,1,daylight,Research,dev,vehicle_counting
+MOT17-Static,mot17_02_frcnn,CAM-01,900,1,daylight,CC BY-NC-SA 4.0,dev,pedestrian_walkway
+BorderVision-Static,cam01_eval_01,CAM-01,1800,1,daylight,Proprietary,held-out,perimeter_zone
+BorderVision-Static,cam01_eval_02,CAM-01,1800,1,overcast,Proprietary,held-out,perimeter_zone
+BorderVision-Static,cam01_eval_03,CAM-01,1800,1,twilight,Proprietary,held-out,perimeter_zone
+BorderVision-Static,cam01_eval_04,CAM-01,1800,1,night_ir,Proprietary,held-out,perimeter_zone
+BorderVision-Static,cam02_eval_01,CAM-02,1800,1,daylight,Proprietary,held-out,access_line
+BorderVision-Static,cam02_eval_02,CAM-02,1800,1,night_ir,Proprietary,held-out,access_line
+BorderVision-Static,cam03_eval_01,CAM-03,900,1,daylight,Proprietary,held-out,restricted_bay
+BorderVision-Static,cam04_eval_01,CAM-04,900,1,daylight,Proprietary,held-out,exit_line
+MOT17-Static,mot17_04_frcnn,CAM-01,450,1,night,CC BY-NC-SA 4.0,held-out,pedestrian_walkway
+MOT17-Static,mot17_09_frcnn,CAM-01,450,1,daylight,CC BY-NC-SA 4.0,held-out,pedestrian_walkway
+TrafficFlow-Bench,traffic_seq_eval_01,CAM-02,900,1,daylight,Research,held-out,vehicle_counting
+TrafficFlow-Bench,traffic_seq_eval_02,CAM-02,900,1,overcast,Research,held-out,vehicle_counting

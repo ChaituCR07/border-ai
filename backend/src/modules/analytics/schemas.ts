@@ -53,3 +53,36 @@ export const AnalyticsThreatsSchema = z.object({
     })),
   }),
 });
+
+export const AnalyticsResolutionsQuerySchema = z.object({
+  from: z.string().datetime({ offset: true }).optional(),
+  to: z.string().datetime({ offset: true }).optional(),
+  format: z.enum(['json', 'csv']).optional(),
+}).strict();
+
+export const AnalyticsResolutionsSchema = z.object({
+  data: z.object({
+    total_resolved: z.number(),
+    false_positive_count: z.number(),
+    false_positive_rate: z.number(),
+    by_resolution: z.array(z.object({
+      resolution: z.string(),
+      count: z.number(),
+    })),
+    by_camera: z.array(z.object({
+      camera_id: z.string(),
+      total: z.number(),
+      false_positives: z.number(),
+    })),
+    by_rule: z.array(z.object({
+      rule_type: z.string(),
+      total: z.number(),
+      false_positives: z.number(),
+    })),
+    by_tier: z.array(z.object({
+      tier: z.string(),
+      total: z.number(),
+      false_positives: z.number(),
+    })),
+  }),
+});

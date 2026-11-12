@@ -1,0 +1,30 @@
+id: tp_t4_watchlist_plate
+title: "Plan Test 4: Watchlisted Vehicle Plate"
+description: "Evaluates alerting when watchlisted plate matches database target"
+negative: false
+cameras:
+  - id: CAM-02
+    anpr: true
+variants:
+  - id: TP-4.1
+    name: "exact_match_clear_view"
+    plate: "MH12DE1432"
+    within_s: 0.5
+  - id: TP-4.2
+    name: "night_ir_plate_match"
+    plate: "MH12DE1432"
+    lighting: "night_ir"
+    within_s: 0.7
+  - id: TP-4.3
+    name: "occluded_consensus_read"
+    plate: "MH12DE1432"
+    consensus_frames: 3
+    within_s: 0.8
+expect:
+  alerts:
+    - type: WATCHLIST_HIT
+      tier: CRITICAL
+      min_count: 1
+      max_count: 1
+forbidden: []
+reconcile: true

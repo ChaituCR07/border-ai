@@ -1,0 +1,27 @@
+id: fp_t1_zone_outside
+title: "Plan Test 1: Person Outside Restricted Zone"
+description: "Evaluates person tracks walking parallel or near zone boundary without entering"
+negative: true
+cameras:
+  - id: CAM-01
+    zone: "ZONE-01"
+variants:
+  - id: FP-1.1
+    name: "person_far_outside"
+    foot_y: 120.0
+    expected_alerts: 0
+  - id: FP-1.2
+    name: "person_boundary_proximity"
+    foot_y: 175.0
+    expected_alerts: 0
+  - id: FP-1.3
+    name: "perspective_torso_overlap"
+    foot_y: 185.0
+    bbox_h: 80.0
+    expected_alerts: 0
+expect:
+  alerts: []
+  max_tier: LOW
+forbidden:
+  - type: RESTRICTED_ZONE_ENTRY
+reconcile: true
