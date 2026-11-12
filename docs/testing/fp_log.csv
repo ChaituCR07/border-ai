@@ -1,0 +1,7 @@
+fp_id,run_id,clip_id,t_clip_s,rule/event,tier,subject,cause,gt_error,status,mitigation_ref,notes
+FP-001,run_dev_01,cam01_dev_01,142.5,RESTRICTED_ZONE_ENTRY,MEDIUM,track_402,foot_point_perspective,no,MITIGATED,MIT-001,Upper torso entered polygon while feet remained outside
+FP-002,run_dev_01,cam01_dev_02,310.2,RESTRICTED_ZONE_ENTRY,MEDIUM,track_511,tracker_jitter,no,MITIGATED,MIT-001,Single-frame boundary jitter across polygon border
+FP-003,run_dev_02,cam02_dev_01,88.4,LINE_CROSSING_WRONG_DIRECTION,HIGH,track_108,id_switch_duplicate,no,MITIGATED,MIT-003,Tracker assigned new ID during line occlusion causing reversed direction vector
+FP-004,run_dev_02,traffic_seq_dev_01,415.0,LINE_CROSSING_WRONG_DIRECTION,HIGH,track_221,gt_error,yes,ACCEPTED_LIMITATION,N/A,Ground truth vehicle was actually reversing out of side lane
+FP-005,run_soak_01,cam01_soak,22.0,RESTRICTED_ZONE_ENTRY,LOW,track_012,detector_ghost,no,MITIGATED,MIT-002,Flickering false detection on tree foliage shadow
+FP-006,run_dev_03,cam02_dev_02,195.4,WATCHLIST_HIT,CRITICAL,plate_KA04MC1111,lookalike_match,no,MITIGATED,MIT-004,Single read '8' misclassified as 'B' matching watchlist without corroboration
