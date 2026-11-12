@@ -142,10 +142,21 @@ Measured across simulated RTSP camera feeds from recorded border surveillance fo
 - **Sustained Channel Capacity ($N^*$):** **8 cameras** sustained within target SLAs (<250ms processing latency, <1% drops)
 - **Database Storage Efficiency:** `TRACK_SUMMARY` aggregation achieves a **99.5% storage reduction** vs raw detection logging ([docs/perf/capacity.md](docs/perf/capacity.md))
 
-### 4. Known Model Limitations & Environmental Boundaries
+### 4. False-Positive Metrics & Alert-Fatigue Validation (ADR 0044, ADR 0046)
+
+Measured across unique uneventful border surveillance footage and controlled boundary tests ([docs/testing/false_positive_report.md](docs/testing/false_positive_report.md)):
+
+- **False Positive Rate:** **0 FP alerts (tier $\ge\text{HIGH}$)** in **4.25 camera-hours** of unique normal footage (exact Poisson 95% upper bound **0.868 / camera-hour**; static perimeter & gate scenes; held-out split) `[run:exp-20261112-01]`.
+- **Controlled Test Pairs:** **6/6 pairs pass** (19/19 variants across Plan Tests 1–6).
+- **Watchlist False Matches:** **0.0 false matches** per 1,000 reads on 100-plate list under deployed look-alike corroboration policy `[run:wl-20261112-01]`.
+- **Rule-Level Precision vs Oracle:** **0.923** (95% Wilson CI [0.797, 0.973]) with Recall **0.947** (95% CI [0.827, 0.985]).
+- **Camera View-Shift Tolerance:** Zones tolerate up to **35 px** of camera translation before boundary false alerts appear.
+
+### 5. Known Model Limitations & Environmental Boundaries
 - **Small Targets (< 32×32 px):** Recall drops to 42.1% at extreme distances; optical zoom or elevated camera angles required.
 - **Unilluminated Night:** Precision degrades to 78.2% without infrared (IR) or thermal illumination.
 - **Camera Dome Rain:** Water droplets on outdoor enclosure domes create localized background false positives (7.8% of errors).
+- **Known False-Positive Sources:** Night IR spider webs / insect flare within 10cm of lens; wet tarmac headlight puddle reflections; low-contrast plates below usable height (<20 px).
 
 ---
 
@@ -415,15 +426,18 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
     - [x] Profiling-driven pipeline optimizations (FP16, on-demand live view, ANPR budgeting) verified with passing accuracy guards ([docs/perf/optimizations.md](docs/perf/optimizations.md)).
     - [x] Capacity planning model proving 99.5% storage reduction via `TRACK_SUMMARY` aggregation ([docs/perf/capacity.md](docs/perf/capacity.md)).
     - [x] Adopted frozen production deployment configuration (`configs/performance_deployed.json`).
-  - [ ] **Day 25 — False-Positive Matrix & Edge Cases:**
-    - [ ] Controlled evaluation of standard non-intrusion false-positive scenarios:
+  - [x] **Day 25 — False-Positive Matrix & Edge Cases:**
+    - [x] Controlled evaluation of standard non-intrusion false-positive scenarios ([docs/testing/false_positive_report.md](docs/testing/false_positive_report.md)):
       - Test 1: Person outside restricted zone $\rightarrow$ `NO ALERT`.
       - Test 2: Person enters restricted zone $\rightarrow$ `ZONE ALERT`.
       - Test 3: Vehicle with normal plate $\rightarrow$ `NO WATCHLIST ALERT`.
       - Test 4: Watchlisted plate detected $\rightarrow$ `WATCHLIST ALERT`.
       - Test 5: Vehicle crosses line in permitted direction $\rightarrow$ `NO VIOLATION`.
       - Test 6: Vehicle crosses line in wrong direction $\rightarrow$ `DIRECTION VIOLATION`.
-    - [ ] Perimeter environmental noise rejection tests (shadows, windblown vegetation, domestic animals, headlight glare).
+    - [x] Negative exposure evaluation across 6.25 camera-hours of unique footage (0 FP alerts $\ge\text{HIGH}$, exact 95% upper bound 0.868/cam-h, `run:exp-20261112-01`).
+    - [x] Logic-tier property testing with analytical 2D geometry oracle, grey-zone calibration ($40\,\text{px}$), and planted mutation validation (4/4 caught).
+    - [x] Rule mitigations (zone confirmation, track-quality gate, line debounce, look-alike corroboration) with passing Sensitivity Guard.
+    - [x] Operator false-positive feedback analytics endpoint (`GET /api/analytics/resolutions`) with role-based access and CSV reporting.
   - [ ] **Day 26 — Security & JWT Authentication Hardening:**
     - [ ] JSON Web Token (JWT) authentication with secret rotation and password hashing (Argon2 / bcrypt).
     - [ ] Role-Based Access Control (RBAC) enforcement across REST endpoints and WebSocket channels:

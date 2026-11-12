@@ -94,6 +94,8 @@ def main() -> int:
         repo_root / "docs/perf/overload.md",
         repo_root / "docs/perf/bottlenecks.md",
         repo_root / "docs/perf/capacity.md",
+        repo_root / "docs/testing/false_positive_report.md",
+        repo_root / "docs/testing/fp_methodology.md",
     ]
 
     total_violations = 0
