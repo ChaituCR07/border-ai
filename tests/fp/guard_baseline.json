@@ -1,0 +1,18 @@
+{
+  "baseline_version": "1.0.0",
+  "created_at": "2026-11-12T20:00:00Z",
+  "frozen_config_hash": "e6a2b89f01",
+  "metrics": {
+    "positive_tests_pass_rate": 1.0,
+    "scenario_s1_score": 60.0,
+    "scenario_s1_tier": "HIGH",
+    "scenario_s2_score": 80.0,
+    "scenario_s2_tier": "CRITICAL",
+    "oracle_recall_min": 0.90,
+    "max_alert_latency_s": 0.80
+  },
+  "tolerances": {
+    "max_allowed_recall_drop": 0.02,
+    "max_allowed_latency_increase_s": 0.20
+  }
+}

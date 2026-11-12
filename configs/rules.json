@@ -283,5 +283,29 @@
         }
       }
     ]
+  },
+  "mitigations": {
+    "zone_confirmation": {
+      "enabled": true,
+      "confirm_frames": 3,
+      "hysteresis_margin_px": 25.0
+    },
+    "track_quality_gate": {
+      "enabled": true,
+      "min_track_hits": 3,
+      "min_mean_conf": 0.50,
+      "min_box_h_px": 20.0
+    },
+    "line_debounce": {
+      "enabled": true,
+      "line_cooldown_s": 2.0,
+      "dedupe_radius_px": 50.0,
+      "dedupe_dt_s": 1.0
+    },
+    "lookalike_gating": {
+      "enabled": true,
+      "lookalike_min_conf": 0.85,
+      "consensus_min_reads": 2
+    }
   }
 }
