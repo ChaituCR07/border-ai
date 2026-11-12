@@ -1518,6 +1518,9 @@
                           "created_at": {
                             "type": "string"
                           },
+                          "received_at": {
+                            "type": "string"
+                          },
                           "event": {
                             "type": "object",
                             "properties": {
@@ -1675,6 +1678,9 @@
                           "nullable": true
                         },
                         "created_at": {
+                          "type": "string"
+                        },
+                        "received_at": {
                           "type": "string"
                         },
                         "event": {
@@ -1913,6 +1919,9 @@
                         "created_at": {
                           "type": "string"
                         },
+                        "received_at": {
+                          "type": "string"
+                        },
                         "event": {
                           "type": "object",
                           "properties": {
@@ -2076,6 +2085,9 @@
                           "nullable": true
                         },
                         "created_at": {
+                          "type": "string"
+                        },
+                        "received_at": {
                           "type": "string"
                         },
                         "event": {
@@ -3833,6 +3845,51 @@
         }
       }
     },
+    "/api/analytics/resolutions": {
+      "get": {
+        "summary": "Operator false positive feedback and alert resolution breakdown",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "from",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "to",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "csv"
+              ]
+            },
+            "in": "query",
+            "name": "format",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
     "/api/snapshots/{*}": {
       "get": {
         "parameters": [
@@ -4258,6 +4315,15 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/system/status": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
           }
         }
       }

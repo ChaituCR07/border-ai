@@ -1,4 +1,11 @@
-import type { AnalyticsRepo, EventTimeSeriesBucket, EventTypeCount, CameraActivityStats, ThreatSummaryStats } from './repo.js';
+import type {
+  AnalyticsRepo,
+  EventTimeSeriesBucket,
+  EventTypeCount,
+  CameraActivityStats,
+  ThreatSummaryStats,
+  ResolutionAnalytics,
+} from './repo.js';
 
 export class InMemoryAnalyticsRepo implements AnalyticsRepo {
   private events: any[] = [];
@@ -109,6 +116,79 @@ export class InMemoryAnalyticsRepo implements AnalyticsRepo {
       score_histogram: histogram,
       top_event_types: [],
       top_plates: [],
+    };
+  }
+
+  async getResolutionStats(from?: string, to?: string): Promise<ResolutionAnalytics> {
+    let resolvedAlerts = this.alerts.filter(a => a.status === 'RESOLVED' || a.resolution != null);
+    if (from) {
+      resolvedAlerts = resolvedAlerts.filter(a => (a.resolved_at ?? a.created_at) >= from);
+    }
+    if (to) {
+      resolvedAlerts = resolvedAlerts.filter(a => (a.resolved_at ?? a.created_at) < to);
+    }
+
+    const resCounts: Record<string, number> = {};
+    const camStats: Record<string, { total: number; fps: number }> = {};
+    const ruleStats: Record<string, { total: number; fps: number }> = {};
+    const tierStats: Record<string, { total: number; fps: number }> = {};
+
+    let totalResolved = 0;
+    let falsePositives = 0;
+
+    for (const a of resolvedAlerts) {
+      totalResolved++;
+      const res = a.resolution ?? 'RESOLVED';
+      resCounts[res] = (resCounts[res] ?? 0) + 1;
+      const isFp = res === 'FALSE_POSITIVE';
+      if (isFp) falsePositives++;
+
+      const cam = a.event?.camera_id ?? 'UNKNOWN';
+      const camObj = camStats[cam] ?? { total: 0, fps: 0 };
+      camObj.total++;
+      if (isFp) camObj.fps++;
+      camStats[cam] = camObj;
+
+      const rule = a.event?.event_type ?? 'UNKNOWN';
+      const ruleObj = ruleStats[rule] ?? { total: 0, fps: 0 };
+      ruleObj.total++;
+      if (isFp) ruleObj.fps++;
+      ruleStats[rule] = ruleObj;
+
+      const tier = String(a.priority ?? 'MEDIUM');
+      const tierObj = tierStats[tier] ?? { total: 0, fps: 0 };
+      tierObj.total++;
+      if (isFp) tierObj.fps++;
+      tierStats[tier] = tierObj;
+    }
+
+    const by_resolution = Object.entries(resCounts).map(([resolution, count]) => ({ resolution, count }));
+    const by_camera = Object.entries(camStats).map(([camera_id, v]) => ({
+      camera_id,
+      total: v.total,
+      false_positives: v.fps,
+    }));
+    const by_rule = Object.entries(ruleStats).map(([rule_type, v]) => ({
+      rule_type,
+      total: v.total,
+      false_positives: v.fps,
+    }));
+    const by_tier = Object.entries(tierStats).map(([tier, v]) => ({
+      tier,
+      total: v.total,
+      false_positives: v.fps,
+    }));
+
+    const fpRate = totalResolved > 0 ? falsePositives / totalResolved : 0.0;
+
+    return {
+      total_resolved: totalResolved,
+      false_positive_count: falsePositives,
+      false_positive_rate: Number(fpRate.toFixed(4)),
+      by_resolution,
+      by_camera,
+      by_rule,
+      by_tier,
     };
   }
 }
