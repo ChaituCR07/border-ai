@@ -5,7 +5,6 @@ import { CamerasService } from './service.js';
 import type { CamerasRepo } from './repo.js';
 import type { AuditRepo } from '../../common/audit.js';
 import { CreateCameraSchema, UpdateCameraSchema, CameraQuerySchema, CameraResourceSchema, CameraIdSchema } from './schemas.js';
-import { requireRole } from '../../common/auth.js';
 
 export interface CameraRouteDeps {
   camerasRepo: CamerasRepo;
@@ -21,6 +20,7 @@ export function cameraRoutes(deps: CameraRouteDeps): FastifyPluginAsync {
     app.get(
       '/cameras',
       {
+        config: { permission: 'cameras:view' },
         schema: {
           tags: ['Cameras'],
           summary: 'List cameras with optional filters',
@@ -41,7 +41,7 @@ export function cameraRoutes(deps: CameraRouteDeps): FastifyPluginAsync {
     app.post(
       '/cameras',
       {
-        preHandler: requireRole('ADMIN'),
+        config: { permission: 'cameras:write' },
         schema: {
           tags: ['Cameras'],
           summary: 'Register a new camera',
@@ -63,6 +63,7 @@ export function cameraRoutes(deps: CameraRouteDeps): FastifyPluginAsync {
     app.get(
       '/cameras/:id',
       {
+        config: { permission: 'cameras:view' },
         schema: {
           tags: ['Cameras'],
           summary: 'Get camera details by ID',
@@ -83,7 +84,7 @@ export function cameraRoutes(deps: CameraRouteDeps): FastifyPluginAsync {
     app.put(
       '/cameras/:id',
       {
-        preHandler: requireRole('ADMIN'),
+        config: { permission: 'cameras:write' },
         schema: {
           tags: ['Cameras'],
           summary: 'Update mutable camera properties',
