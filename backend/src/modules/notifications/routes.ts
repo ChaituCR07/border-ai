@@ -1,7 +1,6 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { requireRole } from '../../common/auth.js';
 import { clampLimit, decodeCursor, encodeCursor } from '../../common/pagination.js';
 import { notFound, badRequest } from '../../common/errors.js';
 import type { AuditRepo } from '../../common/audit.js';
@@ -34,7 +33,7 @@ export function notificationRoutes(deps: NotificationRouteDeps): FastifyPluginAs
     app.get(
       '/notifications',
       {
-        preHandler: requireRole('ADMIN'),
+        config: { permission: 'notifications:admin' },
         schema: {
           tags: ['Notifications'],
           summary: 'Get notifications delivery log with keyset pagination (Admin only)',
@@ -132,7 +131,7 @@ export function notificationRoutes(deps: NotificationRouteDeps): FastifyPluginAs
     app.get(
       '/notifications/status',
       {
-        preHandler: requireRole('ADMIN'),
+        config: { permission: 'notifications:admin' },
         schema: {
           tags: ['Notifications'],
           summary: 'Get notification system queue, planner, and SMTP status (Admin only)',
@@ -200,7 +199,7 @@ export function notificationRoutes(deps: NotificationRouteDeps): FastifyPluginAs
     app.post(
       '/notifications/test',
       {
-        preHandler: requireRole('ADMIN'),
+        config: { permission: 'notifications:admin' },
         schema: {
           tags: ['Notifications'],
           summary: 'Send a test email notification to an allow-listed recipient (Admin only)',
@@ -261,7 +260,7 @@ export function notificationRoutes(deps: NotificationRouteDeps): FastifyPluginAs
     app.post(
       '/notifications/retry/:id',
       {
-        preHandler: requireRole('ADMIN'),
+        config: { permission: 'notifications:admin' },
         schema: {
           tags: ['Notifications'],
           summary: 'Retry a failed notification (Admin only)',

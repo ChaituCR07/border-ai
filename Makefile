@@ -71,3 +71,16 @@ test-fp: test-fp-logic test-fp-system fp-guard fp-exposure
 	PYTHONPATH=. $(PYTHON) tests/test_oracle_vs_system.py
 	PYTHONPATH=. $(PYTHON) tests/test_stress_augmentation.py
 	$(PYTHON) scripts/report/check_claims.py
+
+.PHONY: security security-test audit-verify
+
+security-test:
+	npm --prefix backend test tests/security/
+	PYTHONPATH=. $(PYTHON) tests/test_stream_auth.py
+	PYTHONPATH=. $(PYTHON) tests/test_vault.py
+
+audit-verify:
+	npm --prefix backend run audit:verify
+
+security: security-test
+

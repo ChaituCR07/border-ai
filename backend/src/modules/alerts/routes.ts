@@ -12,7 +12,6 @@ import {
   AcknowledgeBodySchema,
   ResolveBodySchema,
 } from './schemas.js';
-import { requireRole } from '../../common/auth.js';
 
 export interface AlertRouteDeps {
   alertsRepo: AlertsRepo;
@@ -29,6 +28,7 @@ export function alertRoutes(deps: AlertRouteDeps): FastifyPluginAsync {
     app.get(
       '/alerts',
       {
+        config: { permission: 'alerts:view' },
         schema: {
           tags: ['Alerts'],
           summary: 'List alerts with filtering and pagination',
@@ -53,6 +53,7 @@ export function alertRoutes(deps: AlertRouteDeps): FastifyPluginAsync {
     app.get(
       '/alerts/:id',
       {
+        config: { permission: 'alerts:view' },
         schema: {
           tags: ['Alerts'],
           summary: 'Get single alert detail with notifications and explanation',
@@ -73,7 +74,7 @@ export function alertRoutes(deps: AlertRouteDeps): FastifyPluginAsync {
     app.patch(
       '/alerts/:id/acknowledge',
       {
-        preHandler: requireRole('ADMIN', 'OPERATOR', 'INVESTIGATOR'),
+        config: { permission: 'alerts:ack' },
         schema: {
           tags: ['Alerts'],
           summary: 'Acknowledge an alert (idempotent and race-safe)',
@@ -95,7 +96,7 @@ export function alertRoutes(deps: AlertRouteDeps): FastifyPluginAsync {
     app.patch(
       '/alerts/:id/resolve',
       {
-        preHandler: requireRole('ADMIN', 'OPERATOR', 'INVESTIGATOR'),
+        config: { permission: 'alerts:resolve' },
         schema: {
           tags: ['Alerts'],
           summary: 'Resolve an alert with outcome classification and note',

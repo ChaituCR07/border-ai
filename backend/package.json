@@ -20,6 +20,12 @@
     "smoke": "bash scripts/smoke.sh",
     "smoke:correlation": "tsx scripts/smoke-correlation.ts",
     "smoke:notifications": "tsx scripts/smoke-notifications.ts",
+    "bench:argon2": "tsx scripts/bench-argon2.ts",
+    "keys:generate": "tsx scripts/generate-keys.ts",
+    "user:create-admin": "tsx scripts/create-admin.ts",
+    "user:create": "tsx scripts/create-user.ts",
+    "docs:rbac": "tsx scripts/generate-rbac-docs.ts",
+    "audit:verify": "tsx scripts/verify-audit.ts",
     "demo:alert": "python3 ../scripts/emit_demo_alert.py"
   },
   "keywords": [

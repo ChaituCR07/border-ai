@@ -10,7 +10,6 @@ import {
   WatchlistResourceSchema,
   WatchlistIdSchema,
 } from './schemas.js';
-import { requireRole } from '../../common/auth.js';
 
 export interface WatchlistRouteDeps {
   watchlistRepo: WatchlistRepo;
@@ -26,6 +25,7 @@ export function watchlistRoutes(deps: WatchlistRouteDeps): FastifyPluginAsync {
     app.get(
       '/watchlist',
       {
+        config: { permission: 'watchlist:view' },
         schema: {
           tags: ['Watchlist'],
           summary: 'List active watchlist entries',
@@ -46,7 +46,7 @@ export function watchlistRoutes(deps: WatchlistRouteDeps): FastifyPluginAsync {
     app.post(
       '/watchlist',
       {
-        preHandler: requireRole('ADMIN', 'INVESTIGATOR'),
+        config: { permission: 'watchlist:write' },
         schema: {
           tags: ['Watchlist'],
           summary: 'Create a new watchlist entry (strictly non-biometric)',
@@ -68,7 +68,7 @@ export function watchlistRoutes(deps: WatchlistRouteDeps): FastifyPluginAsync {
     app.delete(
       '/watchlist/:id',
       {
-        preHandler: requireRole('ADMIN', 'INVESTIGATOR'),
+        config: { permission: 'watchlist:write' },
         schema: {
           tags: ['Watchlist'],
           summary: 'Soft-delete a watchlist entry (idempotent)',

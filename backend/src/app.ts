@@ -17,8 +17,20 @@ import type { Redis } from 'ioredis';
 
 import type { Config } from './config/env.js';
 import { errorHandler } from './common/errors.js';
-import { authenticate } from './common/auth.js';
 import type { AuditRepo } from './common/audit.js';
+import { onRouteSecurityGuard, preHandlerAuthGuard } from './security/route-guard.js';
+import { applySecurityHeaders, csrfProtectionGuard } from './security/headers.js';
+import { registerAuthRoutes } from './modules/auth/routes.js';
+import { AuthService } from './modules/auth/service.js';
+import { SessionService } from './modules/auth/sessions.js';
+import { PgSessionsRepo } from './modules/auth/sessions.repo.pg.js';
+import { MemorySessionsRepo } from './modules/auth/sessions.repo.memory.js';
+import { PgUsersRepo } from './modules/users/users.repo.pg.js';
+import { MemoryUsersRepo } from './modules/users/users.repo.memory.js';
+import type { IUsersRepo } from './modules/users/users.repo.js';
+import { UsersService } from './modules/users/service.js';
+import { userRoutes } from './modules/users/routes.js';
+import { streamRoutes } from './modules/streams/routes.js';
 
 import { Hub } from './realtime/hub.js';
 import { wsRoutes } from './realtime/ws-route.js';
@@ -72,6 +84,8 @@ export interface AppDeps {
   planner?: NotificationPlanner;
   worker?: NotificationWorker;
   auditRepo?: AuditRepo;
+  usersRepo?: IUsersRepo;
+  authService?: AuthService;
   pool?: pg.Pool;
   redis?: Redis;
   logger?: boolean | Record<string, unknown>;
@@ -111,6 +125,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     deps.worker?.stop();
     hub.stop();
   });
+
+  // Security Hooks
+  app.addHook('onRoute', onRouteSecurityGuard);
+  app.addHook('preValidation', csrfProtectionGuard);
+  app.addHook('preValidation', preHandlerAuthGuard);
+  app.addHook('onSend', applySecurityHeaders);
 
   // Security Headers
   await app.register(helmet, {
@@ -173,9 +193,37 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   // Export openapi.json route
-  app.get('/openapi.json', async (_req, reply) => {
+  app.get('/openapi.json', { config: { public: true } }, async (_req, reply) => {
     return reply.send(app.swagger());
   });
+
+  const usersRepo =
+    deps.usersRepo ??
+    (deps.pool ? new PgUsersRepo(deps.pool) : new MemoryUsersRepo());
+  const sessionsRepo = deps.pool ? new PgSessionsRepo(deps.pool) : new MemorySessionsRepo();
+  const sessionService = new SessionService(sessionsRepo);
+  const authService =
+    deps.authService ??
+    new AuthService(
+      usersRepo,
+      sessionService,
+      deps.auditRepo
+        ? {
+            log: async (entry) => {
+              await deps.auditRepo?.record({
+                actor: entry.actor,
+                action: entry.action,
+                entity_type: entry.entityType,
+                entity_id: entry.entityId,
+                detail: entry.detail ?? {},
+              });
+            },
+          }
+        : undefined
+    );
+
+  // Authentication endpoints
+  registerAuthRoutes(app, authService);
 
   // Correlation ID Header
   app.addHook('onSend', async (req, reply) => {
@@ -226,12 +274,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     deps.notificationsRepo ??
     (deps.pool ? new NotificationsRepo(deps.pool) : new NotificationsRepo({} as any));
 
-  // Main API namespace with authentication seam
+  // Main API namespace with granular RBAC permissions
   await app.register(
     async (api) => {
-      api.addHook('preHandler', authenticate);
-
       await api.register(cameraRoutes({ camerasRepo: deps.camerasRepo, auditRepo: deps.auditRepo }));
+      await api.register(streamRoutes({ mjpegBaseUrl: deps.config.MJPEG_BASE_URL }));
       await api.register(
         eventRoutes({
           eventsRepo: deps.eventsRepo,
@@ -289,6 +336,24 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           camerasRepo: deps.camerasRepo,
         })
       );
+
+      const usersService = new UsersService(
+        usersRepo,
+        deps.auditRepo
+          ? {
+              log: async (entry) => {
+                await deps.auditRepo?.record({
+                  actor: entry.actor,
+                  action: entry.action,
+                  entity_type: entry.entityType,
+                  entity_id: entry.entityId,
+                  detail: entry.detail ?? {},
+                });
+              },
+            }
+          : undefined
+      );
+      await api.register(userRoutes(usersService));
     },
     { prefix: '/api' }
   );

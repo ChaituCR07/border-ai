@@ -31,6 +31,7 @@ export function eventRoutes(deps: EventRouteDeps): FastifyPluginAsync {
     app.get(
       '/events',
       {
+        config: { permission: 'events:view' },
         schema: {
           tags: ['Events'],
           summary: 'List events with keyset pagination and filtering',
@@ -89,6 +90,7 @@ export function eventRoutes(deps: EventRouteDeps): FastifyPluginAsync {
     app.get(
       '/events/:id/context',
       {
+        config: { permission: 'events:view' },
         schema: {
           tags: ['Events', 'Investigation'],
           summary: 'Get temporal camera and subject context around an event',
@@ -107,6 +109,7 @@ export function eventRoutes(deps: EventRouteDeps): FastifyPluginAsync {
     app.get(
       '/events/:id',
       {
+        config: { permission: 'events:view' },
         schema: {
           tags: ['Events'],
           summary: 'Get event details by UUID',

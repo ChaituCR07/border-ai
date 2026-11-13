@@ -3,7 +3,6 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { AnalyticsService } from './service.js';
 import type { AnalyticsRepo } from './repo.js';
-import { requireRole } from '../../common/auth.js';
 import {
   AnalyticsTimeQuerySchema,
   AnalyticsEventsSchema,
@@ -26,6 +25,7 @@ export function analyticsRoutes(deps: AnalyticsRouteDeps): FastifyPluginAsync {
     app.get(
       '/analytics/events',
       {
+        config: { permission: 'events:view' },
         schema: {
           tags: ['Analytics'],
           summary: 'Time series analytics for events with zero-filling',
@@ -43,6 +43,7 @@ export function analyticsRoutes(deps: AnalyticsRouteDeps): FastifyPluginAsync {
     app.get(
       '/analytics/cameras',
       {
+        config: { permission: 'events:view' },
         schema: {
           tags: ['Analytics'],
           summary: 'Camera operational activity counters',
@@ -63,6 +64,7 @@ export function analyticsRoutes(deps: AnalyticsRouteDeps): FastifyPluginAsync {
     app.get(
       '/analytics/threats',
       {
+        config: { permission: 'events:view' },
         schema: {
           tags: ['Analytics'],
           summary: 'Threat metrics, score histogram, and priority counters',
@@ -84,7 +86,7 @@ export function analyticsRoutes(deps: AnalyticsRouteDeps): FastifyPluginAsync {
     app.get(
       '/analytics/resolutions',
       {
-        preHandler: requireRole('ADMIN', 'OPERATOR', 'INVESTIGATOR'),
+        config: { permission: 'alerts:resolve' },
         schema: {
           tags: ['Analytics'],
           summary: 'Operator false positive feedback and alert resolution breakdown',

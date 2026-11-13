@@ -2,6 +2,7 @@ import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
 import { ClientMessage, WS_CLOSE } from '@border-ai/protocol';
 import { AppError } from '../common/errors.js';
 import { authenticateWs } from '../common/auth.js';
+import { ticketStore } from '../modules/realtime/tickets.js';
 import type { Hub } from './hub.js';
 import type { AlertStreamConsumer } from './alert-stream-consumer.js';
 import type { Config } from '../config/env.js';
@@ -13,8 +14,26 @@ export interface WsRouteDeps {
 }
 
 export const wsRoutes = (deps: WsRouteDeps): FastifyPluginAsync => async (app) => {
+  // Ticket Issuance Endpoint
+  app.post(
+    '/ws-ticket',
+    {
+      config: { permission: 'realtime:subscribe' },
+      schema: {
+        tags: ['Realtime'],
+        summary: 'Obtain a single-use WebSocket connection ticket (30s TTL)',
+      },
+    },
+    async (req) => {
+      const actor = req.actor;
+      const sid = (actor as any).sid || 'ephemeral-session';
+      const ticket = ticketStore.createTicket(actor.id, actor.role, sid);
+      return ticket;
+    }
+  );
+
   // Realtime Status Inspection Endpoint
-  app.get('/realtime/status', async (_req, reply) => {
+  app.get('/realtime/status', { config: { permission: 'system:status' } }, async (_req, reply) => {
     return reply.send({
       data: {
         clients: deps.hub.size,
@@ -36,6 +55,7 @@ export const wsRoutes = (deps: WsRouteDeps): FastifyPluginAsync => async (app) =
   app.get(
     '/ws',
     {
+      config: { public: true }, // Auth verified via ticket or origin during upgrade handshake
       websocket: true,
       preValidation: async (req: FastifyRequest) => {
         const origin = req.headers.origin;
@@ -46,7 +66,24 @@ export const wsRoutes = (deps: WsRouteDeps): FastifyPluginAsync => async (app) =
             throw new AppError(403, 'FORBIDDEN', `Origin ${origin} is not authorized for WebSocket connection`);
           }
         }
-        req.actor = await authenticateWs(req);
+
+        const query = req.query as Record<string, string> | undefined;
+        const ticketParam = query?.ticket;
+
+        if (ticketParam) {
+          const consumed = ticketStore.consumeTicket(ticketParam);
+          if (!consumed) {
+            throw new AppError(401, 'INVALID_TICKET', 'WebSocket ticket is invalid, expired, or already used');
+          }
+          req.actor = {
+            id: consumed.userId,
+            role: consumed.role,
+            sid: consumed.sid,
+          } as any;
+        } else {
+          // Dev or test fallback
+          req.actor = await authenticateWs(req);
+        }
       },
     },
     (socket, req) => {
