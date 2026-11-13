@@ -1,0 +1,22 @@
+{
+  "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "key_id": "vault-2026-v1",
+  "vectors": [
+    {
+      "name": "RTSP full URI with credentials",
+      "camera_id": "cam-north-gate-01",
+      "plaintext": "rtsp://admin:P@ssw0rd2026!@192.168.1.100:554/stream1",
+      "nonce_base64": "EBESExQVFhcYGRob",
+      "ct_base64": "D4rrZnPmFdKuGGFzNSkpIKQnfnx/8GeD0diiVmdmeupm0Xky25de30QDp2Wl62dpdt0qQg==",
+      "tag_base64": "RcHyU6MJFR6CxL8cDy4QFw=="
+    },
+    {
+      "name": "ONVIF admin token",
+      "camera_id": "cam-perimeter-02",
+      "plaintext": "SuperSecretOnvifToken#8822",
+      "nonce_base64": "oKGio6Slpqeoqaqr",
+      "ct_base64": "tW0MSDeYZ9wQAPOcaQypuCTDMnX8lHpUrjw=",
+      "tag_base64": "nm6Td13QtQPQXNpHouDX9w=="
+    }
+  ]
+}
