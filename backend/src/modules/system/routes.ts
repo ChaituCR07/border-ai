@@ -3,7 +3,7 @@ import { getSystemStatus, type SystemStatusDeps } from './systemStatus.js';
 
 export function systemRoutes(deps: SystemStatusDeps): FastifyPluginAsync {
   return async (app) => {
-    app.get('/system/status', async (_request, reply) => {
+    app.get('/system/status', { config: { permission: 'system:status' } }, async (_request, reply) => {
       const data = await getSystemStatus(deps);
       return reply.send({ data });
     });

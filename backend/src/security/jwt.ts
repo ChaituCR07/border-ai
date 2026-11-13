@@ -141,6 +141,9 @@ export function verifyAccessToken(
   }
 
   const [headerB64, payloadB64, signatureB64] = parts;
+  if (!headerB64 || !payloadB64 || !signatureB64) {
+    throw new AuthError('INVALID_TOKEN_FORMAT', 'Token must contain non-empty segments');
+  }
 
   let header: any;
   try {

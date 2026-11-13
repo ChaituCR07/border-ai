@@ -69,7 +69,7 @@ export function registerAuthRoutes(app: FastifyInstance, authService: AuthServic
     async (req: FastifyRequest, reply: FastifyReply) => {
       const parsed = LoginSchema.safeParse(req.body);
       if (!parsed.success) {
-        throw new AppError(400, 'VALIDATION_ERROR', parsed.error.errors[0].message);
+        throw new AppError(400, 'VALIDATION_ERROR', parsed.error.errors[0]?.message ?? 'Invalid payload');
       }
 
       const ip = (req.headers['x-forwarded-for'] as string) || req.ip;
@@ -184,7 +184,7 @@ export function registerAuthRoutes(app: FastifyInstance, authService: AuthServic
     async (req: FastifyRequest, reply: FastifyReply) => {
       const parsed = ChangePasswordSchema.safeParse(req.body);
       if (!parsed.success) {
-        throw new AppError(400, 'VALIDATION_ERROR', parsed.error.errors[0].message);
+        throw new AppError(400, 'VALIDATION_ERROR', parsed.error.errors[0]?.message ?? 'Invalid payload');
       }
 
       await authService.changePassword(

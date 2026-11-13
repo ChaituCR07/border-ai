@@ -8,14 +8,36 @@ export interface RouteSecurityConfig {
   public?: boolean;
 }
 
+declare module 'fastify' {
+  interface FastifyContextConfig {
+    permission?: Permission;
+    public?: boolean;
+  }
+}
+
 /**
  * Fastify onRoute hook enforcing deny-by-default architecture:
  * Every route MUST declare either `config: { public: true }` or `config: { permission: '...' }`
  */
 export function onRouteSecurityGuard(routeOptions: RouteOptions) {
   const url = routeOptions.url;
-  // Exclude static swagger docs assets in development
-  if (url.startsWith('/docs')) {
+
+  // 1. Automatically permit CORS preflight OPTIONS requests
+  const isOptions =
+    routeOptions.method === 'OPTIONS' ||
+    (Array.isArray(routeOptions.method) && routeOptions.method.includes('OPTIONS'));
+
+  if (isOptions) {
+    if (!routeOptions.config) {
+      routeOptions.config = { public: true };
+    } else {
+      (routeOptions.config as RouteSecurityConfig).public = true;
+    }
+    return;
+  }
+
+  // 2. Exclude static swagger docs assets in development
+  if (url.startsWith('/docs') || url.startsWith('/swagger') || url === '/openapi.json') {
     if (!routeOptions.config) {
       routeOptions.config = { public: true };
     } else {

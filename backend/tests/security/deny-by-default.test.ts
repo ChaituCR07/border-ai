@@ -116,4 +116,12 @@ describe('RBAC Deny-by-Default Architecture', () => {
     const body = JSON.parse(res.body);
     expect(body.success).toBe(true);
   });
+
+  it('boots real test app with all routes protected', async () => {
+    const { createTestApp } = await import('../helpers/test-app.js');
+    console.log('Testing createTestApp...');
+    const { app } = await createTestApp();
+    console.log('createTestApp booted successfully!');
+    await app.close();
+  });
 });

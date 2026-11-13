@@ -22,6 +22,7 @@ export function configRoutes(deps: PublicConfigDeps = {}): FastifyPluginAsync {
     app.get(
       '/config/public',
       {
+        config: { public: true },
         schema: {
           tags: ['Config'],
           summary: 'Get public system configuration for dashboard and escalation timing',

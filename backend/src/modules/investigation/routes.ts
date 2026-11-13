@@ -6,7 +6,6 @@ import type { InvestigationRepo } from './repo.js';
 import type { EventsRepo, EventFilters } from '../events/repo.js';
 import type { AuditRepo } from '../../common/audit.js';
 import { AppError } from '../../common/errors.js';
-import { requireRole } from '../../common/auth.js';
 import { csvCell } from '../../common/csv.js';
 import { classifyOmniboxQuery, type OmniboxClassification } from './query-classifier.js';
 import type { CorrelationRepo } from '../correlation/repo.js';
@@ -36,6 +35,7 @@ export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPlugin
     app.get(
       '/investigation/facets',
       {
+        config: { permission: 'events:view' },
         schema: {
           tags: ['Investigation'],
           summary: 'Get disjunctive facet counts for investigation filters',
@@ -53,6 +53,7 @@ export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPlugin
     app.get(
       '/investigation/suggest',
       {
+        config: { permission: 'events:view' },
         schema: {
           tags: ['Investigation'],
           summary: 'Typeahead suggestion for plates, cameras, and person identifiers',
@@ -70,7 +71,7 @@ export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPlugin
     app.get(
       '/investigation/journey',
       {
-        preHandler: requireRole('ADMIN', 'OPERATOR', 'INVESTIGATOR'),
+        config: { permission: 'investigation:journey' },
         schema: {
           tags: ['Investigation'],
           summary: 'Get vehicle journey (chronological sightings and transitions)',
@@ -107,6 +108,7 @@ export function investigationRoutes(deps: InvestigationRouteDeps): FastifyPlugin
     app.get(
       '/investigation/export.csv',
       {
+        config: { permission: 'export:csv' },
         schema: {
           tags: ['Investigation'],
           summary: 'Stream filtered events as CSV with formula injection protection',

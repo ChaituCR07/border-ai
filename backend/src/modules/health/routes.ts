@@ -7,7 +7,7 @@ export interface HealthRouteDeps {
 
 export function healthRoutes(deps: HealthRouteDeps): FastifyPluginAsync {
   return async (fastify: FastifyInstance) => {
-    fastify.get('/health', async (_req, reply) => {
+    fastify.get('/health', { config: { public: true } }, async (_req, reply) => {
       return reply.status(200).send({
         status: 'ok',
         uptime: process.uptime(),
@@ -15,7 +15,7 @@ export function healthRoutes(deps: HealthRouteDeps): FastifyPluginAsync {
       });
     });
 
-    fastify.get('/ready', async (_req, reply) => {
+    fastify.get('/ready', { config: { public: true } }, async (_req, reply) => {
       if (!deps.pool) {
         return reply.status(200).send({
           status: 'ready',

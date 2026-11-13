@@ -14,7 +14,7 @@ export interface WsRouteDeps {
 
 export const wsRoutes = (deps: WsRouteDeps): FastifyPluginAsync => async (app) => {
   // Realtime Status Inspection Endpoint
-  app.get('/realtime/status', async (_req, reply) => {
+  app.get('/realtime/status', { config: { permission: 'system:status' } }, async (_req, reply) => {
     return reply.send({
       data: {
         clients: deps.hub.size,
@@ -36,6 +36,7 @@ export const wsRoutes = (deps: WsRouteDeps): FastifyPluginAsync => async (app) =
   app.get(
     '/ws',
     {
+      config: { permission: 'realtime:subscribe' },
       websocket: true,
       preValidation: async (req: FastifyRequest) => {
         const origin = req.headers.origin;

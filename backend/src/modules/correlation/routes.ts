@@ -3,7 +3,6 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { CorrelationRepo } from './repo.js';
 import type { AuditRepo } from '../../common/audit.js';
-import { requireRole } from '../../common/auth.js';
 import { AppError } from '../../common/errors.js';
 import {
   SequenceQuerySchema,
@@ -70,7 +69,7 @@ export function correlationRoutes(deps: CorrelationRouteDeps): FastifyPluginAsyn
     app.get(
       '/topology',
       {
-        preHandler: requireRole('ADMIN', 'OPERATOR', 'INVESTIGATOR', 'VIEWER'),
+        config: { permission: 'cameras:view' },
         schema: {
           tags: ['Correlation'],
           summary: 'Get camera topology layout and link graph',
@@ -87,7 +86,7 @@ export function correlationRoutes(deps: CorrelationRouteDeps): FastifyPluginAsyn
     app.get(
       '/correlation/sequence',
       {
-        preHandler: requireRole('ADMIN', 'INVESTIGATOR'),
+        config: { permission: 'investigation:sequence' },
         schema: {
           tags: ['Correlation'],
           summary: 'Search for multi-camera vehicle sequences',

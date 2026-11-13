@@ -11,7 +11,7 @@ const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 
 export function snapshotRoutes(deps: SnapshotRouteDeps): FastifyPluginAsync {
   return async (fastify: FastifyInstance) => {
-    fastify.get('/snapshots/*', async (req, reply) => {
+    fastify.get('/snapshots/*', { config: { permission: 'evidence:view' } }, async (req, reply) => {
       const wildcard = (req.params as { '*': string })['*'];
       if (!wildcard) throw notFound('Snapshot');
 

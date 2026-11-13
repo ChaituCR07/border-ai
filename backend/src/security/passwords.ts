@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const argon2Async = util.promisify(crypto.argon2);
+const argon2Async = util.promisify((crypto as any).argon2);
 
 export interface Argon2Params {
   memory: number;      // in KiB (e.g. 19456 = 19 MiB)
@@ -110,7 +110,9 @@ export async function verifyPassword(storedPhc: string, password: string): Promi
     const match = storedPhc.match(
       /^\$argon2(id|i|d)\$v=(\d+)\$m=(\d+),t=(\d+),p=(\d+)\$([A-Za-z0-9+/]+)\$([A-Za-z0-9+/]+)$/
     );
-    if (!match) return false;
+    if (!match || !match[1] || !match[3] || !match[4] || !match[5] || !match[6] || !match[7]) {
+      return false;
+    }
 
     const variant = match[1] as 'id' | 'i' | 'd';
     const memory = parseInt(match[3], 10);
@@ -167,7 +169,7 @@ export async function verifyOrDummy(storedPhc: string | undefined, password: str
  */
 export function needsRehash(storedPhc: string): boolean {
   const match = storedPhc.match(/\$argon2id\$v=\d+\$m=(\d+),t=(\d+),p=(\d+)\$/);
-  if (!match) return true;
+  if (!match || !match[1] || !match[2] || !match[3]) return true;
   const m = parseInt(match[1], 10);
   const t = parseInt(match[2], 10);
   const p = parseInt(match[3], 10);
@@ -240,8 +242,8 @@ export async function validatePassword(
   }
 
   if (context.email && context.email.includes('@')) {
-    const local = context.email.split('@')[0].toLowerCase();
-    if (local.length >= 3 && normalized.toLowerCase().includes(local)) {
+    const local = context.email.split('@')[0]?.toLowerCase();
+    if (local && local.length >= 3 && normalized.toLowerCase().includes(local)) {
       errors.push('PASSWORD_CONTAINS_EMAIL');
     }
   }
