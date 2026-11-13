@@ -379,6 +379,26 @@ Detailed methodology and measurements are recorded in [docs/benchmarks.md](docs/
 
 ---
 
+## Security & Cryptographic Hardening
+
+The Border-AI platform enforces defense-in-depth principles across its full stack, verified against OWASP ASVS 4.0 Level 2:
+
+- **Asymmetric EdDSA (Ed25519) Tokens:** Access tokens signed via asymmetric Ed25519 keys with JWKS distribution (`/.well-known/jwks.json`). Short-lived (15 min) and stored strictly in-memory in frontend clients (never in `localStorage` or `sessionStorage`).
+- **Rotating Refresh Tokens & Reuse Detection:** Single-use refresh tokens stored in HTTP-only, SameSite cookies with cryptographic family tracking (`family_id`). Token replay or theft instantly revokes the entire session hierarchy.
+- **Argon2id Password Security:** Passwords hashed with RFC 9106 recommended parameters ($m=64\text{MB}, t=3, p=4$) combined with timing-equalized dummy verification to eliminate user enumeration.
+- **Deny-by-Default RBAC:** All REST endpoints, WebSockets, and MJPEG streams are guarded by explicit granular permissions. Missing policies trigger immediate server start-up failure.
+- **AES-256-GCM Credential Vault:** Camera RTSP credentials encrypted with 12-byte random IVs and authenticated additional data (AAD) strictly bound to `camera_id`.
+- **Tamper-Evident Hash-Chained Audit Log:** High-consequence administrative and forensic actions are serialized into an immutable SHA-256 linked chain (`prev_hash ‖ record`), verifiable via `npm run audit:verify`.
+- **Single-Use WebSocket Tickets & Stream Signatures:** Real-time connections authenticate using short-lived, single-use signed tickets, preventing token leakage in URL query parameters.
+- **Privacy & Evidence Redaction:** Viewers receive automatic SVG redaction placeholders for person detections in compliance with GDPR data minimization.
+
+Run automated security validation:
+```bash
+make security
+```
+
+---
+
 ## Responsible Use & Privacy Policy
 
 - **Biometrics Policy ([docs/privacy.md](docs/privacy.md)):** Face matching and Re-ID capabilities are **disabled by default**. They must only be operated in authorized environments with consenting participants or permitted research datasets.

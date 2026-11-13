@@ -147,7 +147,7 @@ export class InMemoryChainedAuditRepo implements AuditRepo {
   async record(
     entry: AuditLogEntry,
     meta?: { role?: string; ip?: string; user_agent_hash?: string; timestamp?: string }
-  ): Promise<AuditRecord> {
+  ): Promise<void> {
     const timestamp = meta?.timestamp ?? new Date().toISOString();
     const prevHash = this.currentHead;
 
@@ -174,7 +174,6 @@ export class InMemoryChainedAuditRepo implements AuditRepo {
 
     this.chain.push(record);
     this.currentHead = hash;
-    return record;
   }
 
   async list(limit = 50): Promise<AuditRecord[]> {
@@ -209,7 +208,7 @@ export class PgChainedAuditRepo implements AuditRepo {
   async record(
     entry: AuditLogEntry,
     meta?: { role?: string; ip?: string; user_agent_hash?: string; timestamp?: string }
-  ): Promise<AuditRecord> {
+  ): Promise<void> {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
@@ -240,7 +239,7 @@ export class PgChainedAuditRepo implements AuditRepo {
         RETURNING audit_id
       `;
 
-      const insertRes = await client.query(insertSql, [
+      await client.query(insertSql, [
         timestamp,
         entry.actor,
         entry.action,
@@ -262,17 +261,6 @@ export class PgChainedAuditRepo implements AuditRepo {
       );
 
       await client.query('COMMIT');
-
-      return {
-        ...entry,
-        audit_id: insertRes.rows[0]?.audit_id,
-        at: timestamp,
-        role: meta?.role,
-        ip: meta?.ip,
-        user_agent_hash: meta?.user_agent_hash,
-        prev_hash: prevHash,
-        hash,
-      };
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;

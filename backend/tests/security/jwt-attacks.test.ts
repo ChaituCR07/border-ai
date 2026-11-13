@@ -45,9 +45,12 @@ describe('EdDSA JWT Signing & Attack Defenses', () => {
       })
     ).toString('base64url');
 
-    const noneToken = `${header}.${payload}.`;
-    expect(() => verifyAccessToken(noneToken)).toThrowError(AuthError);
-    expect(() => verifyAccessToken(noneToken)).toThrowError(/not permitted/);
+    const noneTokenWithSig = `${header}.${payload}.none_sig`;
+    expect(() => verifyAccessToken(noneTokenWithSig)).toThrowError(AuthError);
+    expect(() => verifyAccessToken(noneTokenWithSig)).toThrowError(/not permitted/);
+
+    const noneTokenEmptySig = `${header}.${payload}.`;
+    expect(() => verifyAccessToken(noneTokenEmptySig)).toThrowError(AuthError);
   });
 
   it('rejects algorithm confusion (HMAC using public key as secret)', () => {
