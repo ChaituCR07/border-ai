@@ -126,7 +126,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   // Security Hooks
   app.addHook('onRoute', onRouteSecurityGuard);
-  app.addHook('preHandler', preHandlerAuthGuard);
+  app.addHook('preValidation', preHandlerAuthGuard);
 
   // Security Headers
   await app.register(helmet, {

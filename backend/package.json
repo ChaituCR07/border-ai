@@ -24,6 +24,7 @@
     "keys:generate": "tsx scripts/generate-keys.ts",
     "user:create-admin": "tsx scripts/create-admin.ts",
     "user:create": "tsx scripts/create-user.ts",
+    "docs:rbac": "tsx scripts/generate-rbac-docs.ts",
     "demo:alert": "python3 ../scripts/emit_demo_alert.py"
   },
   "keywords": [

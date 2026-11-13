@@ -61,7 +61,8 @@ export function onRouteSecurityGuard(routeOptions: RouteOptions) {
 }
 
 /**
- * Global preHandler authentication and authorization guard
+ * Global preValidation authentication and authorization guard:
+ * Runs before request body validation so unauthorized callers receive 401/403 immediately.
  */
 export async function preHandlerAuthGuard(req: FastifyRequest, _reply: FastifyReply) {
   const cfg = (req.routeOptions.config || {}) as RouteSecurityConfig;

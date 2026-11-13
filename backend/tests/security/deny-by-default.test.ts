@@ -43,7 +43,7 @@ describe('RBAC Deny-by-Default Architecture', () => {
   it('enforces 401 when anonymous request accesses protected endpoint', async () => {
     const app = Fastify();
     app.addHook('onRoute', onRouteSecurityGuard);
-    app.addHook('preHandler', preHandlerAuthGuard);
+    app.addHook('preValidation', preHandlerAuthGuard);
 
     app.get('/cameras', { config: { permission: 'cameras:view' } }, async () => ({ cameras: [] }));
 
@@ -63,7 +63,7 @@ describe('RBAC Deny-by-Default Architecture', () => {
   it('enforces 403 when role lacks required permission', async () => {
     const app = Fastify();
     app.addHook('onRoute', onRouteSecurityGuard);
-    app.addHook('preHandler', preHandlerAuthGuard);
+    app.addHook('preValidation', preHandlerAuthGuard);
 
     // Watchlist write requires watchlist:write (Investigator or Admin)
     app.post('/watchlist', { config: { permission: 'watchlist:write' } }, async () => ({ success: true }));
@@ -92,7 +92,7 @@ describe('RBAC Deny-by-Default Architecture', () => {
   it('allows access when role possesses required permission', async () => {
     const app = Fastify();
     app.addHook('onRoute', onRouteSecurityGuard);
-    app.addHook('preHandler', preHandlerAuthGuard);
+    app.addHook('preValidation', preHandlerAuthGuard);
 
     app.post('/watchlist', { config: { permission: 'watchlist:write' } }, async () => ({ success: true }));
 
