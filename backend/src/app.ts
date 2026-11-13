@@ -27,6 +27,8 @@ import { MemorySessionsRepo } from './modules/auth/sessions.repo.memory.js';
 import { PgUsersRepo } from './modules/users/users.repo.pg.js';
 import { MemoryUsersRepo } from './modules/users/users.repo.memory.js';
 import type { IUsersRepo } from './modules/users/users.repo.js';
+import { UsersService } from './modules/users/service.js';
+import { userRoutes } from './modules/users/routes.js';
 
 import { Hub } from './realtime/hub.js';
 import { wsRoutes } from './realtime/ws-route.js';
@@ -329,6 +331,24 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           camerasRepo: deps.camerasRepo,
         })
       );
+
+      const usersService = new UsersService(
+        usersRepo,
+        deps.auditRepo
+          ? {
+              log: async (entry) => {
+                await deps.auditRepo?.record({
+                  actor: entry.actor,
+                  action: entry.action,
+                  entity_type: entry.entityType,
+                  entity_id: entry.entityId,
+                  detail: entry.detail ?? {},
+                });
+              },
+            }
+          : undefined
+      );
+      await api.register(userRoutes(usersService));
     },
     { prefix: '/api' }
   );
