@@ -19,6 +19,7 @@ import type { Config } from './config/env.js';
 import { errorHandler } from './common/errors.js';
 import type { AuditRepo } from './common/audit.js';
 import { onRouteSecurityGuard, preHandlerAuthGuard } from './security/route-guard.js';
+import { applySecurityHeaders, csrfProtectionGuard } from './security/headers.js';
 import { registerAuthRoutes } from './modules/auth/routes.js';
 import { AuthService } from './modules/auth/service.js';
 import { SessionService } from './modules/auth/sessions.js';
@@ -127,7 +128,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   // Security Hooks
   app.addHook('onRoute', onRouteSecurityGuard);
+  app.addHook('preValidation', csrfProtectionGuard);
   app.addHook('preValidation', preHandlerAuthGuard);
+  app.addHook('onSend', applySecurityHeaders);
 
   // Security Headers
   await app.register(helmet, {

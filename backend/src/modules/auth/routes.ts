@@ -99,10 +99,10 @@ export function registerAuthRoutes(app: FastifyInstance, authService: AuthServic
       config: { public: true },
     },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      // CSRF Defense for cookie endpoints: Custom header check
-      const customHeader = req.headers['x-requested-with'];
+      // CSRF Defense for cookie endpoints: Custom header or origin check
+      const csrfHeader = req.headers['x-csrf-token'] || req.headers['x-requested-with'];
       const origin = req.headers['origin'];
-      if (!customHeader && !origin) {
+      if (!csrfHeader && !origin) {
         // Enforce custom header or origin header
         throw new AppError(403, 'CSRF_BLOCKED', 'Missing required CSRF defense headers');
       }
