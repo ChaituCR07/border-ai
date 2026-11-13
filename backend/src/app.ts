@@ -29,6 +29,7 @@ import { MemoryUsersRepo } from './modules/users/users.repo.memory.js';
 import type { IUsersRepo } from './modules/users/users.repo.js';
 import { UsersService } from './modules/users/service.js';
 import { userRoutes } from './modules/users/routes.js';
+import { streamRoutes } from './modules/streams/routes.js';
 
 import { Hub } from './realtime/hub.js';
 import { wsRoutes } from './realtime/ws-route.js';
@@ -274,6 +275,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await app.register(
     async (api) => {
       await api.register(cameraRoutes({ camerasRepo: deps.camerasRepo, auditRepo: deps.auditRepo }));
+      await api.register(streamRoutes({ mjpegBaseUrl: deps.config.MJPEG_BASE_URL }));
       await api.register(
         eventRoutes({
           eventsRepo: deps.eventsRepo,
