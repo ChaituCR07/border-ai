@@ -1,0 +1,26 @@
+# Docker Compose Development Override
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Exposes ports strictly on loopback (127.0.0.1) for debugging; mounts source code.
+
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  redis:
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  mailpit:
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    profiles: []
+
+  backend:
+    volumes:
+      - ./backend/src:/app/src:ro
+
+  frontend:
+    volumes:
+      - ./frontend/src:/app/src:ro
