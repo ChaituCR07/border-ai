@@ -1,0 +1,38 @@
+# Docker Compose Override for macOS Apple Silicon Hybrid Execution (Mode C)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.hybrid.yml up -d
+# Runs database, redis, backend, frontend, and nginx in containers.
+# AI Engine runs natively on macOS with Apple Silicon / MPS acceleration.
+
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  redis:
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  # In hybrid mode on macOS, ai-engine runs natively on the host machine.
+  # Container placeholder ensures depends_on satisfies edge routing without duplicate container work.
+  ai-engine:
+    image: alpine:3.20
+    command: ["sh", "-c", "echo 'Hybrid mode active: native engine runs on host:8001' && sleep infinity"]
+    healthcheck:
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 10s
+      timeout: 2s
+      retries: 3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  sink:
+    image: alpine:3.20
+    command: ["sh", "-c", "echo 'Hybrid mode: sink runs natively on host' && sleep infinity"]
+
+  model-init:
+    image: alpine:3.20
+    command: ["sh", "-c", "echo 'Hybrid mode: models verified natively' && exit 0"]
+
+  nginx:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

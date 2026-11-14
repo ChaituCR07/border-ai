@@ -57,3 +57,8 @@ datasets/reid/
 exports/
 *.npy
 *.npz
+
+# Day 27 Deployment Secrets, TLS Certificates, and Backups
+secrets/
+certs/
+backups/

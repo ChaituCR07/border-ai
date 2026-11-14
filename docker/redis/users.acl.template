@@ -1,0 +1,21 @@
+# Border-AI Redis Access Control List (ACL) Specification
+# Passwords must be SHA-256 digested (#<hash>) to avoid storing plaintext in configuration.
+# Generated automatically by `scripts/gen_secrets.sh` into `secrets/users.acl`.
+
+# Disable default unauthenticated user
+user default off
+
+# AI Engine: Publish detections, updates camera/engine heartbeat keys
+user engine on #<ENGINE_PASSWORD_SHA256> ~surveillance.* ~camera:status:* ~engine:status +xadd +set +ping
+
+# PostgreSQL Event Sink: Consumes from Redis stream consumer groups
+user sink on #<SINK_PASSWORD_SHA256> ~surveillance.* +xreadgroup +xack +xclaim +xautoclaim +xpending +xadd +xgroup +xinfo +ping
+
+# WebSocket Alert Gateway: Subscribes only to real-time alerts
+user gateway on #<GATEWAY_PASSWORD_SHA256> ~surveillance.alerts +xread +ping
+
+# REST API Backend: Reads camera status and inspects stream backlog lengths
+user api on #<API_PASSWORD_SHA256> ~camera:status:* ~engine:status ~surveillance.* +get +mget +xinfo +xlen +ping
+
+# Healthcheck Monitor: Minimal ping probe capability
+user healthcheck on #<HEALTHCHECK_PASSWORD_SHA256> +ping

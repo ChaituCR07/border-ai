@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "models": [
+    {
+      "name": "yolov8n",
+      "path": "detector/yolov8n.pt",
+      "sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "source": "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt",
+      "licence": "AGPL-3.0",
+      "size_mb": 6.5
+    },
+    {
+      "name": "yolov8s",
+      "path": "detector/yolov8s.pt",
+      "sha256": "1f47a78bf100391c2a140b7ac73a1caae18c32779be7d310658112f7ac9aa78a",
+      "source": "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt",
+      "licence": "AGPL-3.0",
+      "size_mb": 22.5
+    },
+    {
+      "name": "yunet-face-detector",
+      "path": "face/face_detection_yunet_2023mar.onnx",
+      "sha256": "3cb07038e12d4d98a0026e6d1c81ef4096dcf999b9cf95dc6c968f9216cfabac",
+      "source": "https://github.com/opencv/opencv_zoo/raw/master/models/face_detection_yunet/face_detection_yunet_2023mar.onnx",
+      "licence": "Apache-2.0",
+      "size_mb": 0.38
+    },
+    {
+      "name": "sface-recognizer",
+      "path": "face/face_recognition_sface_2021dec.onnx",
+      "sha256": "e30524c965c71a3c004d80a1841e25e9e0fa9504c549646b9a8cfd0c1c8cb4e7",
+      "source": "https://github.com/opencv/opencv_zoo/raw/master/models/face_recognition_sface/face_recognition_sface_2021dec.onnx",
+      "licence": "Apache-2.0",
+      "size_mb": 1.28
+    }
+  ]
+}

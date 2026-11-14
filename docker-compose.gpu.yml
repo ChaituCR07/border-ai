@@ -1,0 +1,24 @@
+# Docker Compose Override for NVIDIA CUDA GPU Acceleration
+# Usage: docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+
+services:
+  ai-engine:
+    image: border-ai/ai-engine:${IMAGE_TAG:-dev}-cu121
+    build:
+      args:
+        TORCH_VARIANT: cu121
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      DEVICE: cuda
+
+  sink:
+    image: border-ai/ai-engine:${IMAGE_TAG:-dev}-cu121
+    build:
+      args:
+        TORCH_VARIANT: cu121

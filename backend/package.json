@@ -26,6 +26,8 @@
     "user:create": "tsx scripts/create-user.ts",
     "docs:rbac": "tsx scripts/generate-rbac-docs.ts",
     "audit:verify": "tsx scripts/verify-audit.ts",
+    "db:init": "tsx scripts/db-init.ts",
+    "retention:loop": "tsx scripts/retention-loop.ts",
     "demo:alert": "python3 ../scripts/emit_demo_alert.py"
   },
   "keywords": [
