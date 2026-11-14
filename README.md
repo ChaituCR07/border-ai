@@ -9,13 +9,19 @@ Real-time video analytics for existing CCTV/IP-camera infrastructure: detection,
 
 ---
 
-## Current Status (Day 22 Complete — Detection & Tracking Evaluation)
+## Current Status (Day 27 Complete — Docker Deployment: Whole-Platform Compose)
 
 - **Week 1 (v0.1-week1) Complete:** Video/RTSP ingestion, YOLOv8 object detection, ByteTrack persistent tracking, multi-zone and virtual line spatial engine, live low-latency MJPEG streaming, and structured JSONL event logging.
 - **Week 2 (Data & Streaming Architecture) Complete:** ANPR consensus engine (PaddleOCR PP-OCRv6 + layout validation), PostgreSQL 16 watchlist system with outage resilience fallback, biometric face detection & cross-camera Re-ID prototype, configurable declarative behaviour engine (rules R001–R005), multi-factor decaying threat scoring (0–100 explainable window), Redis Streams asynchronous event pipeline, and production relational schema (`003_core_schema.sql`) with idempotent PostgreSQL event sinks.
 - **Week 3 (Productization, Dashboards & Full-System Integration — Tag `v0.3-week3`) Complete:** Production Fastify v5 REST APIs with keyset pagination, Live Operator Command Dashboard (React 19 + TypeScript), WebSocket sub-second real-time alert gateway, Forensic Investigation workbench & vehicle journey reconstruction, Cross-camera topology correlation engine, Transactional outbox email notifications, and full-system acceptance harness (Scenarios S0–S3, Invariants R01–R12) ([docs/guides/integration_testing.md](docs/guides/integration_testing.md)).
 - **Week 4 (Hardening, Models, Benchmarks & Final Delivery — Days 22–28):**
-  - **Day 22 Complete (Model Testing I: Detection & Tracking Evaluation):** Scientific offline evaluation harness conforming to ADRs 0035–0037. Features run manifests with git SHA and hardware specs, 1,000-resample bootstrap 95% confidence intervals, frozen deterministic subsets (COCO-1000, BDD100K-500 dev/test, MOT17 static/moving splits), dual-mode evaluation (benchmark mAP at `conf=0.001` vs deployed operating points), foot-point pixel error for perimeter tripwires, error taxonomy diagnostics, MOT challenge 1-based I/O round-trip, ByteTrack dev-split grid search with holdout overfitting check ($\Delta \le 0.006$), ID switch root-cause classification (occlusion vs dropout vs velocity jump), downstream security event impact simulator (event recall, double-counting, dwell resets), CCTV mini regression fixture and automated CI baseline gating (`tests/test_model_regression.py`), and comprehensive evaluation documentation ([docs/model_eval/README.md](docs/model_eval/README.md)).
+  - **Day 22 Complete (Model Testing I: Detection & Tracking Evaluation):** Scientific offline evaluation harness conforming to ADRs 0035–0037. Run manifests with git SHA and hardware specs, 1,000-resample bootstrap 95% confidence intervals, frozen deterministic subsets (COCO-1000, BDD100K-500 dev/test, MOT17 static/moving splits), dual-mode evaluation (benchmark mAP at `conf=0.001` vs deployed operating points), foot-point pixel error for perimeter tripwires, error taxonomy diagnostics, MOT challenge 1-based I/O round-trip, ByteTrack dev-split grid search with holdout overfitting check ($\Delta \le 0.006$), ID switch root-cause classification (occlusion vs dropout vs velocity jump), downstream security event impact simulator, CCTV mini regression fixture and automated CI baseline gating (`tests/test_model_regression.py`), and comprehensive evaluation documentation ([docs/model_eval/README.md](docs/model_eval/README.md)).
+  - **Day 23 Complete (Model Testing II: ANPR Model Evaluation & Consolidated Report):** PaddleOCR PP-OCRv6 evaluation harness across synthetic and real-world CCTV datasets, character-level CER/WER metrics, layout validation accuracy, multi-frame consensus evaluation, operational threshold optimization, and consolidated model cards ([docs/model_eval/anpr.md](docs/model_eval/anpr.md)).
+  - **Day 24 Complete (Performance Testing, Benchmarking & Bottleneck Analysis):** Multi-camera scaling benchmarks across 1, 2, 4, and 8 RTSP streams, sustained capacity boundary ($N^*=8$), resource utilization profiles, overload shedder, and database storage capacity projections ([docs/perf/performance_report.md](docs/perf/performance_report.md)).
+  - **Day 25 Complete (False Positive Testing & Robustness Analysis):** Empirical validation across 4.25 camera-hours of uneventful border footage (0 FP alerts $\ge\text{HIGH}$ tier), 6/6 controlled test pairs, optical flow view-shift tolerance (35 px), and alert fatigue suppression ([docs/testing/false_positive_report.md](docs/testing/false_positive_report.md)).
+  - **Day 26 Complete (Security Testing & Threat Modeling Hardening):** STRIDE threat model (ADR 0048), OWASP Top 10 API verification, automated security audit suite (30/30 checks passed), least-privilege RBAC matrix, and encrypted snapshot storage with zero-knowledge audit trails ([docs/security/](docs/security/)).
+  - **Day 27 Complete (Docker Deployment: Whole-Platform Compose):** Complete containerized production deployment via `make quickstart`. Non-root multi-stage images, zero-secret images/env with Docker Compose secrets (ADR 0052), 3-tier internal network segmentation (ADR 0050), hardened Nginx edge proxy with TLS 1.3 / HTTP/2, least-privilege DB roles (`db-init`), automated data retention service, encrypted backup/restore drills, and R1–R12 resilience matrix ([docs/deployment/](docs/deployment/)).
+  - **Day 28 (Upcoming):** Final Documentation, Architecture Diagrams, Video Demo & Release Delivery.
 
 ---
 
@@ -195,7 +201,45 @@ Redis Streams Event Bus (v1 Envelope) ──────────────
 
 ---
 
-## Quick Start
+## Production Deployment (Single Command)
+
+Border-AI provides an automated, one-command deployment orchestrating all services (Frontend SPA, Backend API, AI Engine, PostgreSQL, Redis, MediaMTX RTSP relay, retention worker, and hardened Nginx reverse proxy) via Docker Compose.
+
+```bash
+# 1. Clone repository
+git clone https://github.com/ChaituCR07/border-ai.git
+cd border-ai
+
+# 2. Execute automated production quickstart
+make quickstart
+```
+
+### What `make quickstart` Does Automatically:
+1. Generates cryptographically secure, file-based secrets under `secrets/` (`scripts/gen_secrets.sh`).
+2. Creates TLS certificates with Subject Alternative Names (SANs) under `certs/` (`scripts/gen_certs.sh`).
+3. Validates the Docker Compose production configuration (`docker-compose.yml`).
+4. Builds multi-stage, non-root images with security profiles.
+5. Executes one-shot bootstrap jobs: `db-init` (roles), `migrate` (schema), `model-init` (SHA-256 weight verification), and `bootstrap-admin`.
+6. Launches all healthchecked services and outputs initial administrative credentials.
+
+### Production Endpoints
+- **Operator Web Dashboard:** `https://localhost` (or `https://localhost:8443`)
+- **REST API Entrypoint:** `https://localhost/api`
+- **Real-Time WebSocket Gateway:** `wss://localhost/api/ws`
+- **Initial Admin Password:** Recorded in `secrets/bootstrap_admin_password`
+
+### Hardware Execution Modes
+| Mode | Command | Target Architecture |
+|---|---|---|
+| **Mode A: Full Containers (CPU)** | `make compose-up` | Any Docker host (Linux/WSL2/macOS) |
+| **Mode B: NVIDIA CUDA (GPU)** | `docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d` | Linux/WSL2 with NVIDIA GPU & Container Toolkit |
+| **Mode C: macOS Hybrid (MPS)** | `docker compose -f docker-compose.yml -f docker-compose.hybrid.yml up -d` | Apple Silicon (M-series) workstations |
+
+For comprehensive deployment guides, network architecture, and runbooks, refer to [`docs/deployment/README.md`](docs/deployment/README.md).
+
+---
+
+## Local Development Setup
 
 ### 1. Prerequisites & Environment
 Ensure Docker is installed, then launch the background services (PostgreSQL 16 & Redis 7):
