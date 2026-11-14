@@ -1,8 +1,14 @@
 import hashlib
 import json
 import os
+import sys
 import tempfile
 import unittest
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from engine.tools.fetch_models import (
     compute_sha256,
     verify_or_fetch_models,

@@ -69,6 +69,8 @@ jobs:
           ./scripts/verify_isolation.sh
 
       - name: Run Python Deployment Test Suite
+        env:
+          PYTHONPATH: .
         run: |
           python3 tests/deploy/test_canary_scan.py
           python3 tests/deploy/test_compose_deployment.py
