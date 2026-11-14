@@ -1,0 +1,54 @@
+# Git version control
+.git
+.gitignore
+.github
+
+# Secrets and TLS private certificates
+secrets
+secrets/*
+certs
+certs/*
+*.pem
+*.key
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Dependency caches and virtual environments
+node_modules
+**/node_modules
+dist
+**/dist
+build
+**/build
+.venv
+**/__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Large datasets, videos, and raw footage
+datasets
+footage
+*.mp4
+*.avi
+*.mkv
+*.mov
+
+# Model weight files (managed separately via models volume)
+*.pt
+*.onnx
+*.engine
+*.pth
+
+# Test, evaluation, and benchmark output artifacts
+artifacts
+outputs
+evaluation/runs
+perf/runs
+docs/media
+*.log
