@@ -1,0 +1,99 @@
+1
+00:00:01,000 --> 00:00:06,500
+Most high-security perimeters already have CCTV cameras, but no team can watch dozens of feeds at once.
+
+2
+00:00:06,600 --> 00:00:12,000
+Border-AI transforms existing IP camera streams into an automated, real-time intelligence system.
+
+3
+00:00:12,100 --> 00:00:19,500
+It detects threats, scores risks, and guides operator action without replacing existing hardware.
+
+4
+00:00:20,000 --> 00:00:25,000
+Video streams over standard RTSP. The AI engine detects and tracks people and vehicles.
+
+5
+00:00:25,100 --> 00:00:30,000
+It reads license plates with multi-frame consensus, evaluates declarative rules, and scores risk.
+
+6
+00:00:30,100 --> 00:00:38,000
+Events flow through Redis Streams into PostgreSQL, a sub-50 millisecond WebSocket gateway, and email alerts.
+
+7
+00:00:45,000 --> 00:00:51,000
+Scenario One: someone crosses an outer tripwire and enters a restricted compound after 10 PM.
+
+8
+00:00:51,100 --> 00:00:56,500
+The platform correlates three signals: restricted zone entry for thirty points,
+
+9
+00:00:56,600 --> 00:01:02,000
+virtual line crossing for twenty, and after-hours movement for ten points.
+
+10
+00:01:02,100 --> 00:01:08,000
+Together, they calculate an explainable threat score of sixty, triggering a High-Priority alert.
+
+11
+00:01:35,000 --> 00:01:41,000
+Scenario Two: a vehicle flagged on the stolen vehicle watchlist approaches the facility gate.
+
+12
+00:01:41,100 --> 00:01:47,000
+Watchlist hit plus restricted area plus night clock escalates the threat score to eighty—Critical.
+
+13
+00:01:47,100 --> 00:01:53,000
+A toast chimes immediately on screen, and an email is dispatched with the evidence snapshot.
+
+14
+00:01:53,100 --> 00:02:00,000
+With a single click, an operator acknowledges the incident, instantly updating all active consoles.
+
+15
+00:02:40,000 --> 00:02:46,000
+For investigators, the forensic workbench supports exact and look-alike plate search.
+
+16
+00:02:46,100 --> 00:02:52,500
+A target vehicle is traced across cameras one, two, and four, charting transit times and travel plausibility.
+
+17
+00:02:52,600 --> 00:02:59,000
+Impossible speed anomalies are flagged if counterfeit plates appear simultaneously at two distant gates.
+
+18
+00:03:40,000 --> 00:03:46,000
+Rules are configuration, not hardcoded logic. Security administrators can define complex rules
+
+19
+00:03:46,100 --> 00:03:52,000
+without retraining machine learning models. System health and streaming queues are monitored live.
+
+20
+00:04:10,000 --> 00:04:16,000
+Engineered for operational resilience: local journals guarantee zero telemetry drops during outages,
+
+21
+00:04:16,100 --> 00:04:22,000
+role-based access control enforces data privacy, and immutable hash chains secure the audit log.
+
+22
+00:04:22,100 --> 00:04:28,000
+The entire platform launches with a single command via Docker Compose.
+
+23
+00:04:40,000 --> 00:04:46,000
+Measured on verified test sets: 86.4% detection mAP, 98.4% ANPR consensus,
+
+24
+00:04:46,100 --> 00:04:52,000
+zero false alerts over four hours of video, and eight cameras sustained on a single workstation.
+
+25
+00:04:52,100 --> 00:04:59,000
+All code, decisions, and reports are on GitHub. Built for perimeter intelligence—with privacy by design.
