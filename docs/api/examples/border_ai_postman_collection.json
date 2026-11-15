@@ -1,0 +1,92 @@
+{
+  "info": {
+    "name": "Border-AI REST API Collection",
+    "description": "Postman API Collection for the Border-AI Video Intelligence Platform (v1.0.0)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@border.local\",\n  \"password\": \"BorderAdmin2026!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "refresh"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cameras & Streams",
+      "item": [
+        {
+          "name": "List Cameras",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/cameras", "host": ["{{baseUrl}}"], "path": ["api", "v1", "cameras"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alerts & Triage",
+      "item": [
+        {
+          "name": "List Open Alerts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/alerts?status=OPEN", "host": ["{{baseUrl}}"], "path": ["api", "v1", "alerts"], "query": [{ "key": "status", "value": "OPEN" }] }
+          }
+        },
+        {
+          "name": "Acknowledge Alert",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Verified by operator\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/alerts/{{alertId}}/acknowledge", "host": ["{{baseUrl}}"], "path": ["api", "v1", "alerts", "{{alertId}}", "acknowledge"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Investigation",
+      "item": [
+        {
+          "name": "Journey Reconstruction",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/investigation/journey?plate=KA01AB1234", "host": ["{{baseUrl}}"], "path": ["api", "v1", "investigation", "journey"], "query": [{ "key": "plate", "value": "KA01AB1234" }] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "https://localhost" },
+    { "key": "token", "value": "" },
+    { "key": "alertId", "value": "" }
+  ]
+}

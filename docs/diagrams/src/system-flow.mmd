@@ -1,0 +1,37 @@
+sequenceDiagram
+  autonumber
+  participant E as AI Engine (Python)
+  participant R as Redis Streams
+  participant S as Asynchronous Sink
+  participant P as PostgreSQL 16
+  participant G as WebSocket Gateway
+  participant N as Outbox Notifier
+  participant U as React Command Center
+
+  Note over E,U: Real-Time Event & Threat Alert Lifecycle
+  E->>E: Write pre-annotation evidence snapshot to disk (.jpg)
+  E->>R: XADD surveillance.alerts (stable UUID alert_id)
+  
+  par Database Persistence
+    R-->>S: Consumer group read (XREADGROUP)
+    S->>P: INSERT alert ON CONFLICT (alert_id) DO NOTHING
+    S->>R: XACK surveillance.alerts
+  and Real-Time Web Push
+    R-->>G: Stream tail read (XREAD)
+    G->>P: Hydrate alert metadata (bounded 50ms fallback)
+    G-->>U: alert.created (Sub-50ms WebSocket Broadcast)
+  end
+
+  Note over U: Operator Alert Presentation
+  U->>U: Render high-priority toast, play alert audio chime
+  
+  opt Transactional Email Notification
+    N->>P: Query un-notified critical alerts (anti-join)
+    N-->>N: Render HTML email with inline evidence snapshot
+    N->>P: UPDATE alert SET notified_at = NOW()
+  end
+
+  Note over U,G: Single-Winner Acknowledgement Flow (ADR 0016)
+  U->>G: PATCH /api/v1/alerts/:id/acknowledge (REST)
+  G->>P: UPDATE alerts SET status = 'ACKNOWLEDGED' WHERE id = :id AND status = 'OPEN'
+  G-->>U: alert.updated (Broadcast to all active operator sessions)

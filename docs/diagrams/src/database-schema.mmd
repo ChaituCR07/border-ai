@@ -1,0 +1,89 @@
+erDiagram
+  CAMERAS ||--o{ ZONES : "defines"
+  CAMERAS ||--o{ LINES : "defines"
+  CAMERAS ||--o{ EVENTS : "records"
+  CAMERAS ||--o{ ALERTS : "originates"
+  CAMERAS ||--o{ CAMERA_TOPOLOGY : "links from/to"
+
+  EVENTS }o--|| TRACKS : "belongs to"
+  EVENTS ||--o{ DETECTIONS : "contains"
+  ALERTS }o--|| TRACKS : "evaluates"
+  ALERTS ||--o{ NOTIFICATION_OUTBOX : "triggers"
+
+  WATCHLIST_VEHICLES ||--o{ WATCHLIST_HITS : "matches"
+  WATCHLIST_HITS }o--|| EVENTS : "correlates"
+
+  USERS ||--o{ SESSIONS : "authenticates"
+  USERS ||--o{ API_AUDIT_LOG : "audited in"
+
+  CAMERAS {
+    string id PK
+    string name
+    string rtsp_url
+    string zone_id
+    string status
+    timestamptz last_heartbeat
+  }
+
+  ZONES {
+    string id PK
+    string camera_id FK
+    string name
+    jsonb polygon
+    string zone_type
+  }
+
+  LINES {
+    string id PK
+    string camera_id FK
+    string name
+    jsonb coordinates
+    string direction
+  }
+
+  EVENTS {
+    string id PK
+    string camera_id FK
+    int track_id FK
+    string event_type
+    jsonb details
+    timestamptz timestamp
+  }
+
+  ALERTS {
+    uuid id PK
+    string camera_id FK
+    int track_id
+    string severity
+    int threat_score
+    string status
+    jsonb contributions
+    string snapshot_path
+    timestamptz created_at
+    timestamptz acknowledged_at
+  }
+
+  WATCHLIST_VEHICLES {
+    string id PK
+    string plate_norm UK
+    string reason
+    string severity
+    timestamptz created_at
+  }
+
+  NOTIFICATION_OUTBOX {
+    uuid id PK
+    uuid alert_id FK
+    string channel
+    string recipient
+    string status
+    timestamptz sent_at
+  }
+
+  USERS {
+    uuid id PK
+    string email UK
+    string role
+    string password_hash
+    timestamptz created_at
+  }

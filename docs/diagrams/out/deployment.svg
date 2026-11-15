@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 650" width="1100" height="650" style="background:#0f172a; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <filter id="deployShadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <text x="550" y="38" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="700">Border-AI Container Deployment &amp; Network Topology</text>
+  <text x="550" y="62" text-anchor="middle" fill="#94a3b8" font-size="13">Strict 3-Tier Network Isolation (ADR 0050) &amp; Zero Host Port Leakage</text>
+
+  <!-- Published Ports Box -->
+  <g transform="translate(60, 90)">
+    <rect width="980" height="65" rx="8" fill="#1e293b" stroke="#f43f5e" stroke-width="1.5" filter="url(#deployShadow)"/>
+    <text x="30" y="28" fill="#f43f5e" font-size="12" font-weight="700">HOST OPERATING SYSTEM PORTS (PUBLIC INTERFACE)</text>
+    <rect x="30" y="36" width="300" height="22" rx="4" fill="#881337"/>
+    <text x="180" y="51" text-anchor="middle" fill="#fecdd3" font-size="11" font-weight="600">Port 80 (TCP) &#8594; HTTP 301 Redirect</text>
+    <rect x="350" y="36" width="400" height="22" rx="4" fill="#881337"/>
+    <text x="550" y="51" text-anchor="middle" fill="#fecdd3" font-size="11" font-weight="600">Port 443 (TCP) &#8594; TLS 1.3 / HTTP/2 / WSS / MJPEG Proxy</text>
+    <text x="890" y="51" fill="#10b981" font-size="11" font-weight="700">&#10004; ONLY Nginx Exposed</text>
+  </g>
+
+  <!-- Network 1: border-frontend-net -->
+  <g transform="translate(60, 175)">
+    <rect width="980" height="135" rx="10" fill="#1e293b" stroke="#38bdf8" filter="url(#deployShadow)"/>
+    <rect width="980" height="26" rx="10" fill="#0284c7"/>
+    <text x="20" y="18" fill="#f0f9ff" font-size="11" font-weight="700">NETWORK: border-frontend-net (BRIDGE)</text>
+
+    <!-- Nginx Container -->
+    <rect x="30" y="38" width="280" height="80" rx="6" fill="#0f172a" stroke="#0284c7"/>
+    <text x="45" y="58" fill="#38bdf8" font-size="11" font-weight="700">CONTAINER: nginx (Edge)</text>
+    <text x="45" y="75" fill="#94a3b8" font-size="10">&#8226; Reverse Proxy &amp; SSL Termination</text>
+    <text x="45" y="90" fill="#94a3b8" font-size="10">&#8226; Rate Limiting: 5r/s auth endpoints</text>
+    <text x="45" y="105" fill="#94a3b8" font-size="10">&#8226; User: nginx (UID 101)</text>
+
+    <!-- Frontend Container -->
+    <rect x="350" y="38" width="280" height="80" rx="6" fill="#0f172a" stroke="#0284c7"/>
+    <text x="365" y="58" fill="#38bdf8" font-size="11" font-weight="700">CONTAINER: frontend</text>
+    <text x="365" y="75" fill="#94a3b8" font-size="10">&#8226; Static SPA Asset Server</text>
+    <text x="365" y="90" fill="#94a3b8" font-size="10">&#8226; Unprivileged Nginx (:8080)</text>
+    <text x="365" y="105" fill="#94a3b8" font-size="10">&#8226; User: nginx (UID 101)</text>
+
+    <!-- Backend Container -->
+    <rect x="670" y="38" width="280" height="80" rx="6" fill="#0f172a" stroke="#0284c7"/>
+    <text x="685" y="58" fill="#38bdf8" font-size="11" font-weight="700">CONTAINER: backend</text>
+    <text x="685" y="75" fill="#94a3b8" font-size="10">&#8226; Fastify REST &amp; WS Gateway (:4000)</text>
+    <text x="685" y="90" fill="#94a3b8" font-size="10">&#8226; Multi-stage Node.js 22-alpine</text>
+    <text x="685" y="105" fill="#94a3b8" font-size="10">&#8226; User: node (UID 10001)</text>
+  </g>
+
+  <!-- Network 2: border-data-net -->
+  <g transform="translate(60, 325)">
+    <rect width="980" height="150" rx="10" fill="#1e293b" stroke="#10b981" filter="url(#deployShadow)"/>
+    <rect width="980" height="26" rx="10" fill="#047857"/>
+    <text x="20" y="18" fill="#ecfdf5" font-size="11" font-weight="700">NETWORK: border-data-net (INTERNAL ONLY &#8212; ZERO HOST EXPOSURE)</text>
+
+    <!-- Postgres Container -->
+    <rect x="30" y="38" width="280" height="95" rx="6" fill="#0f172a" stroke="#059669"/>
+    <text x="45" y="58" fill="#34d399" font-size="11" font-weight="700">CONTAINER: postgres:16-alpine</text>
+    <text x="45" y="75" fill="#94a3b8" font-size="10">&#8226; Port: 5432 (Internal only)</text>
+    <text x="45" y="90" fill="#94a3b8" font-size="10">&#8226; Volume: postgres_data</text>
+    <text x="45" y="105" fill="#94a3b8" font-size="10">&#8226; Per-Service Roles (ADR 0052)</text>
+    <text x="45" y="120" fill="#94a3b8" font-size="10">&#8226; User: postgres (UID 999)</text>
+
+    <!-- Redis Container -->
+    <rect x="350" y="38" width="280" height="95" rx="6" fill="#0f172a" stroke="#059669"/>
+    <text x="365" y="58" fill="#34d399" font-size="11" font-weight="700">CONTAINER: redis:7-alpine</text>
+    <text x="365" y="75" fill="#94a3b8" font-size="10">&#8226; Port: 6379 (Internal only)</text>
+    <text x="365" y="90" fill="#94a3b8" font-size="10">&#8226; Volume: redis_data</text>
+    <text x="365" y="105" fill="#94a3b8" font-size="10">&#8226; ACL with SHA-256 Hashes</text>
+    <text x="365" y="120" fill="#94a3b8" font-size="10">&#8226; User: redis (UID 999)</text>
+
+    <!-- Workers (Sink & Retention) -->
+    <rect x="670" y="38" width="280" height="95" rx="6" fill="#0f172a" stroke="#059669"/>
+    <text x="685" y="58" fill="#34d399" font-size="11" font-weight="700">CONTAINERS: sink &amp; retention</text>
+    <text x="685" y="75" fill="#94a3b8" font-size="10">&#8226; Event ingestion consumer</text>
+    <text x="685" y="90" fill="#94a3b8" font-size="10">&#8226; Automated retention daemon</text>
+    <text x="685" y="105" fill="#94a3b8" font-size="10">&#8226; Volume: snapshots_data</text>
+    <text x="685" y="120" fill="#94a3b8" font-size="10">&#8226; User: node (UID 10001)</text>
+  </g>
+
+  <!-- Network 3: border-media-net -->
+  <g transform="translate(60, 490)">
+    <rect width="980" height="120" rx="10" fill="#1e293b" stroke="#818cf8" filter="url(#deployShadow)"/>
+    <rect width="980" height="26" rx="10" fill="#4338ca"/>
+    <text x="20" y="18" fill="#e0e7ff" font-size="11" font-weight="700">NETWORK: border-media-net (INTERNAL RTSP STREAM PLANE)</text>
+
+    <!-- AI Engine Container -->
+    <rect x="30" y="36" width="440" height="70" rx="6" fill="#0f172a" stroke="#6366f1"/>
+    <text x="45" y="56" fill="#a5b4fc" font-size="11" font-weight="700">CONTAINER: ai-engine (Mode A / Mode B CUDA)</text>
+    <text x="45" y="73" fill="#94a3b8" font-size="10">&#8226; YOLOv8s + ByteTrack + PaddleOCR + Threat Engine</text>
+    <text x="45" y="88" fill="#94a3b8" font-size="10">&#8226; Multi-stage non-root Python (UID 10002) | IPC shm: 2GB</text>
+
+    <!-- MediaMTX & Simulator -->
+    <rect x="510" y="36" width="440" height="70" rx="6" fill="#0f172a" stroke="#6366f1"/>
+    <text x="525" y="56" fill="#a5b4fc" font-size="11" font-weight="700">CONTAINERS: mediamtx &amp; cctv-sim</text>
+    <text x="525" y="73" fill="#94a3b8" font-size="10">&#8226; MediaMTX RTSP Relay (:8554 internal)</text>
+    <text x="525" y="88" fill="#94a3b8" font-size="10">&#8226; Supervisor spawning 4 synthetic CCTV camera streams</text>
+  </g>
+</svg>

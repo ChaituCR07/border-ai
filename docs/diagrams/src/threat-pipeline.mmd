@@ -1,0 +1,42 @@
+flowchart LR
+  subgraph OBS["Raw Video Observations"]
+    O1["Foot-Point Enters Zone<br/>(Restricted Perimeter)"]
+    O2["Virtual Line Traversed<br/>(Tripwire Cross Direction)"]
+    O3["Temporal Window Check<br/>(Night Clock 22:00 - 05:00)"]
+    O4["ANPR Watchlist Hit<br/>(Stolen Vehicle Database)"]
+  end
+
+  subgraph RULES["Declarative Behaviour Rules"]
+    R1["Rule R001: Restricted Zone Entry<br/>(+30 Points)"]
+    R2["Rule R002: Line Crossing<br/>(+20 Points)"]
+    R3["Rule R004: After-Hours Movement<br/>(+10 Points)"]
+    R4["Rule R005: Watchlist Vehicle<br/>(+40 Points)"]
+  end
+
+  subgraph SCORER["Composite Threat Scorer (0-100)"]
+    ACC["Decaying Accumulator<br/>(Window: 600s, Hysteresis: Rearm 300s)"]
+    DEDUP["Smart Deduplication<br/>(Zero double-counting on same event)"]
+  end
+
+  subgraph TIERS["Alert Severity Tiers"]
+    T1["LOW (0 - 29)<br/>Informational Log"]
+    T2["MEDIUM (30 - 49)<br/>Visual Flagging"]
+    T3["HIGH (50 - 69)<br/>Scenario 1: Score 60<br/>Operator Toast & Sound"]
+    T4["CRITICAL (70 - 100)<br/>Scenario 2: Score 80<br/>Emergency Banner & Email"]
+  end
+
+  O1 --> R1
+  O2 --> R2
+  O3 --> R3
+  O4 --> R4
+
+  R1 --> ACC
+  R2 --> ACC
+  R3 --> ACC
+  R4 --> ACC
+  ACC --> DEDUP
+
+  DEDUP --> T1
+  DEDUP --> T2
+  DEDUP --> T3
+  DEDUP --> T4

@@ -1,0 +1,89 @@
+{
+  "project": "Border-AI Video Intelligence Platform",
+  "version": "1.0.0",
+  "generated_at": "2026-11-15T22:30:00Z",
+  "resolution": "1920x1080",
+  "theme": "dark",
+  "screenshots": [
+    {
+      "id": "01",
+      "filename": "01-login.png",
+      "title": "Secure Operator Authentication",
+      "alt": "Border-AI secure login screen with clean dark theme and MFA-ready form",
+      "description": "Clean login interface utilizing Argon2id authentication and secure session cookies without exposing default credentials.",
+      "route": "/login"
+    },
+    {
+      "id": "02",
+      "filename": "02-command-center-grid.png",
+      "title": "Live Operator Command Center",
+      "alt": "2x2 live video surveillance grid showing real-time YOLOv8 bounding boxes and camera status indicators",
+      "description": "Real-time 2x2 multi-camera MJPEG video grid with active spatial zones, ByteTrack persistent IDs, and telemetry counters.",
+      "route": "/dashboard"
+    },
+    {
+      "id": "03",
+      "filename": "03-critical-alert-toast.png",
+      "title": "Critical Alert Toast Notification",
+      "alt": "Pulsing red critical alert toast displaying vehicle plate, threat score 80, and acknowledge button",
+      "description": "Sub-50ms WebSocket alert toast triggered upon vehicle watchlist detection with instant audio chime and triage actions.",
+      "route": "/dashboard"
+    },
+    {
+      "id": "04",
+      "filename": "04-alert-drawer-factor-checklist.png",
+      "title": "Explainable Threat Factor Breakdown Drawer",
+      "alt": "Slide-out inspection drawer showing pre-annotation evidence JPEG and factor score contribution checklist",
+      "description": "Forensic evidence drawer displaying the pre-annotation evidence snapshot and mathematical threat factor breakdown.",
+      "route": "/dashboard"
+    },
+    {
+      "id": "05",
+      "filename": "05-scenario-1-card.png",
+      "title": "Scenario 1 Perimeter Intrusion Alert Card",
+      "alt": "Alert card displaying Score 60 High priority breach with zone and line crossing factors checked",
+      "description": "Plan Scenario 1: Restricted zone entry (+30), virtual tripwire (+20), and after-hours movement (+10) summing to Score 60 (HIGH).",
+      "route": "/dashboard"
+    },
+    {
+      "id": "06",
+      "filename": "06-investigation-results.png",
+      "title": "Forensic Search Workbench & Facets",
+      "alt": "Forensic search table with plate look-alike badges, date pickers, and virtual keyset pagination",
+      "description": "Historical sighting search featuring OCR look-alike phonetic matching (Levenshtein substitution costs) and faceted filters.",
+      "route": "/investigation"
+    },
+    {
+      "id": "07",
+      "filename": "07-cross-camera-journey-view.png",
+      "title": "Cross-Camera Vehicle Journey Reconstruction",
+      "alt": "Visual topological journey graph tracing vehicle progress across cameras with transit times",
+      "description": "Reconstructed vehicle timeline across CAM-01 -> CAM-02 -> CAM-04 with speed plausibility validation and anomaly detection.",
+      "route": "/investigation/journey"
+    },
+    {
+      "id": "08",
+      "filename": "08-mailpit-email-notification.png",
+      "title": "Transactional Email Notification (Mailpit)",
+      "alt": "HTML email notification showing threat details, embedded evidence snapshot, and deep link to incident",
+      "description": "Transactional outbox email dispatch delivering formatted incident alerts with inline snapshots and secure deep links.",
+      "route": "http://localhost:8025"
+    },
+    {
+      "id": "09",
+      "filename": "09-system-health-status.png",
+      "title": "System Operational Status & Telemetry",
+      "alt": "System health dashboard indicating component statuses for Postgres, Redis, AI Engine, and RTSP streams",
+      "description": "Comprehensive system telemetry monitor reporting camera heartbeats, streaming queue depths, and uptime.",
+      "route": "/system/status"
+    },
+    {
+      "id": "10",
+      "filename": "10-admin-audit-log.png",
+      "title": "Cryptographically Verified Audit Log",
+      "alt": "Administrative audit trail displaying user actions, resource IDs, and SHA-256 hash chains",
+      "description": "Immutable operational audit log featuring cryptographic SHA-256 hash chaining to guarantee audit trail integrity.",
+      "route": "/admin/audit"
+    }
+  ]
+}

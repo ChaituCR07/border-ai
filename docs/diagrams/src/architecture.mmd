@@ -1,0 +1,67 @@
+flowchart TB
+  subgraph SRC["Video Ingestion & Stream Sources"]
+    CAM["IP Cameras / CCTV (RTSP Feeds)"]
+    VID["Recorded Video Files / Test Scenarios"]
+  end
+
+  subgraph ENG["AI Video Intelligence Engine (Python)"]
+    ING["Video Ingestion Thread<br/>(Queue Bounding & FPS Pacing)"]
+    DET["Object Detection<br/>(YOLOv8s TensorRT / MPS / CPU)"]
+    TRK["Multi-Object Tracking<br/>(ByteTrack Kalman State)"]
+    ANPR["ANPR Consensus Pipeline<br/>(Plate Locator + PP-OCRv6)"]
+    BIO["Biometric Identity Prototype<br/>(YuNet + SFace, Consent-Gated)"]
+    ZONE["Spatial Analytics Engine<br/>(Polygonal Zones & Foot-Point Lines)"]
+    WL["Watchlist Matching Engine<br/>(PostgreSQL + Memory Fallback)"]
+    EVT["Declarative Rule Engine<br/>(Configurable Rules R001-R005)"]
+    SCORE["Composite Threat Scoring<br/>(0-100 Sliding Decaying Window)"]
+    SNAP["Evidence Snapshot Service<br/>(Pre-Annotation Evidence Capture)"]
+  end
+
+  SRC --> ING
+  ING --> DET
+  DET --> TRK
+  TRK --> ANPR
+  TRK --> BIO
+  TRK --> ZONE
+  ANPR --> WL
+  ZONE --> EVT
+  WL --> EVT
+  BIO --> EVT
+  EVT --> SCORE
+  SCORE --> SNAP
+
+  SCORE --> RS[("Redis Streams Event Bus<br/>(surveillance.events / alerts)")]
+  SNAP --> NFS[("Encrypted Forensic Storage<br/>(/var/lib/border-ai/snapshots)")]
+
+  subgraph DATA["Persistence Tier"]
+    RS
+    SINK["Asynchronous Sink Worker<br/>(Idempotent Ingestion)"]
+    PG[("PostgreSQL 16 Database<br/>(Relational Core Schema 001-008)")]
+  end
+
+  RS --> SINK
+  SINK --> PG
+
+  subgraph BE["Application Tier (Node.js 22 + TypeScript)"]
+    API["Fastify v5 REST API<br/>(Keyset Pagination, RBAC Guards)"]
+    GW["Real-Time WebSocket Gateway<br/>(Sub-second Alert Broadcast)"]
+    COR["Cross-Camera Correlation<br/>(Journey Reconstruction)"]
+    NOT["Notification Outbox Daemon<br/>(Transactional Anti-Join Dispatcher)"]
+  end
+
+  PG --> API
+  PG --> COR
+  PG --> NOT
+  RS --> GW
+  GW --> PG
+
+  subgraph EDGE["Edge Proxy & User Interface"]
+    NGX["Hardened Nginx Reverse Proxy<br/>(TLS 1.3, HTTP/2, Unbuffered MJPEG)"]
+    UI["Command Center Web Dashboard<br/>(React 19 + TypeScript + Vite)"]
+    MAIL["Transactional SMTP<br/>(Forensic Alerts & Deep Links)"]
+  end
+
+  NOT --> MAIL
+  NGX --> UI
+  UI --> API
+  UI --> GW

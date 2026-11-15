@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Border-AI REST API Reference</title>
+  <link rel="icon" type="image/svg+xml" href="../diagrams/out/architecture.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+    }
+    #loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-size: 18px;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading Border-AI OpenAPI 3.0 Specification...</div>
+  <redoc spec-url="./openapi.json"
+         theme='{
+           "colors": {
+             "primary": { "main": "#38bdf8" },
+             "success": { "main": "#10b981" },
+             "warning": { "main": "#f59e0b" },
+             "error": { "main": "#f43f5e" },
+             "text": { "primary": "#f8fafc", "secondary": "#94a3b8" },
+             "http": {
+               "get": "#38bdf8",
+               "post": "#10b981",
+               "put": "#f59e0b",
+               "delete": "#f43f5e",
+               "patch": "#a855f7"
+             }
+           },
+           "schema": {
+             "nestedBackground": "#1e293b",
+             "linesColor": "#334155"
+           },
+           "sidebar": {
+             "backgroundColor": "#0f172a",
+             "textColor": "#e2e8f0",
+             "activeTextColor": "#38bdf8"
+           },
+           "rightPanel": {
+             "backgroundColor": "#1e293b",
+             "textColor": "#ffffff"
+           }
+         }'></redoc>
+  <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const loader = document.getElementById("loading");
+      if (loader) {
+        setTimeout(() => loader.style.display = "none", 800);
+      }
+    });
+  </script>
+</body>
+</html>
