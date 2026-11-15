@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" style="background:#0f172a; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <linearGradient id="boxGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="edgeGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+
+  <!-- Title & Subtitle -->
+  <text x="600" y="45" text-anchor="middle" fill="#f8fafc" font-size="24" font-weight="700">Border-AI Platform Logical Architecture</text>
+  <text x="600" y="70" text-anchor="middle" fill="#94a3b8" font-size="14">End-to-End Ingestion, Multi-Model AI Engine, Redis Streams, PostgreSQL 16 &amp; Live Command Center</text>
+
+  <!-- Layer 1: Sources -->
+  <g transform="translate(60, 100)">
+    <rect width="240" height="120" rx="12" fill="url(#boxGrad)" stroke="#334155" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect width="240" height="32" rx="12" fill="#1e293b"/>
+    <text x="120" y="22" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="600">VIDEO INGESTION SOURCES</text>
+    <rect x="20" y="45" width="200" height="28" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="120" y="63" text-anchor="middle" fill="#e2e8f0" font-size="12">IP Cameras (RTSP H.264/H.265)</text>
+    <rect x="20" y="80" width="200" height="28" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="120" y="98" text-anchor="middle" fill="#e2e8f0" font-size="12">Recorded Video / CCTV Sim</text>
+  </g>
+
+  <!-- Layer 2: AI Engine -->
+  <g transform="translate(360, 100)">
+    <rect width="480" height="390" rx="12" fill="url(#boxGrad)" stroke="#38bdf8" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect width="480" height="32" rx="12" fill="#1e293b"/>
+    <text x="240" y="22" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="600">AI VIDEO INTELLIGENCE ENGINE (PYTHON)</text>
+
+    <!-- Sub-boxes -->
+    <rect x="20" y="45" width="200" height="50" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="120" y="66" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="600">Ingestion Thread</text>
+    <text x="120" y="83" text-anchor="middle" fill="#94a3b8" font-size="10">FPS Pacing &amp; Bounded Queues</text>
+
+    <rect x="260" y="45" width="200" height="50" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="360" y="66" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="600">Object Detection (YOLOv8s)</text>
+    <text x="360" y="83" text-anchor="middle" fill="#94a3b8" font-size="10">8.0ms Latency [p50] MPS / CUDA</text>
+
+    <rect x="20" y="110" width="200" height="50" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="120" y="131" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="600">ByteTrack Tracking</text>
+    <text x="120" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">Kalman State &amp; Foot-Point Coord</text>
+
+    <rect x="260" y="110" width="200" height="50" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="360" y="131" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="600">Spatial Analytics Engine</text>
+    <text x="360" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">Zones, Tripwires, Hysteresis</text>
+
+    <rect x="20" y="175" width="200" height="50" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="120" y="196" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="600">ANPR Consensus Pipeline</text>
+    <text x="120" y="213" text-anchor="middle" fill="#94a3b8" font-size="10">PP-OCRv6 + Dynamic Voting</text>
+
+    <rect x="260" y="175" width="200" height="50" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="360" y="196" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="600">Watchlist Verification</text>
+    <text x="360" y="213" text-anchor="middle" fill="#94a3b8" font-size="10">Postgres Look-Alike &amp; Fallback</text>
+
+    <rect x="20" y="240" width="200" height="50" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="120" y="261" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="600">Declarative Behaviour Engine</text>
+    <text x="120" y="278" text-anchor="middle" fill="#94a3b8" font-size="10">Rules R001-R005, Anti-Flood</text>
+
+    <rect x="260" y="240" width="200" height="50" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="360" y="261" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="600">Composite Threat Scoring</text>
+    <text x="360" y="278" text-anchor="middle" fill="#94a3b8" font-size="10">0-100 Sliding Decaying Window</text>
+
+    <rect x="140" y="310" width="200" height="50" rx="6" fill="#1e1b4b" stroke="#6366f1"/>
+    <text x="240" y="331" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="600">Evidence Snapshot Service</text>
+    <text x="240" y="348" text-anchor="middle" fill="#a5b4fc" font-size="10">Pre-Annotation JPEGs</text>
+  </g>
+
+  <!-- Connectors from Source to Engine -->
+  <path d="M 300 160 L 360 160" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 3: Persistence & Streaming -->
+  <g transform="translate(60, 520)">
+    <rect width="360" height="180" rx="12" fill="url(#boxGrad)" stroke="#10b981" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect width="360" height="32" rx="12" fill="#064e3b"/>
+    <text x="180" y="22" text-anchor="middle" fill="#6ee7b7" font-size="13" font-weight="600">DATA &amp; STREAMING PERSISTENCE TIER</text>
+
+    <rect x="20" y="45" width="320" height="34" rx="6" fill="#0f172a" stroke="#059669"/>
+    <text x="180" y="66" text-anchor="middle" fill="#a7f3d0" font-size="12">Redis Streams (surveillance.events &amp; alerts)</text>
+
+    <rect x="20" y="88" width="320" height="34" rx="6" fill="#0f172a" stroke="#059669"/>
+    <text x="180" y="109" text-anchor="middle" fill="#a7f3d0" font-size="12">Asynchronous Idempotent Sink Worker</text>
+
+    <rect x="20" y="132" width="320" height="34" rx="6" fill="#0f172a" stroke="#059669"/>
+    <text x="180" y="153" text-anchor="middle" fill="#a7f3d0" font-size="12">PostgreSQL 16 (001-008 Core Schema)</text>
+  </g>
+
+  <!-- Connector from Engine to Redis -->
+  <path d="M 600 490 L 600 560 L 420 560" stroke="#10b981" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 4: Backend Application -->
+  <g transform="translate(480, 520)">
+    <rect width="380" height="180" rx="12" fill="url(#boxGrad)" stroke="#818cf8" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect width="380" height="32" rx="12" fill="#312e81"/>
+    <text x="190" y="22" text-anchor="middle" fill="#c7d2fe" font-size="13" font-weight="600">BACKEND APPLICATION (FASTIFY V5 + TS)</text>
+
+    <rect x="20" y="45" width="340" height="34" rx="6" fill="#0f172a" stroke="#4f46e5"/>
+    <text x="190" y="66" text-anchor="middle" fill="#e0e7ff" font-size="12">REST API (Keyset Cursor Pagination &amp; RBAC)</text>
+
+    <rect x="20" y="88" width="340" height="34" rx="6" fill="#0f172a" stroke="#4f46e5"/>
+    <text x="190" y="109" text-anchor="middle" fill="#e0e7ff" font-size="12">Real-Time WebSocket Gateway (sub-50ms)</text>
+
+    <rect x="20" y="132" width="340" height="34" rx="6" fill="#0f172a" stroke="#4f46e5"/>
+    <text x="190" y="153" text-anchor="middle" fill="#e0e7ff" font-size="12">Cross-Camera Correlation &amp; Journey Graph</text>
+  </g>
+
+  <!-- Connectors between Persistence and Backend -->
+  <path d="M 420 620 L 480 620" stroke="#818cf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 5: Edge & UI -->
+  <g transform="translate(900, 100)">
+    <rect width="240" height="600" rx="12" fill="url(#boxGrad)" stroke="#f43f5e" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect width="240" height="32" rx="12" fill="#881337"/>
+    <text x="120" y="22" text-anchor="middle" fill="#fecdd3" font-size="13" font-weight="600">EDGE PROXY &amp; CLIENTS</text>
+
+    <rect x="20" y="55" width="200" height="70" rx="6" fill="#0f172a" stroke="#e11d48"/>
+    <text x="120" y="80" text-anchor="middle" fill="#ffe4e6" font-size="12" font-weight="600">Hardened Nginx Edge</text>
+    <text x="120" y="98" text-anchor="middle" fill="#fda4af" font-size="10">TLS 1.3, HTTP/2, CSP</text>
+    <text x="120" y="112" text-anchor="middle" fill="#fda4af" font-size="10">Unbuffered MJPEG Proxy</text>
+
+    <rect x="20" y="150" width="200" height="120" rx="6" fill="#0f172a" stroke="#e11d48"/>
+    <text x="120" y="175" text-anchor="middle" fill="#ffe4e6" font-size="12" font-weight="600">React 19 Command Center</text>
+    <text x="120" y="195" text-anchor="middle" fill="#94a3b8" font-size="10">- Live Multi-Camera Grid</text>
+    <text x="120" y="212" text-anchor="middle" fill="#94a3b8" font-size="10">- Instant Alert Toasts</text>
+    <text x="120" y="229" text-anchor="middle" fill="#94a3b8" font-size="10">- Forensic Investigation</text>
+    <text x="120" y="246" text-anchor="middle" fill="#94a3b8" font-size="10">- Vehicle Journey Map</text>
+
+    <rect x="20" y="300" width="200" height="70" rx="6" fill="#0f172a" stroke="#e11d48"/>
+    <text x="120" y="325" text-anchor="middle" fill="#ffe4e6" font-size="12" font-weight="600">Notification Channels</text>
+    <text x="120" y="342" text-anchor="middle" fill="#fda4af" font-size="10">Transactional Outbox</text>
+    <text x="120" y="356" text-anchor="middle" fill="#fda4af" font-size="10">SMTP Email + Deep Links</text>
+  </g>
+
+  <!-- Connectors from Backend/Proxy to Edge -->
+  <path d="M 860 610 L 900 610" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M 840 200 L 900 200" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Footer status badge -->
+  <rect x="420" y="830" width="360" height="30" rx="15" fill="#1e293b" stroke="#334155"/>
+  <circle cx="440" cy="845" r="5" fill="#10b981"/>
+  <text x="600" y="850" text-anchor="middle" fill="#94a3b8" font-size="12">Production Release v1.0.0 — All Systems Operational</text>
+</svg>
