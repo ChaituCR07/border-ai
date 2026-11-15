@@ -1,0 +1,36 @@
+Border-AI Video Intelligence Platform
+Copyright (c) 2026 Chaitanya Medam (ChaituCR07)
+
+This product includes software developed by the Border-AI project and third-party
+open-source projects under their respective licenses:
+
+1. Ultralytics YOLOv8
+   - Copyright (c) Ultralytics Inc.
+   - License: GNU Affero General Public License v3.0 (AGPL-3.0)
+   - Source: https://github.com/ultralytics/ultralytics
+
+2. PaddlePaddle & PaddleOCR
+   - Copyright (c) 2020 PaddlePaddle Authors.
+   - License: Apache License 2.0
+   - Source: https://github.com/PaddlePaddle/PaddleOCR
+
+3. ByteTrack
+   - Copyright (c) 2021 Yifu Zhang et al.
+   - License: MIT License
+   - Source: https://github.com/ifzhang/ByteTrack
+
+4. OpenCV (Open Source Computer Vision Library)
+   - Copyright (c) OpenCV Foundation.
+   - License: Apache License 2.0
+   - Source: https://opencv.org
+
+5. Fastify
+   - Copyright (c) Fastify Authors.
+   - License: MIT License
+   - Source: https://fastify.dev
+
+6. React & Vite
+   - Copyright (c) Meta Platforms, Inc. and Vite contributors.
+   - License: MIT License
+
+For complete third-party licensing disclosures, see THIRD_PARTY_LICENSES.md.
