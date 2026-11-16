@@ -57,6 +57,7 @@ async function run() {
   const pool = new Pool(resolveDatabaseConfig());
 
   const force = process.argv.includes('--force');
+  const ifNoneExists = process.argv.includes('--if-none-exists');
 
   try {
     const client = await pool.connect();
@@ -68,6 +69,10 @@ async function run() {
       const existingAdmins = countRes.rows[0]?.count ?? 0;
 
       if (existingAdmins > 0 && !force) {
+        if (ifNoneExists) {
+          console.log('[bootstrap] Active administrator already exists (--if-none-exists specified). Skipping.');
+          process.exit(0);
+        }
         console.error(
           `[bootstrap] ERROR: ${existingAdmins} active administrator(s) already exist. Use --force to proceed anyway.`
         );

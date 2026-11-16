@@ -86,7 +86,22 @@ def resolve_redis_url(cfg: EventsConfig) -> str:
         return url
     host = os.getenv("REDIS_HOST")
     if host:
+        user = os.getenv("REDIS_USER", "")
         password = os.getenv("REDIS_PASSWORD", "")
-        auth = f":{quote(password, safe='')}@" if password else ""
+        if not password:
+            pw_file = os.getenv("REDIS_PASSWORD_FILE")
+            if pw_file and os.path.exists(pw_file):
+                try:
+                    with open(pw_file, "r", encoding="utf-8") as f:
+                        password = f.read().strip()
+                except Exception:
+                    pass
+
+        if user and password:
+            auth = f"{quote(user, safe='')}:{quote(password, safe='')}@"
+        elif password:
+            auth = f":{quote(password, safe='')}@"
+        else:
+            auth = ""
         return f"redis://{auth}{host}:{os.getenv('REDIS_PORT', '6379')}/0"
     return cfg.redis_url

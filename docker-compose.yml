@@ -222,6 +222,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      bootstrap-admin:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     networks:
@@ -311,6 +313,8 @@ services:
     secrets:
       - pg_sink_password
       - redis_sink_password
+    volumes:
+      - ./configs:/configs:ro
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -318,6 +322,8 @@ services:
         condition: service_healthy
     networks:
       - data
+    healthcheck:
+      disable: true
     mem_limit: 512m
 
   retention:
@@ -328,6 +334,8 @@ services:
       dockerfile: docker/backend/Dockerfile
     <<: *hardened
     command: ["node", "dist/scripts/retention-loop.js"]
+    healthcheck:
+      disable: true
     environment:
       <<: *env
       DB_HOST: postgres
@@ -368,7 +376,7 @@ services:
     restart: unless-stopped
     init: true
     read_only: true
-    tmpfs: ["/tmp", "/var/cache/nginx"]
+    tmpfs: ["/tmp", "/var/cache/nginx:mode=1777", "/var/run"]
     cap_drop: ["ALL"]
     security_opt: ["no-new-privileges:true"]
     ports:

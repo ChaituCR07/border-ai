@@ -4,7 +4,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const argon2Async = util.promisify((crypto as any).argon2);
+const argon2Async: (...args: any[]) => Promise<Buffer> = (crypto as any).argon2
+  ? util.promisify((crypto as any).argon2)
+  : async () => {
+      throw new Error('crypto.argon2 is not supported in this Node environment');
+    };
 
 export interface Argon2Params {
   memory: number;      // in KiB (e.g. 19456 = 19 MiB)
