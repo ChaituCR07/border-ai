@@ -86,6 +86,7 @@ services:
 
   db-init:
     image: border-ai/backend:${IMAGE_TAG:-dev}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
@@ -110,6 +111,7 @@ services:
 
   migrate:
     image: border-ai/backend:${IMAGE_TAG:-dev}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
@@ -131,12 +133,14 @@ services:
 
   model-init:
     image: border-ai/ai-engine:${IMAGE_TAG:-dev}-${TORCH_VARIANT:-cpu}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/ai-engine/Dockerfile
       args:
         TORCH_VARIANT: ${TORCH_VARIANT:-cpu}
     <<: *hardened
+    user: "10001:10001"
     restart: "no"
     command: ["python", "-m", "engine.tools.fetch_models", "--manifest", "/configs/models.lock.json", "--dest", "/models"]
     environment:
@@ -150,6 +154,7 @@ services:
 
   bootstrap-admin:
     image: border-ai/backend:${IMAGE_TAG:-dev}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
@@ -174,6 +179,7 @@ services:
 
   backend:
     image: border-ai/backend:${IMAGE_TAG:-dev}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
@@ -228,6 +234,7 @@ services:
 
   ai-engine:
     image: border-ai/ai-engine:${IMAGE_TAG:-dev}-${TORCH_VARIANT:-cpu}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/ai-engine/Dockerfile
@@ -284,6 +291,7 @@ services:
 
   sink:
     image: border-ai/ai-engine:${IMAGE_TAG:-dev}-${TORCH_VARIANT:-cpu}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/ai-engine/Dockerfile
@@ -314,6 +322,7 @@ services:
 
   retention:
     image: border-ai/backend:${IMAGE_TAG:-dev}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
@@ -341,6 +350,7 @@ services:
 
   frontend:
     image: border-ai/frontend:${IMAGE_TAG:-dev}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/frontend/Dockerfile
@@ -396,6 +406,7 @@ services:
 
   cctv-sim:
     image: border-ai/sim:${IMAGE_TAG:-dev}
+    pull_policy: build
     build:
       context: .
       dockerfile: docker/sim/Dockerfile

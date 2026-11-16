@@ -94,13 +94,13 @@ quickstart:
 	@bash scripts/gen_certs.sh
 	@docker compose config -q
 	@echo "[QUICKSTART] Bringing up full container stack with healthcheck gating..."
-	@docker compose up -d --wait || (echo "[NOTE] Docker daemon not active or building locally." && exit 0)
+	@docker compose up -d --build --wait
 	@echo "=== Platform Ready ==="
 	@echo "Frontend & API Gateway: https://localhost:443 (or https://localhost:8443)"
 	@echo "Initial Root Admin Password: see secrets/bootstrap_admin_password"
 
 compose-up:
-	docker compose up -d --wait
+	docker compose up -d --build --wait
 
 compose-down:
 	docker compose down
@@ -147,5 +147,3 @@ reset-compose:
 		exit 1; \
 	fi
 	docker compose down -v
-
-

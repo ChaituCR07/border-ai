@@ -47,6 +47,9 @@ COPY --chown=10001:10001 engine/ /app/engine/
 COPY --chown=10001:10001 configs/ /app/configs.default/
 COPY --chmod=755 docker/ai-engine/entrypoint.sh /entrypoint.sh
 
+RUN mkdir -p /models /data/snapshots /data/journal && \
+    chown -R 10001:10001 /models /data
+
 USER 10001:10001
 EXPOSE 8001
 

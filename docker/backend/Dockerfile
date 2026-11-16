@@ -6,12 +6,17 @@ WORKDIR /app
 COPY backend/package.json backend/package-lock.json ./
 COPY shared/protocol /shared/protocol
 
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    (cd /shared/protocol && npm ci) && \
+    npm ci
 
 # Stage 2: Compilation & Build
 FROM deps AS build
 COPY backend/ ./
-RUN npm run build && npm prune --omit=dev
+RUN npm run build && \
+    npx esbuild scripts/db-init.ts scripts/migrate.ts scripts/create-admin.ts scripts/retention-loop.ts --bundle --outdir=dist/scripts --platform=node --format=esm --packages=external && \
+    (cd /shared/protocol && npm prune --omit=dev) && \
+    npm prune --omit=dev
 
 # Stage 3: Production Hardened Runtime
 FROM node:22-bookworm-slim AS runtime
@@ -26,6 +31,7 @@ RUN groupadd -g 10001 app && \
 WORKDIR /app
 
 # Copy production artifacts with unprivileged ownership
+COPY --from=build --chown=10001:10001 /shared/protocol /shared/protocol
 COPY --from=build --chown=10001:10001 /app/node_modules ./node_modules
 COPY --from=build --chown=10001:10001 /app/dist ./dist
 COPY --from=build --chown=10001:10001 /app/package.json ./package.json

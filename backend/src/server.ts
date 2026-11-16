@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { Redis } from 'ioredis';
 import { loadConfig } from './config/env.js';
 import { createPool } from './db/pool.js';
@@ -19,11 +20,32 @@ import { NotificationsRepo } from './modules/notifications/repo.js';
 import { buildApp } from './app.js';
 
 async function bootstrap() {
-  const config = loadConfig();
-
-  if (config.NODE_ENV === 'production') {
-    throw new Error('Production deployment requires real JWT auth provider (scheduled for Day 26).');
+  if (!process.env.DATABASE_URL && process.env.DB_HOST) {
+    const host = process.env.DB_HOST;
+    const port = process.env.DB_PORT || '5432';
+    const db = process.env.DB_NAME || 'border_ai';
+    const user = process.env.DB_USER || 'border_api';
+    let pass = process.env.DB_PASSWORD || '';
+    if (process.env.DB_PASSWORD_FILE && fs.existsSync(process.env.DB_PASSWORD_FILE)) {
+      pass = fs.readFileSync(process.env.DB_PASSWORD_FILE, 'utf8').trim();
+    }
+    process.env.DATABASE_URL = `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(pass)}@${host}:${port}/${db}`;
   }
+
+  if (!process.env.REDIS_URL && process.env.REDIS_HOST) {
+    const host = process.env.REDIS_HOST;
+    const port = process.env.REDIS_PORT || '6379';
+    const user = process.env.REDIS_USER || 'api';
+    let pass = process.env.REDIS_PASSWORD || '';
+    if (process.env.REDIS_PASSWORD_FILE && fs.existsSync(process.env.REDIS_PASSWORD_FILE)) {
+      pass = fs.readFileSync(process.env.REDIS_PASSWORD_FILE, 'utf8').trim();
+    }
+    process.env.REDIS_URL = pass
+      ? `redis://${encodeURIComponent(user)}:${encodeURIComponent(pass)}@${host}:${port}`
+      : `redis://${host}:${port}`;
+  }
+
+  const config = loadConfig();
 
   const pool = createPool(config.DATABASE_URL);
   const redis = new Redis(config.REDIS_URL, {

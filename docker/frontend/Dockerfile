@@ -6,7 +6,9 @@ WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json ./
 COPY shared/protocol /shared/protocol
 
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    (cd /shared/protocol && npm ci) && \
+    npm ci
 
 COPY frontend/ ./
 RUN npm run build
