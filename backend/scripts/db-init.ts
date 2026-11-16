@@ -68,26 +68,63 @@ async function main() {
     await client.query(`
       GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO border_api;
       GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO border_api;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO border_api;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO border_api;
     `);
 
     // 3. border_engine grants: Cameras, configs, rules ONLY. STRICTLY NO access to users/sessions!
     await client.query(`
       REVOKE ALL ON ALL TABLES IN SCHEMA public FROM border_engine;
-      GRANT SELECT ON TABLE cameras, config_versions TO border_engine;
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'cameras') THEN
+          GRANT SELECT ON TABLE cameras TO border_engine;
+        END IF;
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'config_versions') THEN
+          GRANT SELECT ON TABLE config_versions TO border_engine;
+        END IF;
+      END $$;
     `);
 
     // 4. border_sink grants: Ingestion sink inserting events and detections. NO access to users/sessions!
     await client.query(`
       REVOKE ALL ON ALL TABLES IN SCHEMA public FROM border_sink;
-      GRANT INSERT, SELECT ON TABLE events, alerts, camera_status, api_audit_log TO border_sink;
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'events') THEN
+          GRANT INSERT, SELECT ON TABLE events TO border_sink;
+        END IF;
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'alerts') THEN
+          GRANT INSERT, SELECT ON TABLE alerts TO border_sink;
+        END IF;
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'camera_status') THEN
+          GRANT INSERT, SELECT ON TABLE camera_status TO border_sink;
+        END IF;
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'api_audit_log') THEN
+          GRANT INSERT, SELECT ON TABLE api_audit_log TO border_sink;
+        END IF;
+      END $$;
       GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO border_sink;
     `);
 
     // 5. border_retention grants: Pruning expired records + auditing
     await client.query(`
       REVOKE ALL ON ALL TABLES IN SCHEMA public FROM border_retention;
-      GRANT SELECT, DELETE ON TABLE events, alerts, camera_status TO border_retention;
-      GRANT INSERT, SELECT ON TABLE api_audit_log TO border_retention;
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'events') THEN
+          GRANT SELECT, DELETE ON TABLE events TO border_retention;
+        END IF;
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'alerts') THEN
+          GRANT SELECT, DELETE ON TABLE alerts TO border_retention;
+        END IF;
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'camera_status') THEN
+          GRANT SELECT, DELETE ON TABLE camera_status TO border_retention;
+        END IF;
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'api_audit_log') THEN
+          GRANT INSERT, SELECT ON TABLE api_audit_log TO border_retention;
+        END IF;
+      END $$;
       GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO border_retention;
     `);
 

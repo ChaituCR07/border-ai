@@ -1,8 +1,8 @@
 # Production CPU dependencies for Border-AI Engine
 --extra-index-url https://download.pytorch.org/whl/cpu
 
-torch==2.6.0+cpu
-torchvision==0.21.0+cpu
+torch==2.6.0
+torchvision==0.21.0
 ultralytics>=8.2.0
 opencv-python-headless>=4.10.0
 numpy>=1.26.0

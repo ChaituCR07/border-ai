@@ -21,7 +21,7 @@ rand_base64() {
 
 gen_secret() {
   local name="$1"
-  if [[ -f "${name}" && "${FORCE:-0}" != "1" ]]; then
+  if [[ -s "${name}" && "${FORCE:-0}" != "1" ]]; then
     echo "[SECRETS] ${name} already exists (skipping, set FORCE=1 to overwrite)"
   else
     rand_base64 > "${name}"
@@ -47,7 +47,7 @@ for s in password_pepper internal_token mediamtx_publish_password mediamtx_read_
 done
 
 # 4. Master Vault Key (32 bytes hex = 64 characters)
-if [[ -f "master_key" && "${FORCE:-0}" != "1" ]]; then
+if [[ -s "master_key" && "${FORCE:-0}" != "1" ]]; then
   echo "[SECRETS] master_key already exists (skipping)"
 else
   if command -v node >/dev/null 2>&1; then
@@ -61,7 +61,7 @@ else
 fi
 
 # 5. Ed25519 JWT Signing Key
-if [[ -f "jwt_private_key" && "${FORCE:-0}" != "1" ]]; then
+if [[ -s "jwt_private_key" && "${FORCE:-0}" != "1" ]]; then
   echo "[SECRETS] jwt_private_key already exists (skipping)"
 else
   node -e "
@@ -75,7 +75,7 @@ else
 fi
 
 # 6. Bootstrap Administrator Password
-if [[ -f "bootstrap_admin_password" && "${FORCE:-0}" != "1" ]]; then
+if [[ -s "bootstrap_admin_password" && "${FORCE:-0}" != "1" ]]; then
   echo "[SECRETS] bootstrap_admin_password already exists (skipping)"
 else
   rand_base64 > bootstrap_admin_password

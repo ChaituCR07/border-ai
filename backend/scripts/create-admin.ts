@@ -26,15 +26,38 @@ async function promptInput(query: string, hide = false): Promise<string> {
   }
 }
 
+function resolveDatabaseConfig(): pg.PoolConfig {
+  if (process.env.DATABASE_URL) {
+    return { connectionString: process.env.DATABASE_URL };
+  }
+
+  const host = process.env.DB_HOST || 'localhost';
+  const port = Number(process.env.DB_PORT || 5432);
+  const database = process.env.DB_NAME || 'border_ai';
+  const user = process.env.DB_USER || 'border_api';
+
+  let password = process.env.DB_PASSWORD || '';
+  if (process.env.DB_PASSWORD_FILE && fs.existsSync(process.env.DB_PASSWORD_FILE)) {
+    password = fs.readFileSync(process.env.DB_PASSWORD_FILE, 'utf8').trim();
+  } else if (!password) {
+    const apiSecret = '/run/secrets/pg_api_password';
+    if (fs.existsSync(apiSecret)) {
+      password = fs.readFileSync(apiSecret, 'utf8').trim();
+    } else {
+      password = 'postgres';
+    }
+  }
+
+  return { host, port, database, user, password };
+}
+
 async function run() {
   console.log('=== Border-AI First-Admin Bootstrap CLI ===');
 
-  const pool = new Pool({
-    connectionString:
-      process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/border_ai',
-  });
+  const pool = new Pool(resolveDatabaseConfig());
 
   const force = process.argv.includes('--force');
+  const ifNoneExists = process.argv.includes('--if-none-exists');
 
   try {
     const client = await pool.connect();
@@ -46,6 +69,10 @@ async function run() {
       const existingAdmins = countRes.rows[0]?.count ?? 0;
 
       if (existingAdmins > 0 && !force) {
+        if (ifNoneExists) {
+          console.log('[bootstrap] Active administrator already exists (--if-none-exists specified). Skipping.');
+          process.exit(0);
+        }
         console.error(
           `[bootstrap] ERROR: ${existingAdmins} active administrator(s) already exist. Use --force to proceed anyway.`
         );
